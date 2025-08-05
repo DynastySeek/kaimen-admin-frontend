@@ -1,7 +1,11 @@
 #!/usr/bin/env node
 
-const fs = require('fs')
-const path = require('path')
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 /**
  * 递归获取目录下所有文件
@@ -114,11 +118,10 @@ function main() {
 }
 
 // 运行脚本
-if (require.main === module) {
-  main()
-}
+main()
 
-module.exports = {
+// ES模块导出
+export {
   getAllFiles,
   removeJSComments,
   removeVueComments,
