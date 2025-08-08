@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { request } from '@/utils';
+import { request } from './request';
 
 export default {
   // 获取用户信息
