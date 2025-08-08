@@ -1,5 +1,3 @@
-
-
 <template>
   <n-menu
     ref="menu"
