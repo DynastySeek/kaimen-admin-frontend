@@ -1,5 +1,3 @@
-
-
 <template>
   <span class="flex items-center">
     <n-popover v-if="content" trigger="hover">
@@ -22,5 +20,5 @@ defineProps({
     type: String,
     default: '',
   },
-})
+});
 </script>

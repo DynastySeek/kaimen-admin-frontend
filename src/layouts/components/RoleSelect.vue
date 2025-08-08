@@ -1,5 +1,3 @@
-
-
 <template>
   <MeModal ref="modalRef" title="请选择角色" width="360px" class="p-12">
     <n-radio-group v-model:value="roleCode" class="cus-scroll-y max-h-420 w-full py-16">
@@ -37,48 +35,47 @@
 </template>
 
 <script setup>
-import api from '@/api'
-import { MeModal } from '@/components'
-import { useModal } from '@/composables'
-import { useAuthStore, useUserStore } from '@/store'
+import api from '@/api';
+import { MeModal } from '@/components';
+import { useModal } from '@/composables';
+import { useAuthStore, useUserStore } from '@/store';
 
-const userStore = useUserStore()
-const authStore = useAuthStore()
+const userStore = useUserStore();
+const authStore = useAuthStore();
 
-const roles = ref(userStore.roles || [])
-const roleCode = ref(userStore.currentRole?.code ?? roles.value[0]?.code ?? '')
+const roles = ref(userStore.roles || []);
+const roleCode = ref(userStore.currentRole?.code ?? roles.value[0]?.code ?? '');
 
-const [modalRef, okLoading] = useModal()
+const [modalRef, okLoading] = useModal();
 function open(options) {
   modalRef.value?.open({
     ...options,
-  })
+  });
 }
 
 async function setCurrentRole() {
   try {
-    okLoading.value = true
-    const { data } = await api.switchCurrentRole(roleCode.value)
-    await authStore.switchCurrentRole(data)
-    okLoading.value = false
-    $message.success('切换成功')
-    modalRef.value?.handleOk()
-  }
-  catch (error) {
-    console.error(error)
-    okLoading.value = false
-    return false
+    okLoading.value = true;
+    const { data } = await api.switchCurrentRole(roleCode.value);
+    await authStore.switchCurrentRole(data);
+    okLoading.value = false;
+    $message.success('切换成功');
+    modalRef.value?.handleOk();
+  } catch (error) {
+    console.error(error);
+    okLoading.value = false;
+    return false;
   }
 }
 
 async function logout() {
-  await api.logout()
-  authStore.logout()
-  modalRef.value?.close()
-  $message.success('已退出登录')
+  await api.logout();
+  authStore.logout();
+  modalRef.value?.close();
+  $message.success('已退出登录');
 }
 
 defineExpose({
   open,
-})
+});
 </script>

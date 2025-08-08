@@ -1,6 +1,4 @@
-
-
-import { request } from '@/utils'
+import { request } from '@/utils';
 
 export default {
   create: data => request.post('/user', data),
@@ -10,4 +8,4 @@ export default {
   resetPwd: (id, data) => request.patch(`/user/password/reset/${id}`, data),
 
   getAllRoles: () => request.get('/role?enable=1'),
-}
+};

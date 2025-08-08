@@ -1,6 +1,4 @@
-
-
-import { request } from '@/utils'
+import { request } from '@/utils';
 
 export default {
   // 获取用户信息
@@ -15,4 +13,4 @@ export default {
   getRolePermissions: () => request.get('/role/permissions/tree'),
   // 验证菜单路径
   validateMenuPath: path => request.get(`/permission/menu/validate?path=${path}`),
-}
+};

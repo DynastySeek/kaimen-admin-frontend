@@ -1,5 +1,3 @@
-
-
 <template>
   <div>
     <n-tooltip trigger="hover" placement="left">
@@ -87,10 +85,10 @@
 </template>
 
 <script setup>
-import { MeModal } from '@/components'
-import { useModal } from '@/composables'
-import { useAppStore } from '@/store'
+import { MeModal } from '@/components';
+import { useModal } from '@/composables';
+import { useAppStore } from '@/store';
 
-const appStore = useAppStore()
-const [modalRef] = useModal()
+const appStore = useAppStore();
+const [modalRef] = useModal();
 </script>

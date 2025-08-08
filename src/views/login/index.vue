@@ -93,88 +93,86 @@
 </template>
 
 <script setup>
-import { useStorage } from '@vueuse/core'
-import { useAuthStore } from '@/store'
-import { lStorage, throttle } from '@/utils'
-import api from './api'
+import { useStorage } from '@vueuse/core';
+import { useAuthStore } from '@/store';
+import { lStorage, throttle } from '@/utils';
+import api from './api';
 
-const authStore = useAuthStore()
-const router = useRouter()
-const route = useRoute()
-const title = import.meta.env.VITE_TITLE
+const authStore = useAuthStore();
+const router = useRouter();
+const route = useRoute();
+const title = import.meta.env.VITE_TITLE;
 
 const loginInfo = ref({
   username: '',
   password: '',
-})
+});
 
-const captchaUrl = ref('')
+const captchaUrl = ref('');
 const initCaptcha = throttle(() => {
-  captchaUrl.value = `${import.meta.env.VITE_AXIOS_BASE_URL}/auth/captcha?${Date.now()}`
-}, 500)
+  captchaUrl.value = `${import.meta.env.VITE_AXIOS_BASE_URL}/auth/captcha?${Date.now()}`;
+}, 500);
 
-const localLoginInfo = lStorage.get('loginInfo')
+const localLoginInfo = lStorage.get('loginInfo');
 if (localLoginInfo) {
-  loginInfo.value.username = localLoginInfo.username || ''
-  loginInfo.value.password = localLoginInfo.password || ''
+  loginInfo.value.username = localLoginInfo.username || '';
+  loginInfo.value.password = localLoginInfo.password || '';
 }
-initCaptcha()
+initCaptcha();
 
 function quickLogin() {
-  loginInfo.value.username = 'admin'
-  loginInfo.value.password = '123456'
-  handleLogin(true)
+  loginInfo.value.username = 'admin';
+  loginInfo.value.password = '123456';
+  handleLogin(true);
 }
 
-const isRemember = useStorage('isRemember', true)
-const loading = ref(false)
+const isRemember = useStorage('isRemember', true);
+const loading = ref(false);
 async function handleLogin(isQuick) {
-  const { username, password, captcha } = loginInfo.value
-  if (!username || !password)
-    return $message.warning('请输入用户名和密码')
-  if (!isQuick && !captcha)
-    return $message.warning('请输入验证码')
-  try {
-    loading.value = true
-    $message.loading('正在验证，请稍后...', { key: 'login' })
-    const { data } = await api.login({ username, password: password.toString(), captcha, isQuick })
-    if (isRemember.value) {
-      lStorage.set('loginInfo', { username, password })
-    }
-    else {
-      lStorage.remove('loginInfo')
-    }
-    onLoginSuccess(data)
+  const { username, password, captcha } = loginInfo.value;
+  if (!username || !password) {
+    return $message.warning('请输入用户名和密码');
   }
-  catch (error) {
+  if (!isQuick && !captcha) {
+    return $message.warning('请输入验证码');
+  }
+  try {
+    loading.value = true;
+    $message.loading('正在验证，请稍后...', { key: 'login' });
+    const { data } = await api.login({ username, password: password.toString(), captcha, isQuick });
+    if (isRemember.value) {
+      lStorage.set('loginInfo', { username, password });
+    } else {
+      lStorage.remove('loginInfo');
+    }
+    onLoginSuccess(data);
+  } catch (error) {
     // 10003为验证码错误专属业务码
     if (error?.code === 10003) {
       // 为防止爆破，验证码错误则刷新验证码
-      initCaptcha()
+      initCaptcha();
     }
-    $message.destroy('login')
-    console.error(error)
+    $message.destroy('login');
+    console.error(error);
   }
-  loading.value = false
+  loading.value = false;
 }
 
 async function onLoginSuccess(data = {}) {
-  authStore.setToken(data)
-  $message.loading('登录中...', { key: 'login' })
+  authStore.setToken(data);
+  $message.loading('登录中...', { key: 'login' });
   try {
-    $message.success('登录成功', { key: 'login' })
+    $message.success('登录成功', { key: 'login' });
     if (route.query.redirect) {
-      const path = route.query.redirect
-      delete route.query.redirect
-      router.push({ path, query: route.query })
+      const path = route.query.redirect;
+      delete route.query.redirect;
+      router.push({ path, query: route.query });
+    } else {
+      router.push('/');
     }
-    else {
-      router.push('/')
-    }
-  }
-  catch (error) {
-    console.error(error)
-    $message.destroy('login')
+  } catch (error) {
+    console.error(error);
+    $message.destroy('login');
   }
 }
 </script>

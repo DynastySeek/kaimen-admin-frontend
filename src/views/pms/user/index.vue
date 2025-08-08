@@ -1,5 +1,3 @@
-
-
 <template>
   <CommonPage>
     <template #action>
@@ -104,29 +102,29 @@
 </template>
 
 <script setup>
-import { NAvatar, NButton, NSwitch, NTag } from 'naive-ui'
-import { MeCrud, MeModal, MeQueryItem } from '@/components'
-import { useCrud } from '@/composables'
-import { withPermission } from '@/directives'
-import { formatDateTime } from '@/utils'
-import api from './api'
+import { NAvatar, NButton, NSwitch, NTag } from 'naive-ui';
+import { MeCrud, MeModal, MeQueryItem } from '@/components';
+import { useCrud } from '@/composables';
+import { withPermission } from '@/directives';
+import { formatDateTime } from '@/utils';
+import api from './api';
 
-defineOptions({ name: 'UserMgt' })
+defineOptions({ name: 'UserMgt' });
 
-const $table = ref(null)
+const $table = ref(null);
 /** QueryBar筛选参数（可选） */
-const queryItems = ref({})
+const queryItems = ref({});
 
 onMounted(() => {
-  $table.value?.handleSearch()
-})
+  $table.value?.handleSearch();
+});
 
 const genders = [
   { label: '男', value: 1 },
   { label: '女', value: 2 },
-]
-const roles = ref([])
-api.getAllRoles().then(({ data = [] }) => (roles.value = data))
+];
+const roles = ref([]);
+api.getAllRoles().then(({ data = [] }) => (roles.value = data));
 
 const {
   modalRef,
@@ -144,7 +142,7 @@ const {
   doDelete: api.delete,
   doUpdate: api.update,
   refresh: () => $table.value?.handleSearch(),
-})
+});
 
 const columns = [
   {
@@ -171,9 +169,9 @@ const columns = [
             { type: 'success', style: index > 0 ? 'margin-left: 8px;' : '' },
             { default: () => item.name },
           ),
-        )
+        );
       }
-      return '暂无角色'
+      return '暂无角色';
     },
   },
   {
@@ -188,7 +186,7 @@ const columns = [
     key: 'createDate',
     width: 180,
     render(row) {
-      return h('span', formatDateTime(row.createTime))
+      return h('span', formatDateTime(row.createTime));
     },
   },
   {
@@ -272,33 +270,32 @@ const columns = [
             icon: () => h('i', { class: 'i-material-symbols:delete-outline text-14' }),
           },
         ),
-      ]
+      ];
     },
   },
-]
+];
 
 async function handleEnable(row) {
-  row.enableLoading = true
+  row.enableLoading = true;
   try {
-    await api.update({ id: row.id, enable: !row.enable })
-    row.enableLoading = false
-    $message.success('操作成功')
-    $table.value?.handleSearch()
-  }
-  catch (error) {
-    console.error(error)
-    row.enableLoading = false
+    await api.update({ id: row.id, enable: !row.enable });
+    row.enableLoading = false;
+    $message.success('操作成功');
+    $table.value?.handleSearch();
+  } catch (error) {
+    console.error(error);
+    row.enableLoading = false;
   }
 }
 
 function handleOpenRolesSet(row) {
-  const roleIds = row.roles.map(item => item.id)
+  const roleIds = row.roles.map(item => item.id);
   handleOpen({
     action: 'setRole',
     title: '分配角色',
     row: { id: row.id, username: row.username, roleIds },
     onOk: onSave,
-  })
+  });
 }
 
 function onSave() {
@@ -306,14 +303,13 @@ function onSave() {
     return handleSave({
       api: () => api.update(modalForm.value),
       cb: () => $message.success('分配成功'),
-    })
-  }
-  else if (modalAction.value === 'reset') {
+    });
+  } else if (modalAction.value === 'reset') {
     return handleSave({
       api: () => api.resetPwd(modalForm.value.id, modalForm.value),
       cb: () => $message.success('密码重置成功'),
-    })
+    });
   }
-  handleSave()
+  handleSave();
 }
 </script>

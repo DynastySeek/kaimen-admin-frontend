@@ -1,5 +1,3 @@
-
-
 <template>
   <div class="flex items-center">
     <label v-if="label || label === 0" class="flex-shrink-0" :style="{ width: `${labelWidth}px` }">
@@ -25,5 +23,5 @@ defineProps({
     type: Number,
     default: 220,
   },
-})
+});
 </script>

@@ -1,5 +1,3 @@
-
-
 <template>
   <CommonPage :show-header="false">
     <div class="wh-full flex">
@@ -24,15 +22,14 @@
 </template>
 
 <script setup>
-const router = useRouter()
-const route = useRoute()
+const router = useRouter();
+const route = useRoute();
 
-const back = history.state.back
+const back = history.state.back;
 
 if (history.state.from === 'permission-guard') {
-  delete history.state.from
-}
-else if (route.query.path) {
-  router.replace(route.query.path)
+  delete history.state.from;
+} else if (route.query.path) {
+  router.replace(route.query.path);
 }
 </script>

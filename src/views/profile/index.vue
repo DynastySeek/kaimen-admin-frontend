@@ -1,5 +1,3 @@
-
-
 <template>
   <AppPage show-footer>
     <n-card>
@@ -99,63 +97,63 @@
 </template>
 
 <script setup>
-import { MeModal } from '@/components'
-import { useForm, useModal } from '@/composables'
-import { useUserStore } from '@/store'
-import { getUserInfo } from '@/store/helper'
-import api from './api'
+import { MeModal } from '@/components';
+import { useForm, useModal } from '@/composables';
+import { useUserStore } from '@/store';
+import { getUserInfo } from '@/store/helper';
+import api from './api';
 
-const userStore = useUserStore()
+const userStore = useUserStore();
 const required = {
   required: true,
   message: '此为必填项',
   trigger: ['blur', 'change'],
-}
+};
 
-const [pwdModalRef] = useModal()
-const [pwdFormRef, pwdForm, pwdValidation] = useForm()
+const [pwdModalRef] = useModal();
+const [pwdFormRef, pwdForm, pwdValidation] = useForm();
 
 async function handlePwdSave() {
-  await pwdValidation()
-  await api.changePassword(pwdForm.value)
-  $message.success('密码修改成功')
-  refreshUserInfo()
+  await pwdValidation();
+  await api.changePassword(pwdForm.value);
+  $message.success('密码修改成功');
+  refreshUserInfo();
 }
 
-const newAvatar = ref(userStore.avatar)
-const [avatarModalRef] = useModal()
+const newAvatar = ref(userStore.avatar);
+const [avatarModalRef] = useModal();
 async function handleAvatarSave() {
   if (!newAvatar.value) {
-    $message.error('请输入头像地址')
-    return false
+    $message.error('请输入头像地址');
+    return false;
   }
-  await api.updateProfile({ id: userStore.userId, avatar: newAvatar.value })
-  $message.success('头像修改成功')
-  refreshUserInfo()
+  await api.updateProfile({ id: userStore.userId, avatar: newAvatar.value });
+  $message.success('头像修改成功');
+  refreshUserInfo();
 }
 
 const genders = [
   { label: '保密', value: 0 },
   { label: '男', value: 1 },
   { label: '女', value: 2 },
-]
-const [profileModalRef] = useModal()
+];
+const [profileModalRef] = useModal();
 const [profileFormRef, profileForm, profileValidation] = useForm({
   id: userStore.userId,
   nickName: userStore.nickName,
   gender: userStore.userInfo?.gender ?? 0,
   address: userStore.userInfo?.address,
   email: userStore.userInfo?.email,
-})
+});
 async function handleProfileSave() {
-  await profileValidation()
-  await api.updateProfile(profileForm.value)
-  $message.success('资料修改成功')
-  refreshUserInfo()
+  await profileValidation();
+  await api.updateProfile(profileForm.value);
+  $message.success('资料修改成功');
+  refreshUserInfo();
 }
 
 async function refreshUserInfo() {
-  const user = await getUserInfo()
-  userStore.setUser(user)
+  const user = await getUserInfo();
+  userStore.setUser(user);
 }
 </script>

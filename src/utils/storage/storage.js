@@ -1,15 +1,13 @@
-
-
-import { isNullOrUndef } from '@/utils'
+import { isNullOrUndef } from '@/utils';
 
 class Storage {
   constructor(option) {
-    this.storage = option.storage
-    this.prefixKey = option.prefixKey
+    this.storage = option.storage;
+    this.prefixKey = option.prefixKey;
   }
 
   getKey(key) {
-    return `${this.prefixKey}${key}`.toLowerCase()
+    return `${this.prefixKey}${key}`.toLowerCase();
   }
 
   set(key, value, expire) {
@@ -17,44 +15,44 @@ class Storage {
       value,
       time: Date.now(),
       expire: !isNullOrUndef(expire) ? new Date().getTime() + expire * 1000 : null,
-    })
-    this.storage.setItem(this.getKey(key), stringData)
+    });
+    this.storage.setItem(this.getKey(key), stringData);
   }
 
   get(key) {
-    const { value } = this.getItem(key, {})
-    return value
+    const { value } = this.getItem(key, {});
+    return value;
   }
 
   getItem(key, def = null) {
-    const val = this.storage.getItem(this.getKey(key))
-    if (!val)
-      return def
-    try {
-      const data = JSON.parse(val)
-      const { value, time, expire } = data
-      if (isNullOrUndef(expire) || expire > new Date().getTime()) {
-        return { value, time }
-      }
-      this.remove(key)
-      return def
+    const val = this.storage.getItem(this.getKey(key));
+    if (!val) {
+      return def;
     }
-    catch (error) {
-      console.error(error)
-      this.remove(key)
-      return def
+    try {
+      const data = JSON.parse(val);
+      const { value, time, expire } = data;
+      if (isNullOrUndef(expire) || expire > new Date().getTime()) {
+        return { value, time };
+      }
+      this.remove(key);
+      return def;
+    } catch (error) {
+      console.error(error);
+      this.remove(key);
+      return def;
     }
   }
 
   remove(key) {
-    this.storage.removeItem(this.getKey(key))
+    this.storage.removeItem(this.getKey(key));
   }
 
   clear() {
-    this.storage.clear()
+    this.storage.clear();
   }
 }
 
 export function createStorage({ prefixKey = '', storage = sessionStorage }) {
-  return new Storage({ prefixKey, storage })
+  return new Storage({ prefixKey, storage });
 }

@@ -8,19 +8,19 @@
 </template>
 
 <script setup>
-import { useDark, useToggle } from '@vueuse/core'
-import { useAppStore } from '@/store'
+import { useDark, useToggle } from '@vueuse/core';
+import { useAppStore } from '@/store';
 
-const appStore = useAppStore()
-const isDark = useDark()
+const appStore = useAppStore();
+const isDark = useDark();
 async function toggleDark({ clientX, clientY }) {
   function handler() {
-    appStore.toggleDark()
-    useToggle(isDark)()
+    appStore.toggleDark();
+    useToggle(isDark)();
   }
 
   if (!document.startViewTransition) {
-    return handler()
+    return handler();
   }
 
   const clipPath = [
@@ -29,9 +29,9 @@ async function toggleDark({ clientX, clientY }) {
       Math.max(clientX, window.innerWidth - clientX),
       Math.max(clientY, window.innerHeight - clientY),
     )}px at ${clientX}px ${clientY}px)`,
-  ]
+  ];
 
-  await document.startViewTransition(handler).ready
+  await document.startViewTransition(handler).ready;
 
   document.documentElement.animate(
     { clipPath: isDark.value ? clipPath.reverse() : clipPath },
@@ -40,6 +40,6 @@ async function toggleDark({ clientX, clientY }) {
       easing: 'ease-in',
       pseudoElement: `::view-transition-${isDark.value ? 'old' : 'new'}(root)`,
     },
-  )
+  );
 }
 </script>

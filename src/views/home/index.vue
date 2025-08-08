@@ -151,15 +151,15 @@
 </template>
 
 <script setup>
-import { BarChart, LineChart, PieChart } from 'echarts/charts'
-import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
-import * as echarts from 'echarts/core'
-import { UniversalTransition } from 'echarts/features'
-import { CanvasRenderer } from 'echarts/renderers'
-import VChart from 'vue-echarts'
-import { useUserStore } from '@/store'
+import { BarChart, LineChart, PieChart } from 'echarts/charts';
+import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components';
+import * as echarts from 'echarts/core';
+import { UniversalTransition } from 'echarts/features';
+import { CanvasRenderer } from 'echarts/renderers';
+import VChart from 'vue-echarts';
+import { useUserStore } from '@/store';
 
-const userStore = useUserStore()
+const userStore = useUserStore();
 
 echarts.use([
   TooltipComponent,
@@ -170,7 +170,7 @@ echarts.use([
   CanvasRenderer,
   UniversalTransition,
   PieChart,
-])
+]);
 
 const trendOption = {
   tooltip: {
@@ -228,13 +228,13 @@ const trendOption = {
       data: [40, 72, 110, 115, 121, 175, 180, 201, 260, 398, 423, 455],
     },
   ],
-}
+};
 
 const skillOption = {
   tooltip: {
     trigger: 'item',
     formatter({ name, value }) {
-      return `${name} ${value}%`
+      return `${name} ${value}%`;
     },
   },
   legend: {
@@ -274,5 +274,5 @@ const skillOption = {
       ],
     },
   ],
-}
+};
 </script>

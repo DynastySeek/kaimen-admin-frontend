@@ -1,5 +1,3 @@
-
-
 <template>
   <CommonPage back>
     <template #title-suffix>
@@ -61,27 +59,27 @@
 </template>
 
 <script setup>
-import { NAvatar, NButton, NSwitch, NTag } from 'naive-ui'
-import { h } from 'vue'
-import { MeCrud, MeQueryItem } from '@/components'
-import { formatDateTime } from '@/utils'
-import api from './api'
+import { NAvatar, NButton, NSwitch, NTag } from 'naive-ui';
+import { h } from 'vue';
+import { MeCrud, MeQueryItem } from '@/components';
+import { formatDateTime } from '@/utils';
+import api from './api';
 
-defineOptions({ name: 'RoleUser' })
-const route = useRoute()
+defineOptions({ name: 'RoleUser' });
+const route = useRoute();
 
-const $table = ref(null)
+const $table = ref(null);
 /** QueryBar筛选参数（可选） */
-const queryItems = ref({})
+const queryItems = ref({});
 
 onMounted(() => {
-  $table.value?.handleSearch()
-})
+  $table.value?.handleSearch();
+});
 
 const genders = [
   { label: '男', value: 1 },
   { label: '女', value: 2 },
-]
+];
 
 const columns = [
   { type: 'selection', fixed: 'left' },
@@ -109,9 +107,9 @@ const columns = [
             { type: 'success', style: index > 0 ? 'margin-left: 8px;' : '' },
             { default: () => item.name },
           ),
-        )
+        );
       }
-      return '暂无角色'
+      return '暂无角色';
     },
   },
   {
@@ -125,7 +123,7 @@ const columns = [
     key: 'createDate',
     width: 180,
     render(row) {
-      return h('span', formatDateTime(row.createTime))
+      return h('span', formatDateTime(row.createTime));
     },
   },
   {
@@ -181,42 +179,46 @@ const columns = [
               default: () => '授权',
               icon: () => h('i', { class: 'i-line-md:confirm-circle text-14' }),
             },
-          )
+          );
     },
   },
-]
+];
 
-const userIds = ref([])
+const userIds = ref([]);
 function onChecked(rowKeys) {
-  userIds.value = rowKeys || []
+  userIds.value = rowKeys || [];
 }
 
 function handleBatchAdd(ids = userIds.value) {
-  const roleId = route.params.roleId
-  if (!roleId)
-    return $message.error('角色异常，请重新选择角色')
-  if (!ids.length)
-    return $message.error('请先选择用户')
+  const roleId = route.params.roleId;
+  if (!roleId) {
+    return $message.error('角色异常，请重新选择角色');
+  }
+  if (!ids.length) {
+    return $message.error('请先选择用户');
+  }
   $dialog.confirm({
     content: `确认分配【${route.query.roleName}】？`,
     async confirm() {
-      await api.addRoleUsers(roleId, { userIds: ids })
-      $table.value?.handleSearch()
+      await api.addRoleUsers(roleId, { userIds: ids });
+      $table.value?.handleSearch();
     },
-  })
+  });
 }
 function handleBatchRemove(ids = userIds.value) {
-  const roleId = route.params.roleId
-  if (!roleId)
-    return $message.error('角色异常，请重新选择角色')
-  if (!ids.length)
-    return $message.error('请先选择用户')
+  const roleId = route.params.roleId;
+  if (!roleId) {
+    return $message.error('角色异常，请重新选择角色');
+  }
+  if (!ids.length) {
+    return $message.error('请先选择用户');
+  }
   $dialog.confirm({
     content: `确认取消分配【${route.query.roleName}】？`,
     async confirm() {
-      await api.removeRoleUsers(roleId, { userIds: ids })
-      $table.value?.handleSearch()
+      await api.removeRoleUsers(roleId, { userIds: ids });
+      $table.value?.handleSearch();
     },
-  })
+  });
 }
 </script>

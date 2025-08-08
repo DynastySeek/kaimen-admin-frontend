@@ -19,35 +19,38 @@
 </template>
 
 <script setup>
-import { darkTheme, dateZhCN, zhCN } from 'naive-ui'
-import { useAppStore, useTabStore } from '@/store'
+import { darkTheme, dateZhCN, zhCN } from 'naive-ui';
+import { useAppStore, useTabStore } from '@/store';
 
-const layouts = new Map()
+const layouts = new Map();
 function getLayout(name) {
   // 利用map将加载过的layout缓存起来，防止重新加载layout导致页面闪烁
-  if (layouts.get(name))
-    return layouts.get(name)
-  const layout = markRaw(defineAsyncComponent(() => import(`@/layouts/${name}/index.vue`)))
-  layouts.set(name, layout)
-  return layout
+  if (layouts.get(name)) {
+    return layouts.get(name);
+  }
+  const layout = markRaw(defineAsyncComponent(() => import(`@/layouts/${name}/index.vue`)));
+  layouts.set(name, layout);
+  return layout;
 }
 
-const route = useRoute()
-const appStore = useAppStore()
-if (appStore.layout === 'default')
-  appStore.setLayout('')
+const route = useRoute();
+const appStore = useAppStore();
+if (appStore.layout === 'default') {
+  appStore.setLayout('');
+}
 const Layout = computed(() => {
-  if (!route.matched?.length)
-    return null
-  return getLayout(route.meta?.layout || appStore.layout)
-})
+  if (!route.matched?.length) {
+    return null;
+  }
+  return getLayout(route.meta?.layout || appStore.layout);
+});
 
-const tabStore = useTabStore()
+const tabStore = useTabStore();
 const keepAliveNames = computed(() => {
-  return tabStore.tabs.filter(item => item.keepAlive).map(item => item.name)
-})
+  return tabStore.tabs.filter(item => item.keepAlive).map(item => item.name);
+});
 
 watchEffect(() => {
-  appStore.setThemeColor(appStore.primaryColor, appStore.isDark)
-})
+  appStore.setThemeColor(appStore.primaryColor, appStore.isDark);
+});
 </script>

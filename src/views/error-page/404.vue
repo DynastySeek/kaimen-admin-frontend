@@ -1,5 +1,3 @@
-
-
 <template>
   <CommonPage :show-header="false">
     <div class="wh-full flex">
@@ -21,5 +19,5 @@
 </template>
 
 <script setup>
-const { replace } = useRouter()
+const { replace } = useRouter();
 </script>

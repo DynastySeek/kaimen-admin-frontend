@@ -1,5 +1,3 @@
-
-
 <template>
   <MeModal ref="modalRef">
     <n-form
@@ -153,83 +151,82 @@
 </template>
 
 <script setup>
-import icons from 'isme:icons'
-import pagePathes from 'isme:page-pathes'
-import { MeModal } from '@/components'
-import { useForm, useModal } from '@/composables'
-import api from '../api'
-import QuestionLabel from './QuestionLabel.vue'
+import icons from 'isme:icons';
+import pagePathes from 'isme:page-pathes';
+import { MeModal } from '@/components';
+import { useForm, useModal } from '@/composables';
+import api from '../api';
+import QuestionLabel from './QuestionLabel.vue';
 
 const props = defineProps({
   menus: {
     type: Array,
     required: true,
   },
-})
-const emit = defineEmits(['refresh'])
+});
+const emit = defineEmits(['refresh']);
 
 const menuOptions = computed(() => {
-  return [{ name: '根菜单', id: '', children: props.menus || [] }]
-})
-const componentOptions = pagePathes.map(path => ({ label: path, value: path }))
+  return [{ name: '根菜单', id: '', children: props.menus || [] }];
+});
+const componentOptions = pagePathes.map(path => ({ label: path, value: path }));
 const iconOptions = icons.map(item => ({
   label: () =>
     h('span', { class: 'flex items-center' }, [h('i', { class: `${item} text-18 mr-8` }), item]),
   value: item,
-}))
+}));
 const layoutOptions = [
   { label: '跟随系统', value: '' },
   { label: '简约-simple', value: 'simple' },
   { label: '通用-normal', value: 'normal' },
   { label: '全面-full', value: 'full' },
   { label: '空白-empty', value: 'empty' },
-]
+];
 const required = {
   required: true,
   message: '此为必填项',
   trigger: ['blur', 'change'],
-}
+};
 
-const defaultForm = { enable: true, show: true, layout: '' }
-const [modalFormRef, modalForm, validation] = useForm()
-const [modalRef, okLoading] = useModal()
+const defaultForm = { enable: true, show: true, layout: '' };
+const [modalFormRef, modalForm, validation] = useForm();
+const [modalRef, okLoading] = useModal();
 
-const modalAction = ref('')
-const parentIdDisabled = ref(false)
+const modalAction = ref('');
+const parentIdDisabled = ref(false);
 function handleOpen(options = {}) {
-  const { action, row = {}, ...rest } = options
-  modalAction.value = action
-  modalForm.value = { ...defaultForm, ...row }
-  parentIdDisabled.value = !!row.parentId && row.type === 'BUTTON'
-  modalRef.value.open({ ...rest, onOk: onSave })
+  const { action, row = {}, ...rest } = options;
+  modalAction.value = action;
+  modalForm.value = { ...defaultForm, ...row };
+  parentIdDisabled.value = !!row.parentId && row.type === 'BUTTON';
+  modalRef.value.open({ ...rest, onOk: onSave });
 }
 
 async function onSave() {
-  await validation()
-  okLoading.value = true
+  await validation();
+  okLoading.value = true;
   try {
-    let newFormData
-    if (!modalForm.value.parentId)
-      modalForm.value.parentId = null
+    let newFormData;
+    if (!modalForm.value.parentId) {
+      modalForm.value.parentId = null;
+    }
     if (modalAction.value === 'add') {
-      const res = await api.addPermission(modalForm.value)
-      newFormData = res.data
+      const res = await api.addPermission(modalForm.value);
+      newFormData = res.data;
+    } else if (modalAction.value === 'edit') {
+      await api.savePermission(modalForm.value.id, modalForm.value);
     }
-    else if (modalAction.value === 'edit') {
-      await api.savePermission(modalForm.value.id, modalForm.value)
-    }
-    okLoading.value = false
-    $message.success('保存成功')
-    emit('refresh', modalAction.value === 'add' ? newFormData : modalForm.value)
-  }
-  catch (error) {
-    console.error(error)
-    okLoading.value = false
-    return false
+    okLoading.value = false;
+    $message.success('保存成功');
+    emit('refresh', modalAction.value === 'add' ? newFormData : modalForm.value);
+  } catch (error) {
+    console.error(error);
+    okLoading.value = false;
+    return false;
   }
 }
 
 defineExpose({
   handleOpen,
-})
+});
 </script>

@@ -1,5 +1,3 @@
-
-
 <template>
   <div>
     <n-space vertical :size="12">
@@ -32,10 +30,10 @@
 </template>
 
 <script setup>
-import { NButton } from 'naive-ui'
-import { withModifiers } from 'vue'
-import api from '../api'
-import ResAddOrEdit from './ResAddOrEdit.vue'
+import { NButton } from 'naive-ui';
+import { withModifiers } from 'vue';
+import api from '../api';
+import ResAddOrEdit from './ResAddOrEdit.vue';
 
 defineProps({
   treeData: {
@@ -46,27 +44,27 @@ defineProps({
     type: Object,
     default: () => null,
   },
-})
-const emit = defineEmits(['refresh', 'update:currentMenu'])
+});
+const emit = defineEmits(['refresh', 'update:currentMenu']);
 
-const pattern = ref('')
+const pattern = ref('');
 
-const modalRef = ref(null)
+const modalRef = ref(null);
 async function handleAdd(data = {}) {
   modalRef.value?.handleOpen({
     action: 'add',
     title: '新增菜单',
     row: { type: 'MENU', ...data },
     okText: '保存',
-  })
+  });
 }
 
 function onSelect(keys, option, { action, node }) {
-  emit('update:currentMenu', action === 'select' ? node : null)
+  emit('update:currentMenu', action === 'select' ? node : null);
 }
 
 function renderPrefix({ option }) {
-  return h('i', { class: `${option.icon}?mask text-16` })
+  return h('i', { class: `${option.icon}?mask text-16` });
 }
 
 function renderSuffix({ option }) {
@@ -94,7 +92,7 @@ function renderSuffix({ option }) {
       },
       { default: () => '删除' },
     ),
-  ]
+  ];
 }
 
 function handleDelete(item) {
@@ -102,17 +100,16 @@ function handleDelete(item) {
     content: `确认删除【${item.name}】？`,
     async confirm() {
       try {
-        $message.loading('正在删除', { key: 'deleteMenu' })
-        await api.deletePermission(item.id)
-        $message.success('删除成功', { key: 'deleteMenu' })
-        emit('refresh')
-        emit('update:currentMenu', null)
-      }
-      catch (error) {
-        console.error(error)
-        $message.destroy('deleteMenu')
+        $message.loading('正在删除', { key: 'deleteMenu' });
+        await api.deletePermission(item.id);
+        $message.success('删除成功', { key: 'deleteMenu' });
+        emit('refresh');
+        emit('update:currentMenu', null);
+      } catch (error) {
+        console.error(error);
+        $message.destroy('deleteMenu');
       }
     },
-  })
+  });
 }
 </script>

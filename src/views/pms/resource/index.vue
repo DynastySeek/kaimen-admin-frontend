@@ -1,5 +1,3 @@
-
-
 <template>
   <CommonPage>
     <div class="flex">
@@ -86,39 +84,40 @@
 </template>
 
 <script setup>
-import { NButton, NSwitch } from 'naive-ui'
-import { MeCrud } from '@/components'
-import api from './api'
-import MenuTree from './components/MenuTree.vue'
-import ResAddOrEdit from './components/ResAddOrEdit.vue'
+import { NButton, NSwitch } from 'naive-ui';
+import { MeCrud } from '@/components';
+import api from './api';
+import MenuTree from './components/MenuTree.vue';
+import ResAddOrEdit from './components/ResAddOrEdit.vue';
 
-const treeData = ref([])
-const treeLoading = ref(false)
-const $table = ref(null)
-const currentMenu = ref(null)
+const treeData = ref([]);
+const treeLoading = ref(false);
+const $table = ref(null);
+const currentMenu = ref(null);
 async function initData(data) {
   if (data?.type === 'BUTTON') {
-    $table.value.handleSearch()
-    return
+    $table.value.handleSearch();
+    return;
   }
-  treeLoading.value = true
-  const res = await api.getMenuTree()
-  treeData.value = res?.data || []
-  treeLoading.value = false
+  treeLoading.value = true;
+  const res = await api.getMenuTree();
+  treeData.value = res?.data || [];
+  treeLoading.value = false;
 
-  if (data)
-    currentMenu.value = data
+  if (data) {
+    currentMenu.value = data;
+  }
 }
-initData()
+initData();
 
-const modalRef = ref(null)
+const modalRef = ref(null);
 function handleEdit(item = {}) {
   modalRef.value?.handleOpen({
     action: 'edit',
     title: `编辑菜单 - ${item.name}`,
     row: item,
     okText: '保存',
-  })
+  });
 }
 
 const btnsColumns = [
@@ -178,19 +177,20 @@ const btnsColumns = [
             icon: () => h('i', { class: 'i-material-symbols:delete-outline text-14' }),
           },
         ),
-      ]
+      ];
     },
   },
-]
+];
 
 watch(
   () => currentMenu.value,
   async (v) => {
-    await nextTick()
-    if (v)
-      $table.value.handleSearch()
+    await nextTick();
+    if (v) {
+      $table.value.handleSearch();
+    }
   },
-)
+);
 
 function handleAddBtn() {
   modalRef.value?.handleOpen({
@@ -198,7 +198,7 @@ function handleAddBtn() {
     title: '新增按钮',
     row: { type: 'BUTTON', parentId: currentMenu.value.id },
     okText: '保存',
-  })
+  });
 }
 
 function handleEditBtn(row) {
@@ -207,7 +207,7 @@ function handleEditBtn(row) {
     title: `编辑按钮 - ${row.name}`,
     row,
     okText: '保存',
-  })
+  });
 }
 
 function handleDeleteBtn(id) {
@@ -218,33 +218,31 @@ function handleDeleteBtn(id) {
     negativeText: '取消',
     async onPositiveClick() {
       try {
-        d.loading = true
-        await api.deletePermission(id)
-        $message.success('删除成功')
-        $table.value.handleSearch()
-        d.loading = false
-      }
-      catch (error) {
-        console.error(error)
-        d.loading = false
+        d.loading = true;
+        await api.deletePermission(id);
+        $message.success('删除成功');
+        $table.value.handleSearch();
+        d.loading = false;
+      } catch (error) {
+        console.error(error);
+        d.loading = false;
       }
     },
-  })
+  });
 }
 
 async function handleEnable(item) {
   try {
-    item.enableLoading = true
+    item.enableLoading = true;
     await api.savePermission(item.id, {
       enable: !item.enable,
-    })
-    $message.success('操作成功')
-    $table.value?.handleSearch()
-    item.enableLoading = false
-  }
-  catch (error) {
-    console.error(error)
-    item.enableLoading = false
+    });
+    $message.success('操作成功');
+    $table.value?.handleSearch();
+    item.enableLoading = false;
+  } catch (error) {
+    console.error(error);
+    item.enableLoading = false;
   }
 }
 </script>

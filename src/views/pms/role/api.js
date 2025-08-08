@@ -1,6 +1,4 @@
-
-
-import { request } from '@/utils'
+import { request } from '@/utils';
 
 export default {
   create: data => request.post('/role', data),
@@ -12,4 +10,4 @@ export default {
   getAllUsers: (params = {}) => request.get('/user', { params }),
   addRoleUsers: (roleId, data) => request.patch(`/role/users/add/${roleId}`, data),
   removeRoleUsers: (roleId, data) => request.patch(`/role/users/remove/${roleId}`, data),
-}
+};

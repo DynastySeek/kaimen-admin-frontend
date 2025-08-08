@@ -1,5 +1,3 @@
-
-
 <template>
   <n-dropdown
     :show="show"
@@ -13,7 +11,7 @@
 </template>
 
 <script setup>
-import { useTabStore } from '@/store'
+import { useTabStore } from '@/store';
 
 const props = defineProps({
   show: {
@@ -32,11 +30,11 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
-})
+});
 
-const emit = defineEmits(['update:show'])
+const emit = defineEmits(['update:show']);
 
-const tabStore = useTabStore()
+const tabStore = useTabStore();
 
 const options = computed(() => [
   {
@@ -71,50 +69,51 @@ const options = computed(() => [
       || props.currentPath === tabStore.tabs[tabStore.tabs.length - 1].path,
     icon: () => h('i', { class: 'i-mdi:arrow-expand-right text-14' }),
   },
-])
+]);
 
-const route = useRoute()
+const route = useRoute();
 const actionMap = new Map([
   [
     'reload',
     () => {
-      tabStore.reloadTab(route.fullPath, route.meta?.keepAlive)
+      tabStore.reloadTab(route.fullPath, route.meta?.keepAlive);
     },
   ],
   [
     'close',
     () => {
-      tabStore.removeTab(props.currentPath)
+      tabStore.removeTab(props.currentPath);
     },
   ],
   [
     'close-other',
     () => {
-      tabStore.removeOther(props.currentPath)
+      tabStore.removeOther(props.currentPath);
     },
   ],
   [
     'close-left',
     () => {
-      tabStore.removeLeft(props.currentPath)
+      tabStore.removeLeft(props.currentPath);
     },
   ],
   [
     'close-right',
     () => {
-      tabStore.removeRight(props.currentPath)
+      tabStore.removeRight(props.currentPath);
     },
   ],
-])
+]);
 
 function handleHideDropdown() {
-  emit('update:show', false)
+  emit('update:show', false);
 }
 
 function handleSelect(key) {
-  const actionFn = actionMap.get(key)
-  if (typeof actionFn === 'function')
-    actionFn()
-  handleHideDropdown()
+  const actionFn = actionMap.get(key);
+  if (typeof actionFn === 'function') {
+    actionFn();
+  }
+  handleHideDropdown();
 }
 </script>

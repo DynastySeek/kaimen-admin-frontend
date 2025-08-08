@@ -1,5 +1,3 @@
-
-
 <template>
   <router-link class="h-60 f-c-c" to="/">
     <TheLogo />
@@ -13,9 +11,9 @@
 </template>
 
 <script setup>
-import { useAppStore } from '@/store'
+import { useAppStore } from '@/store';
 
-const title = import.meta.env.VITE_TITLE
+const title = import.meta.env.VITE_TITLE;
 
-const appStore = useAppStore()
+const appStore = useAppStore();
 </script>

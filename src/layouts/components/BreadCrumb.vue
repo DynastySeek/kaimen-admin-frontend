@@ -1,5 +1,3 @@
-
-
 <template>
   <n-breadcrumb>
     <n-breadcrumb-item v-if="!breadItems?.length" :clickable="false">
@@ -26,39 +24,39 @@
 </template>
 
 <script setup>
-import { usePermissionStore } from '@/store'
+import { usePermissionStore } from '@/store';
 
-const router = useRouter()
-const route = useRoute()
-const permissionStore = usePermissionStore()
+const router = useRouter();
+const route = useRoute();
+const permissionStore = usePermissionStore();
 
-const breadItems = ref([])
+const breadItems = ref([]);
 watch(
   () => route.name,
   (v) => {
-    breadItems.value = findMatchs(permissionStore.permissions, v)
+    breadItems.value = findMatchs(permissionStore.permissions, v);
   },
   { immediate: true },
-)
+);
 
 function findMatchs(tree, code, parents = []) {
   for (const item of tree) {
     if (item.code === code) {
-      return [...parents, item]
+      return [...parents, item];
     }
     if (item.children?.length) {
-      const found = findMatchs(item.children, code, [...parents, item])
+      const found = findMatchs(item.children, code, [...parents, item]);
       if (found) {
-        return found
+        return found;
       }
     }
   }
-  return null
+  return null;
 }
 
 function handleItemClick(item) {
   if (item.path && item.code !== route.name) {
-    router.push(item.path)
+    router.push(item.path);
   }
 }
 
@@ -69,12 +67,12 @@ function getDropOptions(list = []) {
       label: child.name,
       key: child.code,
       icon: () => h('i', { class: child.icon }),
-    }))
+    }));
 }
 
 function handleDropSelect(code) {
   if (code && code !== route.name) {
-    router.push({ name: code })
+    router.push({ name: code });
   }
 }
 </script>

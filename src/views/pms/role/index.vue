@@ -1,5 +1,3 @@
-
-
 <template>
   <CommonPage>
     <template #action>
@@ -69,7 +67,7 @@
             :checked-keys="modalForm.permissionIds"
             :on-update:checked-keys="(keys) => (modalForm.permissionIds = keys)"
 
-            checkable check-on-click default-expand-all
+            default-expand-all checkable check-on-click
             class="cus-scroll max-h-200 w-full"
           />
         </n-form-item>
@@ -89,22 +87,22 @@
 </template>
 
 <script setup>
-import { NButton, NSwitch } from 'naive-ui'
-import { MeCrud, MeModal, MeQueryItem } from '@/components'
-import { useCrud } from '@/composables'
-import api from './api'
+import { NButton, NSwitch } from 'naive-ui';
+import { MeCrud, MeModal, MeQueryItem } from '@/components';
+import { useCrud } from '@/composables';
+import api from './api';
 
-defineOptions({ name: 'RoleMgt' })
+defineOptions({ name: 'RoleMgt' });
 
-const router = useRouter()
+const router = useRouter();
 
-const $table = ref(null)
+const $table = ref(null);
 /** QueryBar筛选参数（可选） */
-const queryItems = ref({})
+const queryItems = ref({});
 
 onMounted(() => {
-  $table.value?.handleSearch()
-})
+  $table.value?.handleSearch();
+});
 
 const { modalRef, modalFormRef, modalAction, modalForm, handleAdd, handleDelete, handleEdit }
   = useCrud({
@@ -114,7 +112,7 @@ const { modalRef, modalFormRef, modalAction, modalForm, handleAdd, handleDelete,
     doUpdate: api.update,
     initForm: { enable: true },
     refresh: (_, keepCurrentPage) => $table.value?.handleSearch(keepCurrentPage),
-  })
+  });
 
 const columns = [
   { title: '角色名', key: 'name' },
@@ -190,25 +188,24 @@ const columns = [
             icon: () => h('i', { class: 'i-material-symbols:delete-outline text-14' }),
           },
         ),
-      ]
+      ];
     },
   },
-]
+];
 
 async function handleEnable(row) {
-  row.enableLoading = true
+  row.enableLoading = true;
   try {
-    await api.update({ id: row.id, enable: !row.enable })
-    row.enableLoading = false
-    $message.success('操作成功')
-    $table.value?.handleSearch()
-  }
-  catch (error) {
-    console.error(error)
-    row.enableLoading = false
+    await api.update({ id: row.id, enable: !row.enable });
+    row.enableLoading = false;
+    $message.success('操作成功');
+    $table.value?.handleSearch();
+  } catch (error) {
+    console.error(error);
+    row.enableLoading = false;
   }
 }
 
-const permissionTree = ref([])
-api.getAllPermissionTree().then(({ data = [] }) => (permissionTree.value = data))
+const permissionTree = ref([]);
+api.getAllPermissionTree().then(({ data = [] }) => (permissionTree.value = data));
 </script>

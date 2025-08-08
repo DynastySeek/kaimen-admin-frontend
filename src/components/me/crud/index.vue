@@ -1,5 +1,3 @@
-
-
 <template>
   <div class="h-full flex flex-col overflow-hidden">
     <AppCard v-if="$slots.default" bordered bg="#fafafc dark:black" class="mb-30 min-h-60 rounded-4">
@@ -50,8 +48,8 @@
 </template>
 
 <script setup>
-import { NDataTable } from 'naive-ui'
-import { utils, writeFile } from 'xlsx'
+import { NDataTable } from 'naive-ui';
+import { utils, writeFile } from 'xlsx';
 
 const props = defineProps({
   /**
@@ -84,7 +82,7 @@ const props = defineProps({
   queryItems: {
     type: Object,
     default() {
-      return {}
+      return {};
     },
   },
   /**
@@ -102,102 +100,100 @@ const props = defineProps({
   },
   /** 是否支持展开 */
   expand: Boolean,
-})
+});
 
-const emit = defineEmits(['update:queryItems', 'onChecked', 'onDataChange'])
-const loading = ref(false)
-const initQuery = { ...props.queryItems }
-const tableData = ref([])
+const emit = defineEmits(['update:queryItems', 'onChecked', 'onDataChange']);
+const loading = ref(false);
+const initQuery = { ...props.queryItems };
+const tableData = ref([]);
 const pagination = reactive({
   page: 1,
   pageSize: 10,
   prefix({ itemCount }) {
-    return `共 ${itemCount} 条数据`
+    return `共 ${itemCount} 条数据`;
   },
-})
+});
 
 // 是否展开
-const isExpanded = ref(false)
+const isExpanded = ref(false);
 
 function toggleExpand() {
-  isExpanded.value = !isExpanded.value
+  isExpanded.value = !isExpanded.value;
 }
 
 async function handleQuery() {
   try {
-    loading.value = true
-    let paginationParams = {}
+    loading.value = true;
+    let paginationParams = {};
     // 如果非分页模式或者使用前端分页,则无需传分页参数
     if (props.isPagination && props.remote) {
-      paginationParams = { pageNo: pagination.page, pageSize: pagination.pageSize }
+      paginationParams = { pageNo: pagination.page, pageSize: pagination.pageSize };
     }
     const { data } = await props.getData({
       ...props.queryItems,
       ...paginationParams,
-    })
-    tableData.value = data?.pageData || data
-    pagination.itemCount = data.total ?? data.length
+    });
+    tableData.value = data?.pageData || data;
+    pagination.itemCount = data.total ?? data.length;
     if (pagination.itemCount && !tableData.value.length && pagination.page > 1) {
       // 如果当前页数据为空，且总条数不为0，则返回上一页数据
-      onPageChange(pagination.page - 1)
+      onPageChange(pagination.page - 1);
     }
-  }
-  catch (error) {
-    console.error(error)
-    tableData.value = []
-    pagination.itemCount = 0
-  }
-  finally {
-    emit('onDataChange', tableData.value)
-    loading.value = false
+  } catch (error) {
+    console.error(error);
+    tableData.value = [];
+    pagination.itemCount = 0;
+  } finally {
+    emit('onDataChange', tableData.value);
+    loading.value = false;
   }
 }
 
 function handleSearch(keepCurrentPage = false) {
   if (keepCurrentPage || !props.remote) {
-    handleQuery()
-  }
-  else {
-    onPageChange(1)
+    handleQuery();
+  } else {
+    onPageChange(1);
   }
 }
 async function handleReset() {
-  const queryItems = { ...props.queryItems }
+  const queryItems = { ...props.queryItems };
   for (const key in queryItems) {
-    queryItems[key] = null
+    queryItems[key] = null;
   }
-  emit('update:queryItems', { ...queryItems, ...initQuery })
-  await nextTick()
-  pagination.page = 1
-  handleQuery()
+  emit('update:queryItems', { ...queryItems, ...initQuery });
+  await nextTick();
+  pagination.page = 1;
+  handleQuery();
 }
 function onPageChange(currentPage) {
-  pagination.page = currentPage
+  pagination.page = currentPage;
   if (props.remote) {
-    handleQuery()
+    handleQuery();
   }
 }
 function onChecked(rowKeys) {
   if (props.columns.some(item => item.type === 'selection')) {
-    emit('onChecked', rowKeys)
+    emit('onChecked', rowKeys);
   }
 }
 function handleExport(columns = props.columns, data = tableData.value) {
-  if (!data?.length)
-    return $message.warning('没有数据')
-  const columnsData = columns.filter(item => !!item.title && !item.hideInExcel)
-  const thKeys = columnsData.map(item => item.key)
-  const thData = columnsData.map(item => item.title)
-  const trData = data.map(item => thKeys.map(key => item[key]))
-  const sheet = utils.aoa_to_sheet([thData, ...trData])
-  const workBook = utils.book_new()
-  utils.book_append_sheet(workBook, sheet, '数据报表')
-  writeFile(workBook, '数据报表.xlsx')
+  if (!data?.length) {
+    return $message.warning('没有数据');
+  }
+  const columnsData = columns.filter(item => !!item.title && !item.hideInExcel);
+  const thKeys = columnsData.map(item => item.key);
+  const thData = columnsData.map(item => item.title);
+  const trData = data.map(item => thKeys.map(key => item[key]));
+  const sheet = utils.aoa_to_sheet([thData, ...trData]);
+  const workBook = utils.book_new();
+  utils.book_append_sheet(workBook, sheet, '数据报表');
+  writeFile(workBook, '数据报表.xlsx');
 }
 
 defineExpose({
   handleSearch,
   handleReset,
   handleExport,
-})
+});
 </script>

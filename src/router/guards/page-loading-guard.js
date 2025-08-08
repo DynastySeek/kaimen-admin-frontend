@@ -1,17 +1,15 @@
-
-
 export function createPageLoadingGuard(router) {
   router.beforeEach(() => {
-    $loadingBar.start()
-  })
+    $loadingBar.start();
+  });
 
   router.afterEach(() => {
     setTimeout(() => {
-      $loadingBar.finish()
-    }, 200)
-  })
+      $loadingBar.finish();
+    }, 200);
+  });
 
   router.onError(() => {
-    $loadingBar.error()
-  })
+    $loadingBar.error();
+  });
 }

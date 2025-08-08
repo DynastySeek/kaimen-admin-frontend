@@ -1,5 +1,3 @@
-
-
 <template>
   <div class="wh-full flex">
     <aside
@@ -18,11 +16,11 @@
 </template>
 
 <script setup>
-import { useAppStore } from '@/store'
-import AppHeader from './header/index.vue'
-import SideBar from './sidebar/index.vue'
+import { useAppStore } from '@/store';
+import AppHeader from './header/index.vue';
+import SideBar from './sidebar/index.vue';
 
-const appStore = useAppStore()
+const appStore = useAppStore();
 </script>
 
 <style>

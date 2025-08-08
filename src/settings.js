@@ -1,6 +1,6 @@
-export const defaultLayout = 'normal'
+export const defaultLayout = 'normal';
 
-export const defaultPrimaryColor = '#316C72'
+export const defaultPrimaryColor = '#316C72';
 
 export const naiveThemeOverrides = {
   common: {
@@ -9,7 +9,7 @@ export const naiveThemeOverrides = {
     primaryColorPressed: '#2B4C59FF',
     primaryColorSuppl: '#316C72E3',
   },
-}
+};
 
 export const basePermissions = [
   {
@@ -63,4 +63,4 @@ export const basePermissions = [
       },
     ],
   },
-]
+];

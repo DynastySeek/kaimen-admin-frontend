@@ -1,20 +1,18 @@
-
-
-import { withDirectives } from 'vue'
-import { router } from '@/router'
+import { withDirectives } from 'vue';
+import { router } from '@/router';
 
 const permission = {
   mounted(el, binding) {
-    const currentRoute = unref(router.currentRoute)
-    const btns = currentRoute.meta?.btns?.map(item => item.code) || []
+    const currentRoute = unref(router.currentRoute);
+    const btns = currentRoute.meta?.btns?.map(item => item.code) || [];
     if (!btns.includes(binding.value)) {
-      el.remove()
+      el.remove();
     }
   },
-}
+};
 
 export function setupDirectives(app) {
-  app.directive('permission', permission)
+  app.directive('permission', permission);
 }
 
 /**
@@ -28,5 +26,5 @@ export function setupDirectives(app) {
  *
  */
 export function withPermission(vnode, code) {
-  return withDirectives(vnode, [[permission, code]])
+  return withDirectives(vnode, [[permission, code]]);
 }

@@ -1,5 +1,3 @@
-
-
 <template>
   <div
     id="menu-collapse"
@@ -11,7 +9,7 @@
 </template>
 
 <script setup>
-import { useAppStore } from '@/store'
+import { useAppStore } from '@/store';
 
-const appStore = useAppStore()
+const appStore = useAppStore();
 </script>

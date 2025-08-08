@@ -14,21 +14,21 @@
 </template>
 
 <script setup>
-import { useAppStore, usePermissionStore } from '@/store'
-import { isExternal } from '@/utils'
+import { useAppStore, usePermissionStore } from '@/store';
+import { isExternal } from '@/utils';
 
-const router = useRouter()
-const route = useRoute()
-const appStore = useAppStore()
-const permissionStore = usePermissionStore()
+const router = useRouter();
+const route = useRoute();
+const appStore = useAppStore();
+const permissionStore = usePermissionStore();
 
-const activeKey = computed(() => route.meta?.parentKey || route.name)
+const activeKey = computed(() => route.meta?.parentKey || route.name);
 
-const menu = ref(null)
+const menu = ref(null);
 watch(route, async () => {
-  await nextTick()
-  menu.value?.showOption()
-})
+  await nextTick();
+  menu.value?.showOption();
+});
 
 function handleMenuSelect(key, item) {
   if (isExternal(item.originPath)) {
@@ -38,17 +38,17 @@ function handleMenuSelect(key, item) {
       positiveText: '外链打开',
       negativeText: '在本站内嵌打开',
       confirm() {
-        window.open(item.originPath)
+        window.open(item.originPath);
       },
       cancel: () => {
-        router.push(item.path)
+        router.push(item.path);
       },
-    })
-  }
-  else {
-    if (!item.path)
-      return
-    router.push(item.path)
+    });
+  } else {
+    if (!item.path) {
+      return;
+    }
+    router.push(item.path);
   }
 }
 </script>

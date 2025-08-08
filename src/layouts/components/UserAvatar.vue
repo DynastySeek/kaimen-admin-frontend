@@ -1,5 +1,3 @@
-
-
 <template>
   <n-dropdown :options="options" @select="handleSelect">
     <div id="user-dropdown" class="flex cursor-pointer items-center">
@@ -15,14 +13,14 @@
 </template>
 
 <script setup>
-import api from '@/api'
-import { RoleSelect } from '@/layouts/components'
-import { useAuthStore, usePermissionStore, useUserStore } from '@/store'
+import api from '@/api';
+import { RoleSelect } from '@/layouts/components';
+import { useAuthStore, usePermissionStore, useUserStore } from '@/store';
 
-const router = useRouter()
-const userStore = useUserStore()
-const authStore = useAuthStore()
-const permissionStore = usePermissionStore()
+const router = useRouter();
+const userStore = useUserStore();
+const authStore = useAuthStore();
+const permissionStore = usePermissionStore();
 
 const options = reactive([
   {
@@ -42,21 +40,21 @@ const options = reactive([
     key: 'logout',
     icon: () => h('i', { class: 'i-mdi:exit-to-app text-14' }),
   },
-])
+]);
 
-const roleSelectRef = ref(null)
+const roleSelectRef = ref(null);
 function handleSelect(key) {
   switch (key) {
     case 'profile':
-      router.push('/profile')
-      break
+      router.push('/profile');
+      break;
     case 'toggleRole':
       roleSelectRef.value?.open({
         onOk() {
-          location.reload()
+          location.reload();
         },
-      })
-      break
+      });
+      break;
     case 'logout':
       $dialog.confirm({
         title: '提示',
@@ -64,16 +62,15 @@ function handleSelect(key) {
         content: '确认退出？',
         async confirm() {
           try {
-            await api.logout()
+            await api.logout();
+          } catch (error) {
+            console.error(error);
           }
-          catch (error) {
-            console.error(error)
-          }
-          authStore.logout()
-          $message.success('已退出登录')
+          authStore.logout();
+          $message.success('已退出登录');
         },
-      })
-      break
+      });
+      break;
   }
 }
 </script>
