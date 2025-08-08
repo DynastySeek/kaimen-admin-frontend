@@ -17,6 +17,6 @@
 </template>
 
 <script setup>
-import { ToggleTheme } from '@/components';
+import { AppCard, ThemeSetting, ToggleTheme } from '@/components';
 import { AppTab, MenuCollapse, UserAvatar } from '@/layouts/components';
 </script>

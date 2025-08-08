@@ -94,6 +94,7 @@
 
 <script setup>
 import { useStorage } from '@vueuse/core';
+import { TheFooter } from '@/components';
 import { useAuthStore } from '@/store';
 import { lStorage, throttle } from '@/utils';
 import api from './api';

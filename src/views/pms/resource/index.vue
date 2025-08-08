@@ -85,7 +85,7 @@
 
 <script setup>
 import { NButton, NSwitch } from 'naive-ui';
-import { MeCrud } from '@/components';
+import { CommonPage, MeCrud } from '@/components';
 import api from './api';
 import MenuTree from './components/MenuTree.vue';
 import ResAddOrEdit from './components/ResAddOrEdit.vue';

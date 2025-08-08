@@ -97,7 +97,7 @@
 </template>
 
 <script setup>
-import { MeModal } from '@/components';
+import { AppPage, MeModal } from '@/components';
 import { useForm, useModal } from '@/composables';
 import { useUserStore } from '@/store';
 import { getUserInfo } from '@/store/helper';

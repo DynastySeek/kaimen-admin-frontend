@@ -11,6 +11,7 @@
 </template>
 
 <script setup>
+import { TheLogo } from '@/components';
 import { useAppStore } from '@/store';
 
 const title = import.meta.env.VITE_TITLE;

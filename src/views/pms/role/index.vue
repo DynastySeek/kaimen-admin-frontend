@@ -67,7 +67,7 @@
             :checked-keys="modalForm.permissionIds"
             :on-update:checked-keys="(keys) => (modalForm.permissionIds = keys)"
 
-            default-expand-all checkable check-on-click
+            checkable check-on-click default-expand-all
             class="cus-scroll max-h-200 w-full"
           />
         </n-form-item>
@@ -88,7 +88,7 @@
 
 <script setup>
 import { NButton, NSwitch } from 'naive-ui';
-import { MeCrud, MeModal, MeQueryItem } from '@/components';
+import { CommonPage, MeCrud, MeModal, MeQueryItem } from '@/components';
 import { useCrud } from '@/composables';
 import api from './api';
 

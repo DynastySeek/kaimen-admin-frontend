@@ -19,5 +19,7 @@
 </template>
 
 <script setup>
+import { CommonPage } from '@/components';
+
 const { replace } = useRouter();
 </script>

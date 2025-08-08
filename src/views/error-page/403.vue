@@ -22,6 +22,8 @@
 </template>
 
 <script setup>
+import { CommonPage } from '@/components';
+
 const router = useRouter();
 const route = useRoute();
 

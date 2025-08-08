@@ -103,7 +103,7 @@
 
 <script setup>
 import { NAvatar, NButton, NSwitch, NTag } from 'naive-ui';
-import { MeCrud, MeModal, MeQueryItem } from '@/components';
+import { CommonPage, MeCrud, MeModal, MeQueryItem } from '@/components';
 import { useCrud } from '@/composables';
 import { withPermission } from '@/directives';
 import { formatDateTime } from '@/utils';

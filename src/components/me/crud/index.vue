@@ -50,6 +50,7 @@
 <script setup>
 import { NDataTable } from 'naive-ui';
 import { utils, writeFile } from 'xlsx';
+import { AppCard } from '@/components';
 
 const props = defineProps({
   /**

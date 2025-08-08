@@ -61,7 +61,7 @@
 <script setup>
 import { NAvatar, NButton, NSwitch, NTag } from 'naive-ui';
 import { h } from 'vue';
-import { MeCrud, MeQueryItem } from '@/components';
+import { CommonPage, MeCrud, MeQueryItem } from '@/components';
 import { formatDateTime } from '@/utils';
 import api from './api';
 
