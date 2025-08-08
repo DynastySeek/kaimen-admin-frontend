@@ -34,7 +34,13 @@ function getLayout(name) {
   if (layouts.get(name)) {
     return layouts.get(name);
   }
-  const layout = markRaw(defineAsyncComponent(() => import(`@/layouts/${name}/index.vue`)));
+  let layoutName = '';
+  if (name === 'empty') {
+    layoutName = 'EmptyLayout';
+  } else {
+    layoutName = 'BaseLayout';
+  }
+  const layout = markRaw(defineAsyncComponent(() => import(`@/layouts/${layoutName}.vue`)));
   layouts.set(name, layout);
   return layout;
 }

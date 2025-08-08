@@ -4,5 +4,5 @@
 </template>
 
 <script setup>
-import { SideLogo, SideMenu } from '@/layouts/components';
+import { SideLogo, SideMenu } from '.';
 </script>

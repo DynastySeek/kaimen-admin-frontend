@@ -17,7 +17,7 @@
       </n-tab>
     </n-tabs>
 
-    <ContextMenu
+    <TabContextMenu
       v-if="contextMenuOption.show"
       v-model:show="contextMenuOption.show"
       :current-path="contextMenuOption.currentPath"
@@ -29,7 +29,7 @@
 
 <script setup>
 import { useTabStore } from '@/store';
-import ContextMenu from './ContextMenu.vue';
+import TabContextMenu from './TabContextMenu.vue';
 
 const router = useRouter();
 const tabStore = useTabStore();
@@ -74,9 +74,9 @@ async function handleContextMenu(e, tagItem) {
     background: transparent !important;
     border-radius: 4px !important;
     margin-right: 4px;
-    &:hover {
-      border: 1px solid rgb(var(--primary-color)) !important;
-    }
+  }
+  .n-tabs-tab:hover {
+    border: 1px solid rgb(var(--primary-color)) !important;
   }
   .n-tabs-tab--active {
     border: 1px solid rgb(var(--primary-color)) !important;

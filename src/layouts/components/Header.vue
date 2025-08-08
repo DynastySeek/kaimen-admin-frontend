@@ -2,7 +2,7 @@
   <AppCard class="flex items-center px-12" border-b="1px solid light_border dark:dark_border">
     <MenuCollapse />
 
-    <AppTab class="w-0 flex-1 px-12" />
+    <Tab class="w-0 flex-1 px-12" />
 
     <span class="mx-6 opacity-20">|</span>
 
@@ -18,5 +18,6 @@
 
 <script setup>
 import { AppCard, ThemeSetting, ToggleTheme } from '@/components';
-import { AppTab, MenuCollapse, UserAvatar } from '@/layouts/components';
+import { MenuCollapse, UserAvatar } from '.';
+import Tab from './Tab.vue';
 </script>
