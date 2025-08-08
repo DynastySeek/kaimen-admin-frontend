@@ -153,9 +153,9 @@
 <script setup>
 import icons from 'isme:icons';
 import pagePathes from 'isme:page-pathes';
+import api from '@/api';
 import { MeModal } from '@/components';
 import { useForm, useModal } from '@/composables';
-import api from '../api';
 import QuestionLabel from './QuestionLabel.vue';
 
 const props = defineProps({
@@ -211,10 +211,10 @@ async function onSave() {
       modalForm.value.parentId = null;
     }
     if (modalAction.value === 'add') {
-      const res = await api.addPermission(modalForm.value);
+      const res = await api.permission.addPermission(modalForm.value);
       newFormData = res.data;
     } else if (modalAction.value === 'edit') {
-      await api.savePermission(modalForm.value.id, modalForm.value);
+      await api.permission.savePermission(modalForm.value.id, modalForm.value);
     }
     okLoading.value = false;
     $message.success('保存成功');

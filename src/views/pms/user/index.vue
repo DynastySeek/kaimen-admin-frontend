@@ -12,7 +12,7 @@
       v-model:query-items="queryItems"
       :scroll-x="1200"
       :columns="columns"
-      :get-data="api.read"
+      :get-data="api.user.read"
     >
       <MeQueryItem label="用户名" :label-width="50">
         <n-input
@@ -103,11 +103,11 @@
 
 <script setup>
 import { NAvatar, NButton, NSwitch, NTag } from 'naive-ui';
+import api from '@/api';
 import { CommonPage, MeCrud, MeModal, MeQueryItem } from '@/components';
 import { useCrud } from '@/composables';
 import { withPermission } from '@/directives';
 import { formatDateTime } from '@/utils';
-import api from './api';
 
 defineOptions({ name: 'UserMgt' });
 
@@ -124,7 +124,7 @@ const genders = [
   { label: '女', value: 2 },
 ];
 const roles = ref([]);
-api.getAllRoles().then(({ data = [] }) => (roles.value = data));
+api.user.getAllRoles().then(({ data = [] }) => (roles.value = data));
 
 const {
   modalRef,
@@ -138,9 +138,9 @@ const {
 } = useCrud({
   name: '用户',
   initForm: { enable: true },
-  doCreate: api.create,
-  doDelete: api.delete,
-  doUpdate: api.update,
+  doCreate: api.user.create,
+  doDelete: api.user.delete,
+  doUpdate: api.user.update,
   refresh: () => $table.value?.handleSearch(),
 });
 
@@ -278,7 +278,7 @@ const columns = [
 async function handleEnable(row) {
   row.enableLoading = true;
   try {
-    await api.update({ id: row.id, enable: !row.enable });
+    await api.user.update({ id: row.id, enable: !row.enable });
     row.enableLoading = false;
     $message.success('操作成功');
     $table.value?.handleSearch();
@@ -301,12 +301,12 @@ function handleOpenRolesSet(row) {
 function onSave() {
   if (modalAction.value === 'setRole') {
     return handleSave({
-      api: () => api.update(modalForm.value),
+      api: () => api.user.update(modalForm.value),
       cb: () => $message.success('分配成功'),
     });
   } else if (modalAction.value === 'reset') {
     return handleSave({
-      api: () => api.resetPwd(modalForm.value.id, modalForm.value),
+      api: () => api.user.resetPwd(modalForm.value.id, modalForm.value),
       cb: () => $message.success('密码重置成功'),
     });
   }

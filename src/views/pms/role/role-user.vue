@@ -28,7 +28,7 @@
       v-model:query-items="queryItems"
       :scroll-x="1200"
       :columns="columns"
-      :get-data="api.getAllUsers"
+      :get-data="api.role.getAllUsers"
       @on-checked="onChecked"
     >
       <MeQueryItem label="用户名" :label-width="50">
@@ -61,9 +61,9 @@
 <script setup>
 import { NAvatar, NButton, NSwitch, NTag } from 'naive-ui';
 import { h } from 'vue';
+import api from '@/api';
 import { CommonPage, MeCrud, MeQueryItem } from '@/components';
 import { formatDateTime } from '@/utils';
-import api from './api';
 
 defineOptions({ name: 'RoleUser' });
 const route = useRoute();
@@ -200,7 +200,7 @@ function handleBatchAdd(ids = userIds.value) {
   $dialog.confirm({
     content: `确认分配【${route.query.roleName}】？`,
     async confirm() {
-      await api.addRoleUsers(roleId, { userIds: ids });
+      await api.role.addRoleUsers(roleId, { userIds: ids });
       $table.value?.handleSearch();
     },
   });
@@ -216,7 +216,7 @@ function handleBatchRemove(ids = userIds.value) {
   $dialog.confirm({
     content: `确认取消分配【${route.query.roleName}】？`,
     async confirm() {
-      await api.removeRoleUsers(roleId, { userIds: ids });
+      await api.role.removeRoleUsers(roleId, { userIds: ids });
       $table.value?.handleSearch();
     },
   });
