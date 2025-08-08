@@ -1,5 +1,5 @@
 <template>
-  <AppPage show-footer>
+  <AppPage>
     <div class="flex">
       <n-card class="min-w-200 w-30%">
         <div class="flex items-center">

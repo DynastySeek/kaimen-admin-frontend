@@ -1,5 +1,5 @@
 <template>
-  <AppPage show-footer>
+  <AppPage>
     <n-card>
       <n-space align="center">
         <n-avatar round :size="100" :src="userStore.avatar" />

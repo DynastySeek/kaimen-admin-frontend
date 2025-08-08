@@ -10,7 +10,12 @@
       <component :is="Layout">
         <transition name="fade-slide" mode="out-in" appear>
           <KeepAlive :include="keepAliveNames">
-            <component :is="Component" v-if="!tabStore.reloading" :key="curRoute.fullPath" />
+            <component
+              :is="Component || PageMissing"
+              v-if="!tabStore.reloading"
+              :key="curRoute.fullPath"
+              :component-path="curRoute.meta?.component || curRoute.path"
+            />
           </KeepAlive>
         </transition>
       </component>
@@ -20,6 +25,7 @@
 
 <script setup>
 import { darkTheme, dateZhCN, zhCN } from 'naive-ui';
+import { PageMissing } from '@/components/common';
 import { useAppStore, useTabStore } from '@/store';
 
 const layouts = new Map();
