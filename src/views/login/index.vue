@@ -111,7 +111,7 @@ const loginInfo = ref({
 
 const captchaUrl = ref('');
 const initCaptcha = throttle(() => {
-  captchaUrl.value = `${import.meta.env.VITE_AXIOS_BASE_URL}/auth/captcha?${Date.now()}`;
+  captchaUrl.value = `${import.meta.env.VITE_BASE_REQUEST_API}/auth/captcha?${Date.now()}`;
 }, 500);
 
 const localLoginInfo = lStorage.get('loginInfo');
