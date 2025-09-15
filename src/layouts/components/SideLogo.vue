@@ -12,9 +12,10 @@
 
 <script setup>
 import { TheLogo } from '@/components';
+import { VITE_APP_TITLE } from '@/config/env';
 import { useAppStore } from '@/store';
 
-const title = import.meta.env.VITE_TITLE;
+const title = VITE_APP_TITLE;
 
 const appStore = useAppStore();
 </script>

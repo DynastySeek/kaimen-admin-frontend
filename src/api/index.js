@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { VITE_PUBLIC_PATH } from '@/config/env';
 import { request } from './request';
 
 export default {
@@ -70,7 +71,7 @@ export default {
     // 获取按钮权限
     getButtons: ({ parentId }) => request.get(`/permission/button/${parentId}`),
     // 获取组件列表
-    getComponents: () => axios.get(`${import.meta.env.VITE_PUBLIC_PATH}components.json`),
+    getComponents: () => axios.get(`${VITE_PUBLIC_PATH}components.json`),
     // 添加权限
     addPermission: data => request.post('/permission', data),
     // 保存权限

@@ -96,13 +96,14 @@
 import { useStorage } from '@vueuse/core';
 import api from '@/api';
 import { TheFooter } from '@/components';
+import { VITE_APP_TITLE, VITE_BASE_REQUEST_API } from '@/config/env';
 import { useAuthStore } from '@/store';
 import { lStorage, throttle } from '@/utils';
 
 const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
-const title = import.meta.env.VITE_TITLE;
+const title = VITE_APP_TITLE;
 
 const loginInfo = ref({
   username: '',
@@ -111,7 +112,7 @@ const loginInfo = ref({
 
 const captchaUrl = ref('');
 const initCaptcha = throttle(() => {
-  captchaUrl.value = `${import.meta.env.VITE_BASE_REQUEST_API}/auth/captcha?${Date.now()}`;
+  captchaUrl.value = `${VITE_BASE_REQUEST_API}/auth/captcha?${Date.now()}`;
 }, 500);
 
 const localLoginInfo = lStorage.get('loginInfo');

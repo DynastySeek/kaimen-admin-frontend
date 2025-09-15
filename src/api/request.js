@@ -1,9 +1,10 @@
 import axios from 'axios';
+import { VITE_BASE_REQUEST_API } from '@/config/env';
 import { setupInterceptors } from './interceptors';
 
 export function createAxios(options = {}) {
   const defaultOptions = {
-    baseURL: import.meta.env.VITE_BASE_REQUEST_API,
+    baseURL: VITE_BASE_REQUEST_API,
     timeout: 12000,
   };
   const service = axios.create({
