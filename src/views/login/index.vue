@@ -37,6 +37,7 @@
           </template>
         </n-input>
 
+        <!-- 验证码功能已注释
         <div class="mt-20 flex items-center">
           <n-input
             v-model:value="loginInfo.captcha"
@@ -58,26 +59,11 @@
             @click="initCaptcha"
           >
         </div>
-
-        <n-checkbox
-          class="mt-20"
-          :checked="isRemember"
-          label="记住我"
-          :on-update:checked="(val) => (isRemember = val)"
-        />
+        -->
 
         <div class="mt-20 flex items-center">
           <n-button
             class="h-40 flex-1 rounded-5 text-16"
-            type="primary"
-            ghost
-            @click="quickLogin()"
-          >
-            一键体验
-          </n-button>
-
-          <n-button
-            class="ml-32 h-40 flex-1 rounded-5 text-16"
             type="primary"
             :loading="loading"
             @click="handleLogin()"
@@ -87,18 +73,13 @@
         </div>
       </div>
     </div>
-
-    <TheFooter class="py-12" />
   </div>
 </template>
 
 <script setup>
-import { useStorage } from '@vueuse/core';
 import api from '@/api';
-import { TheFooter } from '@/components';
-import { VITE_APP_TITLE, VITE_BASE_REQUEST_API } from '@/config/env';
+import { VITE_APP_TITLE } from '@/config/env';
 import { useAuthStore } from '@/store';
-import { lStorage, throttle } from '@/utils';
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -106,54 +87,38 @@ const route = useRoute();
 const title = VITE_APP_TITLE;
 
 const loginInfo = ref({
-  username: '',
-  password: '',
+  username: 'admin',
+  password: '123456',
 });
 
-const captchaUrl = ref('');
-const initCaptcha = throttle(() => {
-  captchaUrl.value = `${VITE_BASE_REQUEST_API}/auth/captcha?${Date.now()}`;
-}, 500);
+// 验证码功能已注释
+// const captchaUrl = ref('');
+// const initCaptcha = throttle(() => {
+//   captchaUrl.value = `${VITE_BASE_REQUEST_API}/auth/captcha?${Date.now()}`;
+// }, 500);
+// initCaptcha();
 
-const localLoginInfo = lStorage.get('loginInfo');
-if (localLoginInfo) {
-  loginInfo.value.username = localLoginInfo.username || '';
-  loginInfo.value.password = localLoginInfo.password || '';
-}
-initCaptcha();
-
-function quickLogin() {
-  loginInfo.value.username = 'admin';
-  loginInfo.value.password = '123456';
-  handleLogin(true);
-}
-
-const isRemember = useStorage('isRemember', true);
 const loading = ref(false);
-async function handleLogin(isQuick) {
-  const { username, password, captcha } = loginInfo.value;
+async function handleLogin() {
+  const { username, password } = loginInfo.value;
   if (!username || !password) {
     return $message.warning('请输入用户名和密码');
   }
-  if (!isQuick && !captcha) {
-    return $message.warning('请输入验证码');
-  }
+  // 验证码验证已注释
+  // if (!captcha) {
+  //   return $message.warning('请输入验证码');
+  // }
   try {
     loading.value = true;
     $message.loading('正在验证，请稍后...', { key: 'login' });
-    const { data } = await api.auth.login({ username, password: password.toString(), captcha, isQuick });
-    if (isRemember.value) {
-      lStorage.set('loginInfo', { username, password });
-    } else {
-      lStorage.remove('loginInfo');
-    }
+    // 移除验证码参数和isQuick参数
+    const { data } = await api.auth.login({ username, password: password.toString() });
     onLoginSuccess(data);
   } catch (error) {
-    // 10003为验证码错误专属业务码
-    if (error?.code === 10003) {
-      // 为防止爆破，验证码错误则刷新验证码
-      initCaptcha();
-    }
+    // 验证码相关逻辑已注释
+    // if (error?.code === 10003) {
+    //   initCaptcha();
+    // }
     $message.destroy('login');
     console.error(error);
   }
