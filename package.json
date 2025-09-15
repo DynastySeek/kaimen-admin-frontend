@@ -33,6 +33,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@alova/mock": "^2.0.17",
     "@antfu/eslint-config": "^4.13.1",
     "@iconify/json": "^2.2.350",
     "@unocss/eslint-config": "^66.2.3",
@@ -46,6 +47,7 @@
     "fs-extra": "^11.3.0",
     "glob": "^11.0.3",
     "lint-staged": "^16.1.2",
+    "mockjs": "^1.1.0",
     "rollup-plugin-visualizer": "^6.0.3",
     "simple-git-hooks": "^2.13.0",
     "taze": "^19.1.0",

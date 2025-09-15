@@ -8,7 +8,7 @@ import Mock from 'mockjs';
 export default defineMock(
   {
     // 用户列表接口
-    '/api/user/list': ({ query }) => {
+    '/api/users/list': ({ query }) => {
       const { page = 1, size = 10, username, email, phone, status } = query;
 
       // 生成用户数据
@@ -61,24 +61,44 @@ export default defineMock(
     },
 
     // 用户详情接口
-    '/api/user/info': ({ query }) => {
+    '/api/users/current': ({ query }) => {
       const { userId } = query;
 
       return Mock.mock({
-        'id': userId,
-        'username': () => Mock.Random.word(5, 10),
-        'name': () => Mock.Random.cname(),
-        'phone': () => Mock.Random.string('number', 11),
-        'email': () => Mock.Random.email(),
-        'role|1': ['admin', 'user', 'manager'],
-        'status|1': ['active', 'inactive'],
-        'avatar': () => Mock.Random.image('200x200', Mock.Random.color(), '#FFF', 'Avatar'),
-        'department': () => Mock.Random.word(3, 8),
-        'position': () => Mock.Random.word(3, 6),
-        'create_time': () => Mock.Random.datetime('yyyy-MM-dd HH:mm:ss'),
-        'update_time': () => Mock.Random.datetime('yyyy-MM-dd HH:mm:ss'),
-        'last_login_time': () => Mock.Random.datetime('yyyy-MM-dd HH:mm:ss'),
-        'login_count|1-1000': 1,
+        id: userId || 1,
+        username: 'admin',
+        enable: true,
+        createTime: Mock.Random.datetime('yyyy-MM-ddTHH:mm:ss.SSSZ'),
+        updateTime: Mock.Random.datetime('yyyy-MM-ddTHH:mm:ss.SSSZ'),
+        profile: {
+          id: userId || 1,
+          nickName: 'Admin',
+          gender: null,
+          avatar: 'https://img.isme.top/isme/67bd93db39a90.png',
+          address: null,
+          email: null,
+          userId: userId || 1,
+        },
+        roles: [
+          {
+            id: 1,
+            code: 'SUPER_ADMIN',
+            name: '超级管理员',
+            enable: true,
+          },
+          {
+            id: 2,
+            code: 'ROLE_QA',
+            name: '质检员',
+            enable: true,
+          },
+        ],
+        currentRole: {
+          id: 1,
+          code: 'SUPER_ADMIN',
+          name: '超级管理员',
+          enable: true,
+        },
       });
     },
   },
