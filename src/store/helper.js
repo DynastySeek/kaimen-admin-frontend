@@ -1,6 +1,4 @@
-import { cloneDeep } from 'lodash-es';
 import api from '@/api';
-import { basePermissions } from '@/settings';
 
 export async function getUserInfo() {
   const res = await api.getUser();
@@ -26,5 +24,5 @@ export async function getPermissions() {
   } catch (error) {
     console.error(error);
   }
-  return cloneDeep(basePermissions).concat(asyncPermissions);
+  return asyncPermissions;
 }

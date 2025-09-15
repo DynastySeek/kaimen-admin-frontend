@@ -19,6 +19,7 @@
   "dependencies": {
     "@arco-design/color": "^0.4.0",
     "@vueuse/core": "^13.3.0",
+    "alova": "^3.3.4",
     "axios": "^1.10.0",
     "dayjs": "^1.11.13",
     "echarts": "^5.6.0",
