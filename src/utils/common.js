@@ -94,3 +94,19 @@ export function useResize(el, cb) {
   observer.observe(el);
   return observer;
 }
+
+export function getToken() {
+  // const { token } = useAuthStore();
+  return 'token';
+}
+
+export function cleanParams(params) {
+  const cleaned = {};
+  for (const key in params) {
+    const value = params[key];
+    if (value !== null && value !== undefined && value !== '') {
+      cleaned[key] = value;
+    }
+  }
+  return cleaned;
+}
