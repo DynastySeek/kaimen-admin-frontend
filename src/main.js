@@ -1,7 +1,6 @@
 import { createApp } from 'vue';
 import App from './App.vue';
 import { setupDirectives } from './directives';
-
 import { setupRouter } from './router';
 import { setupStore } from './store';
 import { setupNaiveDiscreteApi } from './utils';

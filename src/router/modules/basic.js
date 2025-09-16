@@ -8,7 +8,6 @@ export const basicRoutes = [
       layout: 'empty',
     },
   },
-
   {
     name: 'Home',
     path: '/',
@@ -17,7 +16,6 @@ export const basicRoutes = [
       title: '首页',
     },
   },
-
   {
     name: '404',
     path: '/404',
@@ -27,7 +25,6 @@ export const basicRoutes = [
       layout: 'empty',
     },
   },
-
   {
     name: '403',
     path: '/403',
