@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { h } from 'vue';
-import { systemRoutes } from '@/router/modules/system';
+import { authRoutes } from '@/router';
 import { fetchPermissions } from '@/services';
 
 export const usePermissionStore = defineStore('permission', {
@@ -60,7 +60,7 @@ export const usePermissionStore = defineStore('permission', {
         .filter(item => !!item)
         .sort((a, b) => a.order - b.order);
     },
-    /** 根据权限数据过滤 systemRoutes 生成路由树 */
+    /** 根据权限数据过滤 authRoutes 生成路由树 */
     generateRoute(permissions) {
       const menuPermissions = permissions.filter(item => item.type === 'MENU');
       const filterRoutes = (routes) => {
@@ -83,7 +83,7 @@ export const usePermissionStore = defineStore('permission', {
         }
         return filteredRoutes;
       };
-      return filterRoutes(systemRoutes);
+      return filterRoutes(authRoutes);
     },
     /** 重置权限相关状态 */
     resetPermission() {
