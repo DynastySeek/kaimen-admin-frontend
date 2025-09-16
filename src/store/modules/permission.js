@@ -1,5 +1,6 @@
 import { hyphenate } from '@vueuse/core';
 import { defineStore } from 'pinia';
+import { fetchPermissionsTree } from '@/services';
 import { isExternal } from '@/utils';
 
 export const usePermissionStore = defineStore('permission', {
@@ -16,6 +17,21 @@ export const usePermissionStore = defineStore('permission', {
         .map(item => this.getMenuItem(item))
         .filter(item => !!item)
         .sort((a, b) => a.order - b.order);
+    },
+    /**
+     * 获取并更新权限树
+     * @returns {Promise<Array>} 权限树数据
+     */
+    async updatePermissions() {
+      let asyncPermissions = [];
+      try {
+        const data = await fetchPermissionsTree();
+        asyncPermissions = data || [];
+        this.setPermissions(asyncPermissions);
+      } catch (error) {
+        console.error(error);
+      }
+      return asyncPermissions;
     },
     getMenuItem(item, parent) {
       const route = this.generateRoute(item, item.show ? null : parent?.key);

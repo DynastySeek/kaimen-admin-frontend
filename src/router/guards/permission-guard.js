@@ -1,6 +1,5 @@
 import api from '@/api';
 import { useAuthStore, usePermissionStore, useUserStore } from '@/store';
-import { getPermissions, getUserInfo } from '@/store/helper';
 
 const WHITE_LIST = ['/login', '/404'];
 export function createPermissionGuard(router) {
@@ -27,9 +26,7 @@ export function createPermissionGuard(router) {
     const userStore = useUserStore();
     const permissionStore = usePermissionStore();
     if (!userStore.userInfo) {
-      const [user, permissions] = await Promise.all([getUserInfo(), getPermissions()]);
-      userStore.setUser(user);
-      permissionStore.setPermissions(permissions);
+      await Promise.all([userStore.updateUserInfo(), permissionStore.updatePermissions()]);
       const routeComponents = import.meta.glob('@/views/**/*.vue');
       permissionStore.accessRoutes.forEach((route) => {
         const originalComponent = route.component;

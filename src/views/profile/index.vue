@@ -101,7 +101,6 @@ import api from '@/api';
 import { AppPage, MeModal } from '@/components';
 import { useForm, useModal } from '@/composables';
 import { useUserStore } from '@/store';
-import { getUserInfo } from '@/store/helper';
 
 const userStore = useUserStore();
 const required = {
@@ -153,7 +152,6 @@ async function handleProfileSave() {
 }
 
 async function refreshUserInfo() {
-  const user = await getUserInfo();
-  userStore.setUser(user);
+  await userStore.updateUserInfo();
 }
 </script>
