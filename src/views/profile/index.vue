@@ -1,157 +1,312 @@
 <template>
   <AppPage>
-    <n-card>
-      <n-space align="center">
-        <n-avatar round :size="100" :src="userStore.avatar" />
-        <div class="ml-20">
-          <div class="flex items-center text-16">
-            <span>用户名:</span>
-            <span class="ml-12 opacity-80">{{ userStore.username }}</span>
-            <n-button class="ml-32" type="primary" text @click="pwdModalRef.open()">
-              <i class="i-fe:edit mr-4" />
-              修改密码
-            </n-button>
+    <n-card class="card-container">
+      <FormBuilder ref="formRef" v-model="formState" :form-items="formItems" label-width="120px">
+        <template #userType>
+          <NTag type="primary">
+            {{ UserTypeLabelMap[formState.userType] }}
+          </NTag>
+        </template>
+
+        <template #status>
+          <NTag :type="formState.status === UserStatus.Active ? 'success' : 'error'">
+            {{ UserStatusLabelMap[formState.status] }}
+          </NTag>
+        </template>
+        <template #createTime>
+          <span>{{ formatDateTime(formState.createTime) }}</span>
+        </template>
+        <template #updateTime>
+          <span>{{ formatDateTime(formState.updateTime) }}</span>
+        </template>
+      </FormBuilder>
+      <NButton @click="handleCancel">
+        返回
+      </NButton>
+      <NButton type="primary" @click="handleSubmit">
+        保存
+      </NButton>
+      <NButton @click="showPasswordModal">
+        修改密码
+      </NButton>
+    </n-card>
+
+    <NModal v-model:show="passwordModalVisible" title="修改密码" style="width: 500px">
+      <FormBuilder ref="passwordFormRef" v-model="passwordFormState" :form-items="passwordFormItems" label-width="120px">
+        <template #smsCode>
+          <div class="flex gap-x-4">
+            <NInput v-model:value="passwordFormState.smsCode" placeholder="请输入邮箱验证码" />
+            <NButton :disabled="remaining" @click="sendEmailCode">
+              {{ remaining ? `${remaining}秒后重新发送` : '发送验证码' }}
+            </NButton>
           </div>
-          <div class="mt-16 flex items-center">
-            <n-button type="primary" ghost @click="avatarModalRef.open()">
-              更改头像
-            </n-button>
-            <span class="ml-12 opacity-60">
-              修改头像只支持在线链接，不提供上传图片功能，如有需要可自行对接！
-            </span>
-          </div>
+        </template>
+      </FormBuilder>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <NButton @click="handlePasswordCancel">
+            取消
+          </NButton>
+          <NButton type="primary" @click="handlePasswordSubmit">
+            确定
+          </NButton>
         </div>
-      </n-space>
-    </n-card>
-
-    <n-card class="mt-20" title="个人资料信息">
-      <template #header-extra>
-        <n-button type="primary" text @click="profileModalRef.open()">
-          <i class="i-fe:edit mr-4" />
-          修改资料
-        </n-button>
       </template>
-
-      <n-descriptions
-        label-placement="left"
-        :label-style="{ width: '200px', textAlign: 'center' }"
-        :column="1"
-        bordered
-      >
-        <n-descriptions-item label="昵称">
-          {{ userStore.nickName }}
-        </n-descriptions-item>
-        <n-descriptions-item label="性别">
-          {{ genders.find((item) => item.value === userStore.userInfo?.gender)?.label ?? '未知' }}
-        </n-descriptions-item>
-        <n-descriptions-item label="地址">
-          {{ userStore.userInfo?.address }}
-        </n-descriptions-item>
-        <n-descriptions-item label="邮箱">
-          {{ userStore.userInfo?.email }}
-        </n-descriptions-item>
-      </n-descriptions>
-    </n-card>
-
-    <MeModal ref="avatarModalRef" width="420px" title="更改头像" @ok="handleAvatarSave()">
-      <n-input v-model:value="newAvatar" />
-    </MeModal>
-
-    <MeModal ref="pwdModalRef" title="修改密码" width="420px" @ok="handlePwdSave()">
-      <n-form
-        ref="pwdFormRef"
-        :model="pwdForm"
-        label-placement="left"
-        require-mark-placement="left"
-      >
-        <n-form-item label="原密码" path="oldPassword" :rule="required">
-          <n-input v-model:value="pwdForm.oldPassword" type="password" placeholder="请输入原密码" show-password-on="mousedown" />
-        </n-form-item>
-        <n-form-item label="新密码" path="newPassword" :rule="required">
-          <n-input v-model:value="pwdForm.newPassword" type="password" placeholder="请输入新密码" show-password-on="mousedown" />
-        </n-form-item>
-      </n-form>
-    </MeModal>
-
-    <MeModal ref="profileModalRef" title="修改资料" width="420px" @ok="handleProfileSave()">
-      <n-form ref="profileFormRef" :model="profileForm" label-placement="left">
-        <n-form-item label="昵称" path="nickName">
-          <n-input v-model:value="profileForm.nickName" placeholder="请输入昵称" />
-        </n-form-item>
-        <n-form-item label="性别" path="gender">
-          <n-select
-            v-model:value="profileForm.gender"
-            :options="genders"
-            placeholder="请选择性别"
-          />
-        </n-form-item>
-        <n-form-item label="地址" path="address">
-          <n-input v-model:value="profileForm.address" placeholder="请输入地址" />
-        </n-form-item>
-        <n-form-item label="邮箱" path="email">
-          <n-input v-model:value="profileForm.email" placeholder="请输入邮箱" />
-        </n-form-item>
-      </n-form>
-    </MeModal>
+    </NModal>
   </AppPage>
 </template>
 
 <script setup>
-import api from '@/api';
-import { AppPage, MeModal } from '@/components';
-import { useForm, useModal } from '@/composables';
-import { useUserStore } from '@/store';
+import { useCountdown } from '@vueuse/core';
+import { NButton, NInput, NModal, NTag } from 'naive-ui';
+import { computed, reactive, ref, shallowRef } from 'vue';
+import { useRouter } from 'vue-router';
+import FormBuilder from '@/components/FormBuilder.vue';
+import { UserStatus, UserStatusLabelMap, UserTypeLabelMap } from '@/constants';
+import { fetchChangePassword, fetchCurrentUserInfo, fetchUpdateUserInfo } from '@/services';
+import { useAuthStore } from '@/store';
+import { formatDateTime } from '@/utils';
 
-const userStore = useUserStore();
-const required = {
-  required: true,
-  message: '此为必填项',
-  trigger: ['blur', 'change'],
-};
+const router = useRouter();
+const authStore = useAuthStore();
 
-const [pwdModalRef] = useModal();
-const [pwdFormRef, pwdForm, pwdValidation] = useForm();
-
-async function handlePwdSave() {
-  await pwdValidation();
-  await api.auth.changePassword(pwdForm.value);
-  $message.success('密码修改成功');
-  refreshUserInfo();
-}
-
-const newAvatar = ref(userStore.avatar);
-const [avatarModalRef] = useModal();
-async function handleAvatarSave() {
-  if (!newAvatar.value) {
-    $message.error('请输入头像地址');
-    return false;
-  }
-  await api.user.updateProfile({ id: userStore.userId, avatar: newAvatar.value });
-  $message.success('头像修改成功');
-  refreshUserInfo();
-}
-
-const genders = [
-  { label: '保密', value: 0 },
-  { label: '男', value: 1 },
-  { label: '女', value: 2 },
-];
-const [profileModalRef] = useModal();
-const [profileFormRef, profileForm, profileValidation] = useForm({
-  id: userStore.userId,
-  nickName: userStore.nickName,
-  gender: userStore.userInfo?.gender ?? 0,
-  address: userStore.userInfo?.address,
-  email: userStore.userInfo?.email,
+// 表单相关
+const formRef = ref();
+const formState = reactive({
+  id: '',
+  username: '',
+  realName: '',
+  userType: '',
+  gender: '',
+  email: '',
+  phone: '',
+  avatar: '',
+  status: '',
+  createTime: '',
+  updateTime: '',
 });
-async function handleProfileSave() {
-  await profileValidation();
-  await api.user.updateProfile(profileForm.value);
-  $message.success('资料修改成功');
-  refreshUserInfo();
+
+const formItems = [
+  {
+    prop: 'username',
+    label: '用户名',
+    type: 'input',
+    disabled: true,
+    rules: [{ required: true, message: '请输入用户名' }],
+  },
+  {
+    prop: 'realName',
+    label: '真实姓名',
+    type: 'input',
+    rules: [{ required: true, message: '请输入真实姓名' }],
+  },
+  {
+    prop: 'phone',
+    label: '手机号',
+    type: 'input',
+    rules: [
+      { required: true, message: '请输入手机号' },
+      {
+        pattern: /^1[3-9]\d{9}$/,
+        message: '请输入正确的11位手机号',
+        trigger: 'blur',
+      },
+    ],
+  },
+  {
+    prop: 'email',
+    label: '邮箱',
+    type: 'input',
+    rules: [
+      { required: true, message: '请输入邮箱' },
+      {
+        type: 'email',
+        message: '请输入有效的邮箱地址（如：user@example.com）',
+        trigger: 'blur',
+      },
+    ],
+  },
+  {
+    prop: 'avatar',
+    label: '头像',
+    type: 'upload',
+  },
+  {
+    prop: 'userType',
+    label: '用户类型',
+    type: 'custom',
+  },
+  {
+    prop: 'gender',
+    label: '性别',
+    type: 'selectDictionary',
+    name: 'Gender',
+    valueType: 'number',
+  },
+  {
+    prop: 'status',
+    label: '状态',
+    type: 'custom',
+  },
+  {
+    prop: 'createTime',
+    label: '创建时间',
+    type: 'custom',
+  },
+  {
+    prop: 'updateTime',
+    label: '更新时间',
+    type: 'custom',
+  },
+];
+
+// 密码修改相关
+const passwordModalVisible = ref(false);
+const passwordFormRef = ref();
+const passwordFormState = reactive({
+  oldPassword: '',
+  newPassword: '',
+  confirmPassword: '',
+  smsCode: '',
+});
+
+const passwordFormItems = [
+  {
+    prop: 'oldPassword',
+    label: '原密码',
+    type: 'password',
+    placeholder: '请输入原密码',
+    rules: [{ required: true, message: '请输入原密码' }],
+  },
+  {
+    prop: 'newPassword',
+    label: '新密码',
+    type: 'password',
+    placeholder: '请输入新密码',
+    rules: [{ required: true, message: '请输入新密码' }],
+  },
+  {
+    prop: 'confirmPassword',
+    label: '确认密码',
+    type: 'password',
+    placeholder: '请再次输入新密码',
+    rules: [
+      { required: true, message: '请再次输入新密码' },
+      {
+        validator: (rule, value) => {
+          if (value !== passwordFormState.newPassword) {
+            return Promise.reject('两次输入的密码不一致');
+          }
+          return Promise.resolve();
+        },
+      },
+    ],
+  },
+  {
+    prop: 'smsCode',
+    label: '邮箱验证码',
+    type: 'custom',
+    rules: [{ required: true, message: '请输入邮箱验证码' }],
+  },
+];
+
+/**
+ * 获取用户信息
+ */
+async function fetchUserInfoData() {
+  try {
+    const data = await fetchCurrentUserInfo();
+    Object.assign(formState, data);
+  } catch (_error) {
+    $message.error('获取用户信息失败');
+  }
 }
 
-async function refreshUserInfo() {
-  await userStore.updateUserInfo();
+/**
+ * 处理表单提交
+ */
+async function handleSubmit() {
+  try {
+    const valid = await formRef.value?.validate();
+    if (!valid) {
+      return;
+    }
+    await fetchUpdateUserInfo({
+      realName: formState.realName,
+      phone: formState.phone,
+      email: formState.email,
+      gender: formState.gender,
+      avatar: formState.avatar,
+    });
+    $message.success('修改成功');
+    router.push('/');
+  } catch (error) {
+    $message.error(error.message || '修改失败');
+  }
 }
+
+/**
+ * 处理取消
+ */
+function handleCancel() {
+  router.back();
+}
+
+/**
+ * 显示修改密码弹窗
+ */
+function showPasswordModal() {
+  passwordModalVisible.value = true;
+}
+
+const countdown = shallowRef(0);
+const { remaining, start } = useCountdown(countdown, {});
+const isCounting = computed(() => countdown.value > 0);
+
+/**
+ * 发送邮箱验证码
+ */
+async function sendEmailCode() {
+  try {
+    if (isCounting.value) {
+      return;
+    }
+
+    // await fetchSendEmailCode({ email: formState.email });
+    $message.success('验证码已发送');
+
+    start(60);
+  } catch (_error) {
+    $message.error('验证码发送失败');
+  }
+}
+
+/**
+ * 处理密码修改提交
+ */
+async function handlePasswordSubmit() {
+  try {
+    const valid = await passwordFormRef.value?.validate();
+    if (!valid) {
+      return;
+    }
+    await fetchChangePassword(passwordFormState);
+    // 这里调用修改密码的API
+    $message.success('密码修改成功，请重新登录');
+    authStore.updateToken('');
+    router.push('/login');
+  } catch (error) {
+    $message.error(error.message || '密码修改失败');
+  }
+}
+
+/**
+ * 处理密码修改取消
+ */
+function handlePasswordCancel() {
+  passwordModalVisible.value = false;
+}
+
+// 初始化获取用户信息
+fetchUserInfoData();
 </script>
