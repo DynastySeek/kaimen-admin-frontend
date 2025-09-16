@@ -1,7 +1,7 @@
-import { hyphenate } from '@vueuse/core';
 import { defineStore } from 'pinia';
-import { fetchPermissionsTree } from '@/services';
-import { isExternal } from '@/utils';
+import { h } from 'vue';
+import { systemRoutes } from '@/router/modules/system';
+import { fetchPermissions } from '@/services';
 
 export const usePermissionStore = defineStore('permission', {
   state: () => ({
@@ -9,83 +9,83 @@ export const usePermissionStore = defineStore('permission', {
     permissions: [],
     menus: [],
   }),
+
   actions: {
+    /** 更新权限数据 */
+    async updatePermissions() {
+      try {
+        const data = await fetchPermissions();
+        this.setPermissions(data);
+      } catch (error) {
+        console.error('获取权限失败:', error);
+        throw error;
+      }
+    },
+    /** 设置权限数据 */
     setPermissions(permissions) {
       this.permissions = permissions;
-      this.menus = this.permissions
-        .filter(item => item.type === 'MENU')
-        .map(item => this.getMenuItem(item))
+      this.menus = this.getMenus(this.permissions);
+    },
+    /** 根据权限数据生成菜单树 */
+    getMenus(permissions) {
+      const filteredRoutes = this.generateRoute(permissions);
+      const generateMenuFromRoute = (route, _parentKey = null) => {
+        if (!route.meta || route.meta.show === false) {
+          return null;
+        }
+        if (route.path && !route.path.startsWith('http')) {
+          this.accessRoutes.push(route);
+        }
+        const menuItem = {
+          label: route.meta.title,
+          key: route.name,
+          path: route.path,
+          originPath: route.meta.originPath,
+          icon: () => h('i', { class: `${route.meta.icon} text-16` }),
+          order: route.meta.order ?? 0,
+        };
+        if (route.children && route.children.length) {
+          menuItem.children = route.children
+            .map(child => generateMenuFromRoute(child, menuItem.key))
+            .filter(item => !!item)
+            .sort((a, b) => a.order - b.order);
+          if (!menuItem.children.length) {
+            delete menuItem.children;
+          }
+        }
+        return menuItem;
+      };
+      return filteredRoutes
+        .map(route => generateMenuFromRoute(route))
         .filter(item => !!item)
         .sort((a, b) => a.order - b.order);
     },
-    /**
-     * 获取并更新权限树
-     * @returns {Promise<Array>} 权限树数据
-     */
-    async updatePermissions() {
-      let asyncPermissions = [];
-      try {
-        const data = await fetchPermissionsTree();
-        asyncPermissions = data || [];
-        this.setPermissions(asyncPermissions);
-      } catch (error) {
-        console.error(error);
-      }
-      return asyncPermissions;
-    },
-    getMenuItem(item, parent) {
-      const route = this.generateRoute(item, item.show ? null : parent?.key);
-      if (item.enable && route.path && !route.path.startsWith('http')) {
-        this.accessRoutes.push(route);
-      }
-      const menuItem = {
-        label: route.meta.title,
-        key: route.name,
-        path: route.path,
-        originPath: route.meta.originPath,
-        icon: () => h('i', { class: `${route.meta.icon} text-16` }),
-        order: item.order ?? 0,
-      };
-      const children = item.children?.filter(item => item.type === 'MENU') || [];
-      if (children.length) {
-        menuItem.children = children
-          .map(child => this.getMenuItem(child, menuItem))
-          .filter(item => !!item)
-          .sort((a, b) => a.order - b.order);
-        if (!menuItem.children.length) {
-          delete menuItem.children;
+    /** 根据权限数据过滤 systemRoutes 生成路由树 */
+    generateRoute(permissions) {
+      const menuPermissions = permissions.filter(item => item.type === 'MENU');
+      const filterRoutes = (routes) => {
+        const filteredRoutes = [];
+        for (const route of routes) {
+          if (route.meta?.code) {
+            const hasPermission = menuPermissions.some(item => item.code === route.meta?.code);
+            if (!hasPermission) {
+              continue;
+            }
+          }
+          const newRoute = { ...route };
+          if (route.children && route.children.length > 0) {
+            const filteredChildren = filterRoutes(route.children);
+            if (filteredChildren.length > 0) {
+              newRoute.children = filteredChildren;
+            }
+          }
+          filteredRoutes.push(newRoute);
         }
-      }
-      if (!item.show) {
-        return null;
-      }
-      return menuItem;
-    },
-    generateRoute(item, parentKey) {
-      let originPath;
-      if (isExternal(item.path)) {
-        originPath = item.path;
-        item.component = '/src/views/iframe/index.vue';
-        item.path = `/iframe/${hyphenate(item.code)}`;
-      }
-      return {
-        name: item.code,
-        path: item.path,
-        redirect: item.redirect,
-        component: item.component,
-        meta: {
-          originPath,
-          icon: `${item.icon}?mask`,
-          title: item.name,
-          layout: item.layout,
-          keepAlive: !!item.keepAlive,
-          parentKey,
-          btns: item.children
-            ?.filter(item => item.type === 'BUTTON')
-            .map(item => ({ code: item.code, name: item.name })),
-        },
+        return filteredRoutes;
       };
+      return filterRoutes(systemRoutes);
     },
+    /** 重置权限相关状态 */
     resetPermission() {
       this.$reset();
     },

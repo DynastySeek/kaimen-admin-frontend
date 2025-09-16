@@ -11,6 +11,9 @@ export const systemRoutes = [
     meta: {
       title: '系统管理',
       icon: 'i-fe:grid',
+      code: 'SysMgt',
+      show: true,
+      enable: true,
     },
     children: [
       {
@@ -20,6 +23,9 @@ export const systemRoutes = [
         meta: {
           title: '资源管理',
           icon: 'i-fe:list',
+          code: 'Resource_Mgt',
+          show: true,
+          enable: true,
         },
       },
       {
@@ -29,6 +35,9 @@ export const systemRoutes = [
         meta: {
           title: '角色管理',
           icon: 'i-fe:user-check',
+          code: 'RoleMgt',
+          show: true,
+          enable: true,
         },
         children: [
           {
@@ -40,6 +49,9 @@ export const systemRoutes = [
               icon: 'i-fe:user-plus',
               layout: 'full',
               hideInMenu: true,
+              code: 'RoleUser',
+              show: false,
+              enable: true,
             },
           },
         ],
@@ -52,6 +64,12 @@ export const systemRoutes = [
           title: '用户管理',
           icon: 'i-fe:user',
           keepAlive: true,
+          code: 'UserMgt',
+          show: true,
+          enable: true,
+          btns: [
+            { code: 'AddUser', name: '创建新用户' },
+          ],
         },
       },
     ],

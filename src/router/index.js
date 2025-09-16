@@ -1,14 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { VITE_PUBLIC_PATH } from '@/config/env';
 import { basicRoutes } from './modules/basic';
-import { systemRoutes } from './modules/system';
 import { createPageLoadingGuard } from './page-loading';
 import { createPermissionGuard } from './permission';
 import { createTabGuard } from './tab';
 
 export const router = createRouter({
   history: createWebHistory(VITE_PUBLIC_PATH),
-  routes: [...basicRoutes, ...systemRoutes],
+  routes: basicRoutes,
   scrollBehavior: () => ({ left: 0, top: 0 }),
 });
 

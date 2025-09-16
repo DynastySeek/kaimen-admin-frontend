@@ -27,15 +27,7 @@ export function createPermissionGuard(router) {
     const permissionStore = usePermissionStore();
     if (!userStore.userInfo) {
       await Promise.all([userStore.updateUserInfo(), permissionStore.updatePermissions()]);
-      const routeComponents = import.meta.glob('@/views/**/*.vue');
       permissionStore.accessRoutes.forEach((route) => {
-        const originalComponent = route.component;
-        route.component = routeComponents[route.component] || undefined;
-        // 保存原始组件路径到 meta 中，用于页面缺失提示
-        if (!route.meta) {
-          route.meta = {};
-        }
-        route.meta.component = originalComponent;
         !router.hasRoute(route.name) && router.addRoute(route);
       });
       return { ...to, replace: true };

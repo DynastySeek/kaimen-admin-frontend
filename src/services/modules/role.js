@@ -7,6 +7,12 @@ import alovaInstance from '../alovaInstance';
 export const fetchPermissionsTree = () => alovaInstance.Get('/api/role/permissions/tree');
 
 /**
+ * 获取权限数组
+ * @returns {Promise<Array<{type:string,code:string}>>} 权限数组
+ */
+export const fetchPermissions = () => alovaInstance.Get('/api/role/permissions');
+
+/**
  * 获取角色列表
  * @param {RoleListParams} params - 请求参数
  * @returns {Promise<object>} 角色列表数据，包含分页信息

@@ -145,6 +145,18 @@ export default defineMock(
       ];
     },
 
+    // 角色权限数组接口
+    '/api/role/permissions': () => {
+      return [
+        { type: 'MENU', code: 'SysMgt' },
+        { type: 'MENU', code: 'Resource_Mgt' },
+        { type: 'MENU', code: 'RoleMgt' },
+        { type: 'MENU', code: 'RoleUser' },
+        { type: 'MENU', code: 'UserMgt' },
+        { type: 'BUTTON', code: 'AddUser' },
+      ];
+    },
+
     // 角色列表接口
     '/api/role/list': ({ query }) => {
       const { page = 1, size = 10, name, code } = query;
