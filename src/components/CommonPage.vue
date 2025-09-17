@@ -29,9 +29,9 @@
         <slot name="action" />
       </template>
     </AppCard>
-    <AppCard class="cus-scroll m-12 h-0 flex-1 rounded-8 p-24" bordered>
+    <div class="cus-scroll h-0 flex-1 p-10">
       <slot />
-    </AppCard>
+    </div>
 
     <slot name="footer">
       <AppCard v-if="showFooter" class="flex-shrink-0 py-12">

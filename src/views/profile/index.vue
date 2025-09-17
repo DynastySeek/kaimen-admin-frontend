@@ -1,17 +1,35 @@
 <template>
-  <AppPage>
-    <n-card class="card-container">
+  <CommonPage>
+    <template #action>
+      <n-flex>
+        <n-button v-permission="'AddUser'" type="primary" @click="handleAdd()">
+          <i class="i-material-symbols:add mr-4 text-18" />
+          创建新用户
+        </n-button>
+
+        <n-button @click="handleCancel">
+          返回
+        </n-button>
+        <n-button type="primary" @click="handleSubmit">
+          保存
+        </n-button>
+        <n-button type="info" @click="showPasswordModal">
+          修改密码
+        </n-button>
+      </n-flex>
+    </template>
+    <n-card>
       <FormBuilder ref="formRef" v-model="formState" :form-items="formItems" label-width="120px">
         <template #userType>
-          <NTag type="primary">
+          <n-tag type="primary">
             {{ UserTypeLabelMap[formState.userType] }}
-          </NTag>
+          </n-tag>
         </template>
 
         <template #status>
-          <NTag :type="formState.status === UserStatus.Active ? 'success' : 'error'">
+          <n-tag :type="formState.status === UserStatus.Active ? 'success' : 'error'">
             {{ UserStatusLabelMap[formState.status] }}
-          </NTag>
+          </n-tag>
         </template>
         <template #createTime>
           <span>{{ formatDateTime(formState.createTime) }}</span>
@@ -20,47 +38,38 @@
           <span>{{ formatDateTime(formState.updateTime) }}</span>
         </template>
       </FormBuilder>
-      <NButton @click="handleCancel">
-        返回
-      </NButton>
-      <NButton type="primary" @click="handleSubmit">
-        保存
-      </NButton>
-      <NButton @click="showPasswordModal">
-        修改密码
-      </NButton>
     </n-card>
 
-    <NModal v-model:show="passwordModalVisible" title="修改密码" style="width: 500px">
+    <n-modal v-model:show="passwordModalVisible" title="修改密码" style="width: 500px">
       <FormBuilder ref="passwordFormRef" v-model="passwordFormState" :form-items="passwordFormItems" label-width="120px">
         <template #smsCode>
           <div class="flex gap-x-4">
-            <NInput v-model:value="passwordFormState.smsCode" placeholder="请输入邮箱验证码" />
-            <NButton :disabled="remaining" @click="sendEmailCode">
+            <n-input v-model:value="passwordFormState.smsCode" placeholder="请输入邮箱验证码" />
+            <n-button :disabled="remaining" @click="sendEmailCode">
               {{ remaining ? `${remaining}秒后重新发送` : '发送验证码' }}
-            </NButton>
+            </n-button>
           </div>
         </template>
       </FormBuilder>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <NButton @click="handlePasswordCancel">
+          <n-button @click="handlePasswordCancel">
             取消
-          </NButton>
-          <NButton type="primary" @click="handlePasswordSubmit">
+          </n-button>
+          <n-button type="primary" @click="handlePasswordSubmit">
             确定
-          </NButton>
+          </n-button>
         </div>
       </template>
-    </NModal>
-  </AppPage>
+    </n-modal>
+  </CommonPage>
 </template>
 
 <script setup>
 import { useCountdown } from '@vueuse/core';
-import { NButton, NInput, NModal, NTag } from 'naive-ui';
 import { computed, reactive, ref, shallowRef } from 'vue';
 import { useRouter } from 'vue-router';
+import { CommonPage } from '@/components';
 import FormBuilder from '@/components/FormBuilder.vue';
 import { UserStatus, UserStatusLabelMap, UserTypeLabelMap } from '@/constants';
 import { fetchChangePassword, fetchCurrentUserInfo, fetchUpdateUserInfo } from '@/services';
@@ -97,7 +106,7 @@ const formItems = [
   {
     prop: 'realName',
     label: '真实姓名',
-    type: 'input',
+    type: 'select',
     rules: [{ required: true, message: '请输入真实姓名' }],
   },
   {

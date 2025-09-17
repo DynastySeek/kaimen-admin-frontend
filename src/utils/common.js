@@ -7,7 +7,8 @@ import dayjs from 'dayjs';
  *
  */
 export function formatDateTime(time = undefined, format = 'YYYY-MM-DD HH:mm:ss') {
-  return dayjs(time).format(format);
+  const date = dayjs(time);
+  return date.isValid() ? date.format(format) : '-';
 }
 
 export function formatDate(date = undefined, format = 'YYYY-MM-DD') {

@@ -1,5 +1,5 @@
 <template>
-  <n-form ref="formRef" :model="modelValue" :rules="extractedRules" :label-width="labelWidth">
+  <n-form ref="formRef" :model="modelValue" :rules="extractedRules" :label-width="labelWidth" label-placement="left">
     <n-grid :cols="24" :x-gap="gutter">
       <n-grid-item v-for="item in filterFormItems" :key="item.prop" :span="item.span || 24">
         <n-form-item :label="item.label" :path="item.prop">
@@ -18,6 +18,7 @@
 </template>
 
 <script setup>
+import { NCascader, NCheckbox, NDatePicker, NInput, NInputNumber, NRadioGroup, NSelect, NSwitch, NTimePicker } from 'naive-ui';
 import { computed, defineModel, useTemplateRef } from 'vue';
 import SelectDictionary from './SelectDictionary.vue';
 import UploadImage from './UploadImage.vue';
@@ -68,18 +69,18 @@ const extractedRules = computed(() => {
 });
 
 const componentMap = {
-  input: 'n-input',
-  password: 'n-input',
-  textarea: 'n-input',
-  number: 'n-input-number',
-  select: 'n-select',
-  cascader: 'n-cascader',
-  date: 'n-date-picker',
-  datetime: 'n-date-picker',
-  time: 'n-time-picker',
-  switch: 'n-switch',
-  checkbox: 'n-checkbox',
-  radio: 'n-radio-group',
+  input: NInput,
+  password: NInput,
+  textarea: NInput,
+  number: NInputNumber,
+  select: NSelect,
+  cascader: NCascader,
+  date: NDatePicker,
+  datetime: NDatePicker,
+  time: NTimePicker,
+  switch: NSwitch,
+  checkbox: NCheckbox,
+  radio: NRadioGroup,
   upload: UploadImage,
   selectDictionary: SelectDictionary,
 };
