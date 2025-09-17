@@ -1,315 +1,214 @@
 <template>
   <CommonPage>
-    <template #action>
-      <NButton v-permission="'AddUser'" type="primary" @click="handleAdd()">
-        <i class="i-material-symbols:add mr-4 text-18" />
-        创建新用户
-      </NButton>
-    </template>
-
-    <MeCrud
-      ref="$table"
-      v-model:query-items="queryItems"
-      :scroll-x="1200"
+    <template #action />
+    <ProTable
+      ref="proTableRef"
+      detail-title="用户详情"
+      detail-width="700px"
+      form-width="500px"
+      form-label-width="80px"
+      :search-form-items="searchFormItems"
+      :detail-items="detailItems"
+      :form-items="formItems"
+      :fetch-data="fetchUserList"
+      :fetch-detail-data="row => fetchUserInfoById(row.id)"
+      :fetch-delete-item="row => fetchDeleteUser(row.id)"
+      :action-buttons="['view', 'delete']"
       :columns="columns"
-      :get-data="api.user.read"
     >
-      <MeQueryItem label="用户名" :label-width="50">
-        <n-input
-          v-model:value="queryItems.username"
-          type="text"
-          placeholder="请输入用户名"
-          clearable
-        />
-      </MeQueryItem>
+      <!-- 自定义操作按钮插槽 -->
+      <template #action="{ row }">
+        <n-button :type="row?.status === UserStatus.Active ? 'warning' : 'success'" quaternary size="small" @click="handleToggleStatus(row)">
+          {{ row?.status === UserStatus.Active ? '禁用' : '启用' }}
+        </n-button>
+      </template>
 
-      <MeQueryItem label="性别" :label-width="50">
-        <n-select v-model:value="queryItems.gender" clearable :options="genders" />
-      </MeQueryItem>
-
-      <MeQueryItem label="状态" :label-width="50">
-        <n-select
-          v-model:value="queryItems.enable"
-          clearable
-          :options="[
-            { label: '启用', value: 1 },
-            { label: '停用', value: 0 },
-          ]"
-        />
-      </MeQueryItem>
-    </MeCrud>
-
-    <MeModal ref="modalRef" width="520px">
-      <n-form
-        ref="modalFormRef"
-        label-placement="left"
-        label-align="left"
-        :label-width="80"
-        :model="modalForm"
-        :disabled="modalAction === 'view'"
-      >
-        <n-form-item
-          label="用户名"
-          path="username"
-          :rule="{
-            required: true,
-            message: '请输入用户名',
-            trigger: ['input', 'blur'],
-          }"
-        >
-          <n-input v-model:value="modalForm.username" :disabled="modalAction !== 'add'" />
-        </n-form-item>
-        <n-form-item
-          v-if="['add', 'reset'].includes(modalAction)"
-          :label="modalAction === 'reset' ? '重置密码' : '初始密码'"
-          path="password"
-          :rule="{
-            required: true,
-            message: '请输入密码',
-            trigger: ['input', 'blur'],
-          }"
-        >
-          <n-input v-model:value="modalForm.password" type="password" show-password-on="mousedown" />
-        </n-form-item>
-
-        <n-form-item v-if="['add', 'setRole'].includes(modalAction)" label="角色" path="roleIds">
-          <n-select
-            v-model:value="modalForm.roleIds"
-            :options="roles"
-            label-field="name"
-            value-field="id"
-            clearable
-            filterable
-            multiple
-          />
-        </n-form-item>
-        <n-form-item v-if="modalAction === 'add'" label="状态" path="enable">
-          <NSwitch v-model:value="modalForm.enable">
-            <template #checked>
-              启用
-            </template>
-            <template #unchecked>
-              停用
-            </template>
-          </NSwitch>
-        </n-form-item>
-      </n-form>
-      <n-alert v-if="modalAction === 'add'" type="warning" closable>
-        详细信息需由用户本人补充修改
-      </n-alert>
-    </MeModal>
+      <!-- 详情插槽 -->
+      <template #detail-userType="{ data }">
+        <n-tag type="primary">
+          {{ UserTypeLabelMap[data?.userType] }}
+        </n-tag>
+      </template>
+      <template #detail-status="{ data }">
+        <n-tag :type="data?.status === UserStatus.Active ? 'success' : 'error'">
+          {{ UserStatusLabelMap[data?.status] }}
+        </n-tag>
+      </template>
+      <template #detail-createTime="{ data }">
+        {{ formatDateTime(data?.createTime) }}
+      </template>
+      <template #detail-updateTime="{ data }">
+        {{ formatDateTime(data?.updateTime) }}
+      </template>
+    </ProTable>
   </CommonPage>
 </template>
 
 <script setup>
-import { NAvatar, NButton, NSwitch, NTag } from 'naive-ui';
-import api from '@/api';
-import { CommonPage, MeCrud, MeModal, MeQueryItem } from '@/components';
-import { useCrud } from '@/composables';
-import { withPermission } from '@/directives';
+import { computed, h, inject, ref } from 'vue';
+import CommonPage from '@/components/CommonPage.vue';
+import ProTable from '@/components/ProTable.vue';
+import { UserStatus, UserStatusLabelMap, UserTypeLabelMap } from '@/constants';
+import { fetchDeleteUser, fetchDisableUser, fetchEnableDisableUser, fetchUserInfoById, fetchUserList } from '@/services';
 import { formatDateTime } from '@/utils';
 
-defineOptions({ name: 'UserMgt' });
+const $message = inject('message');
+const proTableRef = ref();
 
-const $table = ref(null);
-/** QueryBar筛选参数（可选） */
-const queryItems = ref({});
-
-onMounted(() => {
-  $table.value?.handleSearch();
-});
-
-const genders = [
-  { label: '男', value: 1 },
-  { label: '女', value: 2 },
-];
-const roles = ref([]);
-api.user.getAllRoles().then(({ data = [] }) => (roles.value = data));
-
-const {
-  modalRef,
-  modalFormRef,
-  modalForm,
-  modalAction,
-  handleAdd,
-  handleDelete,
-  handleOpen,
-  handleSave,
-} = useCrud({
-  name: '用户',
-  initForm: { enable: true },
-  doCreate: api.user.create,
-  doDelete: api.user.delete,
-  doUpdate: api.user.update,
-  refresh: () => $table.value?.handleSearch(),
-});
-
-const columns = [
-  {
-    title: '头像',
-    key: 'avatar',
-    width: 80,
-    render: ({ avatar }) =>
-      h(NAvatar, {
-        size: 'medium',
-        src: avatar,
-      }),
-  },
-  { title: '用户名', key: 'username', width: 150, ellipsis: { tooltip: true } },
+// 表格列定义
+const columns = computed(() => [
+  { title: '用户名', key: 'username' },
+  { title: '姓名', key: 'realName' },
+  { title: '手机号', key: 'phone' },
+  { title: '邮箱', key: 'email' },
   {
     title: '角色',
-    key: 'roles',
-    width: 200,
-    ellipsis: { tooltip: true },
-    render: ({ roles }) => {
-      if (roles?.length) {
-        return roles.map((item, index) =>
-          h(
-            NTag,
-            { type: 'success', style: index > 0 ? 'margin-left: 8px;' : '' },
-            { default: () => item.name },
-          ),
-        );
-      }
-      return '暂无角色';
-    },
-  },
-  {
-    title: '性别',
-    key: 'gender',
-    width: 80,
-    render: ({ gender }) => genders.find(item => gender === item.value)?.label ?? '',
-  },
-  { title: '邮箱', key: 'email', width: 150, ellipsis: { tooltip: true } },
-  {
-    title: '创建时间',
-    key: 'createDate',
-    width: 180,
-    render(row) {
-      return h('span', formatDateTime(row.createTime));
+    key: 'userType',
+    render: (row) => {
+      return h('n-tag', { type: 'primary' }, () => UserTypeLabelMap[row.userType]);
     },
   },
   {
     title: '状态',
-    key: 'enable',
-    width: 120,
-    render: row =>
-      h(
-        NSwitch,
-        {
-          size: 'small',
-          rubberBand: false,
-          value: row.enable,
-          loading: !!row.enableLoading,
-          onUpdateValue: () => handleEnable(row),
-        },
-        {
-          checked: () => '启用',
-          unchecked: () => '停用',
-        },
-      ),
+    key: 'status',
+    render: (row) => {
+      return h('n-tag', { type: row.status === UserStatus.Active ? 'success' : 'error' }, () => UserStatusLabelMap[row.status]);
+    },
   },
   {
-    title: '操作',
-    key: 'actions',
-    width: 420,
-    align: 'right',
-    fixed: 'right',
-    hideInExcel: true,
-    render(row) {
-      return [
-        withPermission(
-          h(NButton, {
-            size: 'small',
-            type: 'primary',
-            secondary: true,
-          }, {
-            default: () => '超管专属',
-            icon: () => h('i', { class: 'i-carbon:user-role text-14' }),
-          }),
-          'SuperAdmin',
-        ),
-        h(
-          NButton,
-          {
-            size: 'small',
-            type: 'primary',
-            class: 'ml-12px',
-            secondary: true,
-            onClick: () => handleOpenRolesSet(row),
-          },
-          {
-            default: () => '分配角色',
-            icon: () => h('i', { class: 'i-carbon:user-role text-14' }),
-          },
-        ),
-        h(
-          NButton,
-          {
-            size: 'small',
-            type: 'primary',
-            style: 'margin-left: 12px;',
-            onClick: () => handleOpen({ action: 'reset', title: '重置密码', row, onOk: onSave }),
-          },
-          {
-            default: () => '重置密码',
-            icon: () => h('i', { class: 'i-radix-icons:reset text-14' }),
-          },
-        ),
+    title: '创建时间',
+    key: 'createTime',
+    render: row => formatDateTime(row.createTime),
+  },
+]);
 
-        h(
-          NButton,
-          {
-            size: 'small',
-            type: 'error',
-            style: 'margin-left: 12px;',
-            onClick: () => handleDelete(row.id),
-          },
-          {
-            default: () => '删除',
-            icon: () => h('i', { class: 'i-material-symbols:delete-outline text-14' }),
-          },
-        ),
-      ];
+/**
+ * 处理用户状态切换（启用/禁用）
+ * @param {object} row - 用户行数据
+ */
+async function handleToggleStatus(row) {
+  try {
+    if (row.status === UserStatus.Active) {
+      await fetchDisableUser(row.id);
+      $message.success('用户已禁用');
+    } else {
+      await fetchEnableDisableUser(row.id);
+      $message.success('用户已启用');
+    }
+    // 刷新表格数据
+    proTableRef.value?.refresh();
+  } catch (error) {
+    console.error('切换用户状态失败:', error);
+    $message.error('操作失败');
+  }
+}
+
+// 搜索表单项配置
+const searchFormItems = [
+  {
+    prop: 'username',
+    label: '用户名',
+    type: 'input',
+    placeholder: '请输入用户名',
+    props: {
+      clearable: true,
+    },
+  },
+  {
+    prop: 'email',
+    label: '邮箱',
+    type: 'input',
+    placeholder: '请输入邮箱',
+    props: {
+      clearable: true,
+    },
+  },
+  {
+    prop: 'phone',
+    label: '手机号',
+    type: 'input',
+    placeholder: '请输入手机号',
+    props: {
+      clearable: true,
     },
   },
 ];
 
-async function handleEnable(row) {
-  row.enableLoading = true;
-  try {
-    await api.user.update({ id: row.id, enable: !row.enable });
-    row.enableLoading = false;
-    $message.success('操作成功');
-    $table.value?.handleSearch();
-  } catch (error) {
-    console.error(error);
-    row.enableLoading = false;
-  }
-}
+// 详情项配置
+const detailItems = [
+  { prop: 'username', label: '用户名' },
+  { prop: 'realName', label: '姓名' },
+  { prop: 'phone', label: '手机号' },
+  { prop: 'email', label: '邮箱' },
+  { prop: 'userType', label: '角色' },
+  { prop: 'status', label: '状态' },
+  { prop: 'createTime', label: '创建时间' },
+  { prop: 'updateTime', label: '更新时间' },
+];
 
-function handleOpenRolesSet(row) {
-  const roleIds = row.roles.map(item => item.id);
-  handleOpen({
-    action: 'setRole',
-    title: '分配角色',
-    row: { id: row.id, username: row.username, roleIds },
-    onOk: onSave,
-  });
-}
-
-function onSave() {
-  if (modalAction.value === 'setRole') {
-    return handleSave({
-      api: () => api.user.update(modalForm.value),
-      cb: () => $message.success('分配成功'),
-    });
-  } else if (modalAction.value === 'reset') {
-    return handleSave({
-      api: () => api.user.resetPwd(modalForm.value.id, modalForm.value),
-      cb: () => $message.success('密码重置成功'),
-    });
-  }
-  handleSave();
-}
+// 表单项配置
+const formItems = [
+  {
+    prop: 'username',
+    label: '用户名',
+    type: 'input',
+    placeholder: '请输入用户名',
+    props: {
+      clearable: true,
+    },
+    rules: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  },
+  {
+    prop: 'realName',
+    label: '姓名',
+    type: 'input',
+    placeholder: '请输入姓名',
+    props: {
+      clearable: true,
+    },
+    rules: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
+  },
+  {
+    prop: 'phone',
+    label: '手机号',
+    type: 'input',
+    placeholder: '请输入手机号',
+    props: {
+      clearable: true,
+    },
+    rules: [
+      { required: true, message: '请输入手机号', trigger: 'blur' },
+      { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' },
+    ],
+  },
+  {
+    prop: 'email',
+    label: '邮箱',
+    type: 'input',
+    placeholder: '请输入邮箱',
+    props: {
+      clearable: true,
+    },
+    rules: [
+      { required: true, message: '请输入邮箱', trigger: 'blur' },
+      { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' },
+    ],
+  },
+  {
+    prop: 'userType',
+    label: '角色',
+    type: 'selectDictionary',
+    name: 'UserType',
+    valueType: 'number',
+    rules: [{ required: true, message: '请选择角色', trigger: 'change' }],
+  },
+  {
+    prop: 'status',
+    label: '状态',
+    type: 'selectDictionary',
+    name: 'UserStatus',
+    valueType: 'number',
+    rules: [{ required: true, message: '请选择状态', trigger: 'change' }],
+  },
+];
 </script>
