@@ -1,12 +1,6 @@
 import alovaInstance from '../alovaInstance';
 
 /**
- * 获取角色权限树
- * @returns {Promise<Array>} 权限树数据
- */
-export const fetchPermissionsTree = () => alovaInstance.Get('/api/role/permissions/tree');
-
-/**
  * 获取权限数组
  * @returns {Promise<Array<{type:string,code:string}>>} 权限数组
  */
