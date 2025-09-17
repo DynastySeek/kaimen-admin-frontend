@@ -27,6 +27,11 @@ const options = reactive([
     key: 'profile',
     icon: () => h('i', { class: 'i-material-symbols:person-outline text-14' }),
   },
+  {
+    label: '系统信息',
+    key: 'systemInfo',
+    icon: () => h('i', { class: 'i-material-symbols:info-outline text-14' }),
+  },
   // {
   //   label: '切换角色',
   //   key: 'toggleRole',
@@ -45,6 +50,9 @@ function handleSelect(key) {
   switch (key) {
     case 'profile':
       router.push('/profile');
+      break;
+    case 'systemInfo':
+      router.push('/system-info');
       break;
     case 'toggleRole':
       roleSelectRef.value?.open({

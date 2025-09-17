@@ -25,6 +25,14 @@ export const basicRoutes = [
     },
   },
   {
+    name: 'SystemInfo',
+    path: '/system-info',
+    component: () => import('@/views/system-info/index.vue'),
+    meta: {
+      title: '系统信息',
+    },
+  },
+  {
     name: '404',
     path: '/404',
     component: () => import('@/views/error-page/404.vue'),

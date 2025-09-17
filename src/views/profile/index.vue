@@ -2,11 +2,6 @@
   <CommonPage>
     <template #action>
       <n-flex>
-        <n-button v-permission="'AddUser'" type="primary" @click="handleAdd()">
-          <i class="i-material-symbols:add mr-4 text-18" />
-          创建新用户
-        </n-button>
-
         <n-button @click="handleCancel">
           返回
         </n-button>
