@@ -40,34 +40,30 @@
       </FormBuilder>
     </n-card>
 
-    <n-modal v-model:show="passwordModalVisible" title="修改密码" style="width: 500px">
-      <FormBuilder ref="passwordFormRef" v-model="passwordFormState" :form-items="passwordFormItems" label-width="120px">
-        <template #smsCode>
-          <div class="flex gap-x-4">
-            <n-input v-model:value="passwordFormState.smsCode" placeholder="请输入邮箱验证码" />
-            <n-button :disabled="remaining" @click="sendEmailCode">
-              {{ remaining ? `${remaining}秒后重新发送` : '发送验证码' }}
-            </n-button>
-          </div>
-        </template>
-      </FormBuilder>
+    <!-- 密码修改表单对话框 -->
+    <n-modal
+      v-model:show="passwordModalVisible"
+      preset="card"
+      title="修改密码"
+      style="width: 500px;"
+    >
+      <FormBuilder ref="passwordFormRef" v-model="passwordFormState" :form-items="passwordFormItems" label-width="100px" />
       <template #footer>
-        <div class="flex justify-end gap-2">
+        <n-flex justify="end">
           <n-button @click="handlePasswordCancel">
             取消
           </n-button>
           <n-button type="primary" @click="handlePasswordSubmit">
             确定
           </n-button>
-        </div>
+        </n-flex>
       </template>
     </n-modal>
   </CommonPage>
 </template>
 
 <script setup>
-import { useCountdown } from '@vueuse/core';
-import { computed, reactive, ref, shallowRef } from 'vue';
+import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { CommonPage } from '@/components';
 import FormBuilder from '@/components/FormBuilder.vue';
@@ -176,7 +172,6 @@ const passwordFormState = reactive({
   oldPassword: '',
   newPassword: '',
   confirmPassword: '',
-  smsCode: '',
 });
 
 const passwordFormItems = [
@@ -210,12 +205,6 @@ const passwordFormItems = [
         },
       },
     ],
-  },
-  {
-    prop: 'smsCode',
-    label: '邮箱验证码',
-    type: 'custom',
-    rules: [{ required: true, message: '请输入邮箱验证码' }],
   },
 ];
 
@@ -268,28 +257,6 @@ function showPasswordModal() {
   passwordModalVisible.value = true;
 }
 
-const countdown = shallowRef(0);
-const { remaining, start } = useCountdown(countdown, {});
-const isCounting = computed(() => countdown.value > 0);
-
-/**
- * 发送邮箱验证码
- */
-async function sendEmailCode() {
-  try {
-    if (isCounting.value) {
-      return;
-    }
-
-    // await fetchSendEmailCode({ email: formState.email });
-    $message.success('验证码已发送');
-
-    start(60);
-  } catch (_error) {
-    $message.error('验证码发送失败');
-  }
-}
-
 /**
  * 处理密码修改提交
  */
@@ -313,6 +280,11 @@ async function handlePasswordSubmit() {
  * 处理密码修改取消
  */
 function handlePasswordCancel() {
+  Object.assign(passwordFormState, {
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
   passwordModalVisible.value = false;
 }
 
