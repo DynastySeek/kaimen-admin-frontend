@@ -16,14 +16,12 @@ stages:
       - step: build@nodejs
         name: build_nodejs
         displayName: Nodejs 构建
-        nodeVersion: 20.10.0
-        # 关键配置：启用 pnpm
-        pnpm: true
+        nodeVersion: 23.11.1
         commands:
           - node --version
-          - npm --version # 验证 npm 版本
+          - npm --version
           - npm install
-          - rm -rf ./dist # 清除上次打包产物残留
+          - rm -rf ./dist
           - npm run build:prod
         artifacts:
           - name: BUILD_ARTIFACT
