@@ -7,7 +7,6 @@
     "dev": "vite --mode dev",
     "mock": "vite --mode mock",
     "prod": "vite --mode prod",
-    "build": "vite build:prod",
     "build:dev": "vite build --mode dev",
     "build:prod": "vite build --mode prod",
     "preview:dev": "vite preview --mode dev",
