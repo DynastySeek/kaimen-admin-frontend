@@ -2,7 +2,7 @@ version: '1.0'
 name: master-pipeline
 displayName: MasterPipeline
 triggers:
-  trigger: auto
+  trigger: manual
   push:
     branches:
       include:
@@ -30,5 +30,5 @@ stages:
         nodeVersion: 23.11.1
         commands:
           - npm run deploy:prod
-        dependsOn: build_nodejs
         strategy: {}
+        dependsOn: build_nodejs
