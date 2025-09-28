@@ -48,7 +48,7 @@ const alovaInstance = createAlova({
     // 成功响应处理
     onSuccess: async (response) => {
       if (VITE_USE_MOCK) {
-        return response.body;
+        return { code: 200, success: true, data: response.body };
       }
       const json = await response.json();
 

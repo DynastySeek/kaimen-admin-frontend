@@ -37,7 +37,7 @@ export const useUserStore = defineStore('user', {
      * @returns {Promise<object>} 用户信息
      */
     async updateUserInfo() {
-      const data = await fetchCurrentUserInfo();
+      const { data } = await fetchCurrentUserInfo();
       const { id, username, profile, roles, currentRole } = data || {};
       const userInfo = {
         id,

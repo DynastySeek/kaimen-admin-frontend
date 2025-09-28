@@ -14,7 +14,7 @@ export const usePermissionStore = defineStore('permission', {
     /** 更新权限数据 */
     async updatePermissions() {
       try {
-        const data = await fetchPermissions();
+        const { data } = await fetchPermissions();
         this.setPermissions(data);
       } catch (error) {
         console.error('获取权限失败:', error);

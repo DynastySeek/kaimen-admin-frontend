@@ -8,7 +8,7 @@ import Mock from 'mockjs';
 export default defineMock(
   {
     // 登录接口
-    '/api/auth/login': ({ data }) => {
+    '[POST]/api/auth/login': ({ data }) => {
       const { username, password } = data;
 
       // 模拟登录验证
