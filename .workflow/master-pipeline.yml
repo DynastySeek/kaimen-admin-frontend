@@ -2,7 +2,7 @@ version: '1.0'
 name: master-pipeline
 displayName: MasterPipeline
 stages:
-  - stage: 
+  - stage:
     name: compile
     displayName: 编译
     steps:
@@ -16,7 +16,7 @@ stages:
           - npm install && rm -rf ./dist && npm run build
         # 非必填字段，开启后表示将构建产物暂存，但不会上传到制品库中，7天后自动清除
         artifacts:
-            # 构建产物名字，作为产物的唯一标识可向下传递，支持自定义，默认为BUILD_ARTIFACT。在下游可以通过${BUILD_ARTIFACT}方式引用来获取构建物地址
+          # 构建产物名字，作为产物的唯一标识可向下传递，支持自定义，默认为BUILD_ARTIFACT。在下游可以通过${BUILD_ARTIFACT}方式引用来获取构建物地址
           - name: BUILD_ARTIFACT
             # 构建产物获取路径，是指代码编译完毕之后构建物的所在路径
             path:
@@ -29,19 +29,53 @@ stages:
         # 上传到制品库时的制品命名，默认output
         artifactName: output
         dependsOn: build_nodejs
-  - stage: 
+  - stage:
     name: release
     displayName: 发布
     steps:
       - step: publish@release_artifacts
         name: publish_release_artifacts
-        displayName: '发布'
+        displayName: 发布
         # 上游上传制品任务的产出
         dependArtifact: output
         # 发布制品版本号
-        version: '1.0.0.0'
+        version: 1.0.0.0
         # 是否开启版本号自增，默认开启
         autoIncrement: true
+  - stage:
+    name: deploy
+    displayName: 部署到腾讯云COS
+    steps:
+      - step: deploy@cos
+        name: deploy_to_cos
+        displayName: 部署到腾讯云COS
+        # 腾讯云 COS 配置
+        secretId: ${COS_SECRET_ID}
+        secretKey: ${COS_SECRET_KEY}
+        region: ${COS_REGION}
+        bucket: ${COS_BUCKET_PROD}
+        # 本地文件路径（构建产物）
+        localPath: ./dist
+        # COS 远程路径
+        remotePath: /
+        # 是否删除远程多余文件
+        deleteRemote: true
+        # 依赖上游制品
+        dependArtifact: output
+        dependsOn: publish_release_artifacts
+      - step: cdn@refresh
+        name: refresh_cdn
+        displayName: 刷新CDN缓存
+        # 腾讯云 CDN 配置
+        secretId: ${COS_SECRET_ID}
+        secretKey: ${COS_SECRET_KEY}
+        # 刷新的 URL 或目录，支持通配符
+        urls:
+          - '${CDN_DOMAIN_PROD}/*'
+        # 刷新类型：url（URL刷新）或 dir（目录刷新）
+        refreshType: dir
+        # 依赖 COS 部署完成
+        dependsOn: deploy_to_cos
 triggers:
   push:
     branches:
