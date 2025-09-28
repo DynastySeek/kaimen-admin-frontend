@@ -21,10 +21,10 @@ stages:
         pnpm: true
         commands:
           - node --version
-          - pnpm --version # 验证 pnpm 版本
-          - pnpm install
+          - npm --version # 验证 npm 版本
+          - npm install
           - rm -rf ./dist # 清除上次打包产物残留
-          - pnpm run build:prod
+          - npm run build:prod
         artifacts:
           - name: BUILD_ARTIFACT
             path:
