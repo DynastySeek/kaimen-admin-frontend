@@ -8,13 +8,10 @@
       </div>
     </div>
   </n-dropdown>
-
-  <RoleSelect ref="roleSelectRef" />
 </template>
 
 <script setup>
-import api from '@/api';
-import { RoleSelect } from '@/layouts/components';
+import { fetchLogout } from '@/services';
 import { useAuthStore, useUserStore } from '@/store';
 
 const router = useRouter();
@@ -32,12 +29,6 @@ const options = reactive([
     key: 'systemInfo',
     icon: () => h('i', { class: 'i-material-symbols:info-outline text-14' }),
   },
-  // {
-  //   label: '切换角色',
-  //   key: 'toggleRole',
-  //   icon: () => h('i', { class: 'i-basil:exchange-solid text-14' }),
-  //   show: computed(() => userStore.roles.length > 1),
-  // },
   {
     label: '退出登录',
     key: 'logout',
@@ -45,7 +36,6 @@ const options = reactive([
   },
 ]);
 
-const roleSelectRef = ref(null);
 function handleSelect(key) {
   switch (key) {
     case 'profile':
@@ -54,13 +44,6 @@ function handleSelect(key) {
     case 'systemInfo':
       router.push('/system-info');
       break;
-    case 'toggleRole':
-      roleSelectRef.value?.open({
-        onOk() {
-          location.reload();
-        },
-      });
-      break;
     case 'logout':
       $dialog.confirm({
         title: '提示',
@@ -68,7 +51,7 @@ function handleSelect(key) {
         content: '确认退出？',
         async confirm() {
           try {
-            await api.logout();
+            await fetchLogout();
           } catch (error) {
             console.error(error);
           }

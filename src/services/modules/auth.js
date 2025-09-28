@@ -34,3 +34,9 @@ export const fetchSendEmailCode = data => alovaInstance.Post('/api/auth/send-sms
  * @returns {Promise<void>} 修改结果
  */
 export const fetchChangePassword = data => alovaInstance.Put('/api/auth/change-password', data);
+
+/**
+ * 退出登录
+ * @returns {Promise<void>} 退出结果
+ */
+export const fetchLogout = () => alovaInstance.Post('/api/auth/logout');

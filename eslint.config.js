@@ -15,6 +15,7 @@ export default antfu({
     'curly': ['error', 'all'], // 强制所有控制语句使用大括号
     'style/brace-style': ['error', '1tbs'], // 大括号风格
     'style/comma-dangle': ['error', 'always-multiline'], // 尾随逗号
+    'vue/object-property-newline': ['error', { allowAllPropertiesOnSameLine: false }], // 修复配置错误
     'unused-imports/no-unused-vars': ['error', {
       argsIgnorePattern: '^_', // 忽略以 _ 开头的参数
       varsIgnorePattern: '^_', // 忽略以 _ 开头的变量

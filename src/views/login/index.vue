@@ -77,8 +77,8 @@
 </template>
 
 <script setup>
-import api from '@/api';
 import { VITE_APP_TITLE } from '@/config/env';
+import { fetchLogin } from '@/services';
 import { useAuthStore } from '@/store';
 
 const authStore = useAuthStore();
@@ -112,7 +112,7 @@ async function handleLogin() {
     loading.value = true;
     $message.loading('正在验证，请稍后...', { key: 'login' });
     // 移除验证码参数和isQuick参数
-    const { data } = await api.auth.login({ username, password: password.toString() });
+    const { data } = await fetchLogin({ username, password: password.toString() });
     onLoginSuccess(data);
   } catch (error) {
     // 验证码相关逻辑已注释
