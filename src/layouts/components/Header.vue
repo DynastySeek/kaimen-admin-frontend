@@ -7,9 +7,9 @@
     <span class="mx-6 opacity-20">|</span>
 
     <div class="flex flex-shrink-0 items-center px-12 text-18">
-      <ToggleTheme />
+      <!-- <ToggleTheme /> -->
 
-      <ThemeSetting class="mr-16" />
+      <!-- <ThemeSetting class="mr-16" /> -->
 
       <UserAvatar />
     </div>
@@ -17,7 +17,7 @@
 </template>
 
 <script setup>
-import { AppCard, ThemeSetting, ToggleTheme } from '@/components';
+import { AppCard } from '@/components';
 import { MenuCollapse, UserAvatar } from '.';
 import Tab from './Tab.vue';
 </script>

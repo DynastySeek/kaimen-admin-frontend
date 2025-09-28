@@ -1,12 +1,12 @@
 import { generate, getRgbStr } from '@arco-design/color';
-import { useDark } from '@vueuse/core';
 import { defineStore } from 'pinia';
 import { defaultLayout, defaultPrimaryColor, naiveThemeOverrides } from '@/settings';
 
 export const useAppStore = defineStore('app', {
   state: () => ({
     collapsed: false,
-    isDark: useDark(),
+    isDark: false,
+    // isDark: useDark(),
     layout: defaultLayout,
     primaryColor: defaultPrimaryColor,
     naiveThemeOverrides,
