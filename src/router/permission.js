@@ -1,4 +1,3 @@
-import api from '@/api';
 import { useAuthStore, usePermissionStore, useUserStore } from '@/store';
 
 const WHITE_LIST = ['/login', '/404'];
@@ -39,9 +38,10 @@ export function createPermissionGuard(router) {
     }
 
     // 判断是无权限还是404
-    const { data: hasMenu } = await api.validateMenuPath(to.path);
-    return hasMenu
-      ? { name: '403', query: { path: to.fullPath }, state: { from: 'permission-guard' } }
-      : { name: '404', query: { path: to.fullPath } };
+    // const { data: hasMenu } = await api.validateMenuPath(to.path);
+    // return hasMenu
+    //   ? { name: '403', query: { path: to.fullPath }, state: { from: 'permission-guard' } }
+    //   : { name: '404', query: { path: to.fullPath } };
+    return { name: '404', query: { path: to.fullPath } };
   });
 }
