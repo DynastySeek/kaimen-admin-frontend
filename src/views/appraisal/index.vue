@@ -57,9 +57,9 @@
 </template>
 
 <script setup>
-import { NButton, NSpace, NTag } from 'naive-ui';
+import { NButton, NIcon, NSpace, NTag } from 'naive-ui';
 import { computed, h, onMounted, reactive, ref } from 'vue';
-import { CommonPage, FormBuilder } from '@/components';
+import { CommonPage, FormBuilder, SelectDictionary } from '@/components';
 import VideoModal from '@/components/VideoModal.vue';
 import { AppraisalStatus, AppraisalStatusLabelMap } from '@/constants';
 import ImagePreview from './components/ImagePreview.vue';
@@ -169,18 +169,34 @@ const columns = [
   {
     title: '视频',
     key: 'videos',
-    width: 120,
+    width: 200,
     render: (row) => {
       if (row.videos && row.videos.length > 0) {
         return h(
-          NButton,
-          {
-            size: 'small',
-            type: 'primary',
-            ghost: true,
-            onClick: () => handleVideoPlay(row),
-          },
-          { default: () => `播放视频(${row.videos.length})` },
+          'div',
+          { style: 'max-width: 180px; overflow-x: auto;' },
+          [
+            h(
+              NSpace,
+              { size: 4 },
+              row.videos.map((video, index) =>
+                h(
+                  NButton,
+                  {
+                    strong: true,
+                    secondary: true,
+                    size: 'medium',
+                    onClick: () => handleVideoPlay(row, index),
+                  },
+                  {
+                    icon: () => h(NIcon, null, {
+                      default: () => h('i', { class: 'i-fe:play-circle' }),
+                    }),
+                  },
+                ),
+              ),
+            ),
+          ],
         );
       }
       return '-';
@@ -190,6 +206,14 @@ const columns = [
     title: '类目',
     key: 'categoryName',
     width: 100,
+    render: (row) => {
+      return h(SelectDictionary, {
+        'name': 'AppraisalClass',
+        'modelValue': row.categoryName,
+        'clearable': false,
+        'onUpdate:modelValue': value => handleCategoryChange(value, row),
+      });
+    },
   },
   {
     title: '标题和描述',
@@ -242,7 +266,7 @@ const columns = [
     },
   },
   {
-    title: '操作',
+    title: '操作/编辑',
     key: 'actions',
     width: 100,
     fixed: 'right',
@@ -322,7 +346,10 @@ const mockData = [
       'https://picsum.photos/200/200?random=35',
       'https://picsum.photos/200/200?random=36',
     ],
-    videos: ['https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4'],
+    videos: [
+      'https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4',
+      'https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4',
+    ],
     categoryId: 3,
     categoryName: '艺术品',
     title: '油画作品鉴定',
@@ -353,7 +380,11 @@ const mockData = [
       'https://picsum.photos/200/200?random=5',
       'https://picsum.photos/200/200?random=51',
     ],
-    videos: [],
+    videos: [
+      'https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4',
+      'https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4',
+      'https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4',
+    ],
     categoryId: 1,
     categoryName: '珠宝首饰',
     title: '钻石戒指鉴定',
@@ -363,6 +394,29 @@ const mockData = [
     updateTime: '2024-01-20 14:30:00',
     lastAppraiser: '陈鉴定师',
     status: AppraisalStatus.Cancelled,
+  },
+  {
+    id: 'AP006',
+    images: [
+      'https://picsum.photos/200/200?random=6',
+      'https://picsum.photos/200/200?random=61',
+      'https://picsum.photos/200/200?random=62',
+    ],
+    videos: [
+      'https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4',
+      'https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4',
+      'https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4',
+      'https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4',
+    ],
+    categoryId: 2,
+    categoryName: '古董文玩',
+    title: '古代字画鉴定',
+    description: '收藏的古代字画，需要确认真伪和价值',
+    userPhone: '134****2468',
+    createTime: '2024-01-10 11:20:00',
+    updateTime: '2024-01-21 15:40:00',
+    lastAppraiser: '孙鉴定师',
+    status: AppraisalStatus.PendingCompletion,
   },
 ];
 
@@ -431,11 +485,11 @@ function handleEdit(row) {
 /**
  * 视频播放处理
  */
-function handleVideoPlay(row) {
+function handleVideoPlay(row, videoIndex = 0) {
   if (row.videos && row.videos.length > 0) {
-    // 使用实际的视频 URL，如果没有则使用测试视频
-    currentVideoSrc.value = row.videos[0] || 'https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4';
-    currentVideoTitle.value = `${row.title}`;
+    // 使用指定索引的视频 URL，如果没有则使用测试视频
+    currentVideoSrc.value = row.videos[videoIndex] || 'https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4';
+    currentVideoTitle.value = `${row.title} - 视频${videoIndex + 1}`;
     videoModalVisible.value = true;
   }
 }
@@ -456,6 +510,15 @@ function loadData() {
     pagination.itemCount = data.length;
     loading.value = false;
   }, 500);
+}
+
+/**
+ * 处理类目选择变更事件
+ * @param {string} _value - 选中的类目值
+ * @param {object} _row - 当前行数据
+ */
+function handleCategoryChange(_value, _row) {
+  // TODO: 实现类目变更逻辑
 }
 
 onMounted(() => {

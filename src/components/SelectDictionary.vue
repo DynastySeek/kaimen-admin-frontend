@@ -3,7 +3,7 @@
     :value="modelValue"
     :placeholder="placeholder"
     :options="options"
-    clearable
+    :clearable="clearable"
     :style="{ width }"
     @update:value="handleUpdateValue"
   />
@@ -47,6 +47,10 @@ const props = defineProps({
   modelValue: {
     type: [String, Number, Boolean],
     default: undefined,
+  },
+  clearable: {
+    type: Boolean,
+    default: true,
   },
 });
 

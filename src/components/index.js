@@ -4,6 +4,7 @@ export { default as CommonPage } from './CommonPage.vue';
 export { default as FormBuilder } from './FormBuilder.vue';
 export * from './me';
 export { default as PageMissing } from './PageMissing.vue';
+export { default as SelectDictionary } from './SelectDictionary.vue';
 export { default as TheFooter } from './TheFooter.vue';
 export { default as TheLogo } from './TheLogo.vue';
 export { default as ThemeSetting } from './ThemeSetting.vue';
