@@ -46,14 +46,23 @@
         @update:page-size="handlePageSizeChange"
       />
     </n-card>
+
+    <!-- 视频播放弹窗 -->
+    <VideoModal
+      v-model:show="videoModalVisible"
+      :src="currentVideoSrc"
+      :title="currentVideoTitle"
+    />
   </CommonPage>
 </template>
 
 <script setup>
-import { NButton, NImage, NSpace, NTag } from 'naive-ui';
+import { NButton, NSpace, NTag } from 'naive-ui';
 import { computed, h, onMounted, reactive, ref } from 'vue';
 import { CommonPage, FormBuilder } from '@/components';
+import VideoModal from '@/components/VideoModal.vue';
 import { AppraisalStatus, AppraisalStatusLabelMap } from '@/constants';
+import ImagePreview from './components/ImagePreview.vue';
 
 // Tab 选项配置
 const tabs = [
@@ -67,6 +76,11 @@ const tabs = [
 
 const activeTab = ref('all');
 const loading = ref(false);
+
+// 视频弹窗相关状态
+const videoModalVisible = ref(false);
+const currentVideoSrc = ref('');
+const currentVideoTitle = ref('');
 
 // 搜索表单配置
 const searchForm = reactive({
@@ -143,26 +157,33 @@ const columns = [
   {
     title: '图片',
     key: 'images',
-    width: 120,
+    width: 320,
     render: (row) => {
-      if (!row.images || row.images.length === 0) {
-        return '无图片';
-      }
-      return h(NImage, {
-        width: 60,
-        height: 60,
-        src: row.images[0],
-        fallbackSrc: '/placeholder.png',
-        objectFit: 'cover',
+      return h(ImagePreview, {
+        images: row.images,
+        imageSize: 80,
+        maxDisplay: 3,
       });
     },
   },
   {
     title: '视频',
     key: 'videos',
-    width: 80,
+    width: 120,
     render: (row) => {
-      return row.videos && row.videos.length > 0 ? '有视频' : '无视频';
+      if (row.videos && row.videos.length > 0) {
+        return h(
+          NButton,
+          {
+            size: 'small',
+            type: 'primary',
+            ghost: true,
+            onClick: () => handleVideoPlay(row),
+          },
+          { default: () => `播放视频(${row.videos.length})` },
+        );
+      }
+      return '-';
     },
   },
   {
@@ -199,7 +220,7 @@ const columns = [
   {
     title: '最后提交鉴定师',
     key: 'lastAppraiser',
-    width: 120,
+    width: 140,
   },
   {
     title: '状态',
@@ -253,8 +274,14 @@ const tableData = ref([]);
 const mockData = [
   {
     id: 'AP001',
-    images: ['https://picsum.photos/200/200?random=1'],
-    videos: ['video1.mp4'],
+    images: [
+      'https://picsum.photos/200/200?random=1',
+      'https://picsum.photos/200/200?random=11',
+      'https://picsum.photos/200/200?random=12',
+      'https://picsum.photos/200/200?random=13',
+      'https://picsum.photos/200/200?random=14',
+    ],
+    videos: ['https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4'],
     categoryId: 1,
     categoryName: '珠宝首饰',
     title: '翡翠手镯鉴定',
@@ -267,7 +294,12 @@ const mockData = [
   },
   {
     id: 'AP002',
-    images: ['https://picsum.photos/200/200?random=2', 'https://picsum.photos/200/200?random=3'],
+    images: [
+      'https://picsum.photos/200/200?random=2',
+      'https://picsum.photos/200/200?random=3',
+      'https://picsum.photos/200/200?random=21',
+      'https://picsum.photos/200/200?random=22',
+    ],
     videos: [],
     categoryId: 2,
     categoryName: '古董文玩',
@@ -281,8 +313,16 @@ const mockData = [
   },
   {
     id: 'AP003',
-    images: ['https://picsum.photos/200/200?random=4'],
-    videos: ['video3.mp4'],
+    images: [
+      'https://picsum.photos/200/200?random=4',
+      'https://picsum.photos/200/200?random=31',
+      'https://picsum.photos/200/200?random=32',
+      'https://picsum.photos/200/200?random=33',
+      'https://picsum.photos/200/200?random=34',
+      'https://picsum.photos/200/200?random=35',
+      'https://picsum.photos/200/200?random=36',
+    ],
+    videos: ['https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4'],
     categoryId: 3,
     categoryName: '艺术品',
     title: '油画作品鉴定',
@@ -309,7 +349,10 @@ const mockData = [
   },
   {
     id: 'AP005',
-    images: ['https://picsum.photos/200/200?random=5'],
+    images: [
+      'https://picsum.photos/200/200?random=5',
+      'https://picsum.photos/200/200?random=51',
+    ],
     videos: [],
     categoryId: 1,
     categoryName: '珠宝首饰',
@@ -383,6 +426,18 @@ function handlePageSizeChange(pageSize) {
 function handleEdit(row) {
   // 编辑鉴定单逻辑
   $message.info(`编辑鉴定单: ${row.id}`);
+}
+
+/**
+ * 视频播放处理
+ */
+function handleVideoPlay(row) {
+  if (row.videos && row.videos.length > 0) {
+    // 使用实际的视频 URL，如果没有则使用测试视频
+    currentVideoSrc.value = row.videos[0] || 'https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4';
+    currentVideoTitle.value = `${row.title}`;
+    videoModalVisible.value = true;
+  }
 }
 
 /**
