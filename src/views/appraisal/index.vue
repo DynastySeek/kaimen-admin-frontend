@@ -1,0 +1,415 @@
+<template>
+  <CommonPage>
+    <!-- Tab 选项 -->
+    <n-card>
+      <n-tabs v-model:value="activeTab" type="segment" @update:value="handleTabChange">
+        <n-tab-pane
+          v-for="tab in tabs"
+          :key="tab.value"
+          :name="tab.value"
+          :tab="tab.label"
+        />
+      </n-tabs>
+    </n-card>
+
+    <!-- 搜索表单 -->
+    <n-card v-if="searchFormItems && searchFormItems.length > 0" class="mt-10">
+      <FormBuilder
+        v-model="searchForm"
+        :form-items="searchFormItems"
+        label-width="120px"
+        :actions-span="6"
+        :gutter="20"
+      >
+        <template #actions>
+          <NSpace class="w-full" justify="end">
+            <NButton type="primary" @click="handleSearch">
+              搜索
+            </NButton>
+            <NButton @click="handleReset">
+              重置
+            </NButton>
+          </NSpace>
+        </template>
+      </FormBuilder>
+    </n-card>
+
+    <!-- 数据表格 -->
+    <n-card class="mt-10">
+      <n-data-table
+        :columns="columns"
+        :data="tableData"
+        :loading="loading"
+        :pagination="pagination"
+        :scroll-x="1400"
+        @update:page="handlePageChange"
+        @update:page-size="handlePageSizeChange"
+      />
+    </n-card>
+  </CommonPage>
+</template>
+
+<script setup>
+import { NButton, NImage, NSpace, NTag } from 'naive-ui';
+import { computed, h, onMounted, reactive, ref } from 'vue';
+import { CommonPage, FormBuilder } from '@/components';
+import { AppraisalStatus, AppraisalStatusLabelMap } from '@/constants';
+
+// Tab 选项配置
+const tabs = [
+  { label: '全部', value: 'all' },
+  { label: '待用户完善', value: AppraisalStatus.PendingCompletion },
+  { label: '已完成鉴定为真', value: AppraisalStatus.AuthenticCompleted },
+  { label: '已完成鉴定为伪', value: AppraisalStatus.FakeCompleted },
+  { label: '已驳回', value: AppraisalStatus.Rejected },
+  { label: '已取消', value: AppraisalStatus.Cancelled },
+];
+
+const activeTab = ref('all');
+const loading = ref(false);
+
+// 搜索表单配置
+const searchForm = reactive({
+  appraisalId: '',
+  userPhone: '',
+  title: '',
+  categoryId: null,
+  createTimeRange: null,
+  updateTimeRange: null,
+  lastAppraiser: '',
+});
+
+const searchFormItems = [
+  {
+    prop: 'appraisalId',
+    label: '鉴定ID',
+    type: 'input',
+    placeholder: '请输入鉴定ID',
+    span: 6,
+  },
+  {
+    prop: 'userPhone',
+    label: '用户手机号',
+    type: 'input',
+    placeholder: '请输入用户手机号',
+    span: 6,
+  },
+  {
+    prop: 'title',
+    label: '标题',
+    type: 'input',
+    placeholder: '请输入标题',
+    span: 6,
+  },
+  {
+    prop: 'appraisalClass',
+    label: '类目',
+    type: 'selectDictionary',
+    name: 'AppraisalClass',
+    placeholder: '请选择类目',
+    span: 6,
+  },
+  {
+    prop: 'createTimeRange',
+    label: '创建时间',
+    type: 'datetimerange',
+    placeholder: '请选择创建时间范围',
+    span: 6,
+  },
+  {
+    prop: 'updateTimeRange',
+    label: '最后修改时间',
+    type: 'datetimerange',
+    placeholder: '请选择修改时间范围',
+    span: 6,
+  },
+  {
+    prop: 'lastAppraiser',
+    label: '最后提交鉴定师',
+    type: 'input',
+    placeholder: '请输入鉴定师姓名',
+    span: 6,
+  },
+];
+
+// 表格列配置
+const columns = [
+  {
+    title: '鉴定ID',
+    key: 'id',
+    width: 100,
+    fixed: 'left',
+  },
+  {
+    title: '图片',
+    key: 'images',
+    width: 120,
+    render: (row) => {
+      if (!row.images || row.images.length === 0) {
+        return '无图片';
+      }
+      return h(NImage, {
+        width: 60,
+        height: 60,
+        src: row.images[0],
+        fallbackSrc: '/placeholder.png',
+        objectFit: 'cover',
+      });
+    },
+  },
+  {
+    title: '视频',
+    key: 'videos',
+    width: 80,
+    render: (row) => {
+      return row.videos && row.videos.length > 0 ? '有视频' : '无视频';
+    },
+  },
+  {
+    title: '类目',
+    key: 'categoryName',
+    width: 100,
+  },
+  {
+    title: '标题和描述',
+    key: 'title',
+    width: 200,
+    render: (row) => {
+      return h('div', [
+        h('div', { style: 'font-weight: bold; margin-bottom: 4px;' }, row.title),
+        h('div', { style: 'color: #666; font-size: 12px;' }, row.description),
+      ]);
+    },
+  },
+  {
+    title: '用户手机号',
+    key: 'userPhone',
+    width: 120,
+  },
+  {
+    title: '创建时间',
+    key: 'createTime',
+    width: 160,
+  },
+  {
+    title: '最后修改时间',
+    key: 'updateTime',
+    width: 160,
+  },
+  {
+    title: '最后提交鉴定师',
+    key: 'lastAppraiser',
+    width: 120,
+  },
+  {
+    title: '状态',
+    key: 'status',
+    width: 120,
+    render: (row) => {
+      const statusConfig = {
+        [AppraisalStatus.PendingCompletion]: { type: 'warning' },
+        [AppraisalStatus.AuthenticCompleted]: { type: 'success' },
+        [AppraisalStatus.FakeCompleted]: { type: 'error' },
+        [AppraisalStatus.Rejected]: { type: 'error' },
+        [AppraisalStatus.Cancelled]: { type: 'default' },
+      };
+      return h(NTag, {
+        type: statusConfig[row.status]?.type || 'default',
+      }, {
+        default: () => AppraisalStatusLabelMap[row.status] || '未知',
+      });
+    },
+  },
+  {
+    title: '操作',
+    key: 'actions',
+    width: 100,
+    fixed: 'right',
+    render: (row) => {
+      return h(NSpace, [
+        h(NButton, {
+          size: 'small',
+          type: 'primary',
+          onClick: () => handleEdit(row),
+        }, { default: () => '编辑' }),
+      ]);
+    },
+  },
+];
+
+// 分页配置
+const pagination = reactive({
+  page: 1,
+  pageSize: 10,
+  itemCount: 0,
+  showSizePicker: true,
+  pageSizes: [10, 20, 50, 100],
+});
+
+// 表格数据
+const tableData = ref([]);
+
+// 演示数据
+const mockData = [
+  {
+    id: 'AP001',
+    images: ['https://picsum.photos/200/200?random=1'],
+    videos: ['video1.mp4'],
+    categoryId: 1,
+    categoryName: '珠宝首饰',
+    title: '翡翠手镯鉴定',
+    description: '这是一只传家宝翡翠手镯，需要专业鉴定真伪',
+    userPhone: '138****1234',
+    createTime: '2024-01-15 10:30:00',
+    updateTime: '2024-01-16 14:20:00',
+    lastAppraiser: '张鉴定师',
+    status: AppraisalStatus.PendingCompletion,
+  },
+  {
+    id: 'AP002',
+    images: ['https://picsum.photos/200/200?random=2', 'https://picsum.photos/200/200?random=3'],
+    videos: [],
+    categoryId: 2,
+    categoryName: '古董文玩',
+    title: '明代青花瓷鉴定',
+    description: '家传明代青花瓷器，希望确认年代和价值',
+    userPhone: '139****5678',
+    createTime: '2024-01-14 09:15:00',
+    updateTime: '2024-01-17 16:45:00',
+    lastAppraiser: '李鉴定师',
+    status: AppraisalStatus.AuthenticCompleted,
+  },
+  {
+    id: 'AP003',
+    images: ['https://picsum.photos/200/200?random=4'],
+    videos: ['video3.mp4'],
+    categoryId: 3,
+    categoryName: '艺术品',
+    title: '油画作品鉴定',
+    description: '疑似名家油画作品，需要专业鉴定',
+    userPhone: '136****9012',
+    createTime: '2024-01-13 15:20:00',
+    updateTime: '2024-01-18 11:30:00',
+    lastAppraiser: '王鉴定师',
+    status: AppraisalStatus.FakeCompleted,
+  },
+  {
+    id: 'AP004',
+    images: [],
+    videos: [],
+    categoryId: 4,
+    categoryName: '奢侈品',
+    title: '名牌包包鉴定',
+    description: '购买的二手名牌包包，需要验证真伪',
+    userPhone: '137****3456',
+    createTime: '2024-01-12 13:45:00',
+    updateTime: '2024-01-19 09:15:00',
+    lastAppraiser: '赵鉴定师',
+    status: AppraisalStatus.Rejected,
+  },
+  {
+    id: 'AP005',
+    images: ['https://picsum.photos/200/200?random=5'],
+    videos: [],
+    categoryId: 1,
+    categoryName: '珠宝首饰',
+    title: '钻石戒指鉴定',
+    description: '求婚钻戒，需要确认钻石等级和真伪',
+    userPhone: '135****7890',
+    createTime: '2024-01-11 16:00:00',
+    updateTime: '2024-01-20 14:30:00',
+    lastAppraiser: '陈鉴定师',
+    status: AppraisalStatus.Cancelled,
+  },
+];
+
+/**
+ * 根据当前 Tab 过滤数据
+ */
+const filteredData = computed(() => {
+  if (activeTab.value === 'all') {
+    return mockData;
+  }
+  return mockData.filter(item => item.status === activeTab.value);
+});
+
+/**
+ * Tab 切换处理
+ */
+function handleTabChange(value) {
+  activeTab.value = value;
+  loadData();
+}
+
+/**
+ * 搜索处理
+ */
+function handleSearch() {
+  // 搜索条件处理逻辑
+  loadData();
+}
+
+/**
+ * 重置搜索表单
+ */
+function handleReset() {
+  Object.keys(searchForm).forEach((key) => {
+    if (Array.isArray(searchForm[key])) {
+      searchForm[key] = null;
+    } else {
+      searchForm[key] = '';
+    }
+  });
+  loadData();
+}
+
+/**
+ * 分页处理
+ */
+function handlePageChange(page) {
+  pagination.page = page;
+  loadData();
+}
+
+function handlePageSizeChange(pageSize) {
+  pagination.pageSize = pageSize;
+  pagination.page = 1;
+  loadData();
+}
+
+/**
+ * 编辑处理
+ */
+function handleEdit(row) {
+  // 编辑鉴定单逻辑
+  $message.info(`编辑鉴定单: ${row.id}`);
+}
+
+/**
+ * 加载数据
+ */
+function loadData() {
+  loading.value = true;
+
+  // 模拟异步加载
+  setTimeout(() => {
+    const data = filteredData.value;
+    const start = (pagination.page - 1) * pagination.pageSize;
+    const end = start + pagination.pageSize;
+
+    tableData.value = data.slice(start, end);
+    pagination.itemCount = data.length;
+    loading.value = false;
+  }, 500);
+}
+
+onMounted(() => {
+  loadData();
+});
+</script>
+
+<style scoped>
+.card-container {
+  margin-bottom: 16px;
+}
+</style>

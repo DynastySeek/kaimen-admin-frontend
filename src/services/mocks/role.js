@@ -16,6 +16,8 @@ export default defineMock(
         { type: 'MENU', code: 'RoleUser' },
         { type: 'MENU', code: 'UserMgt' },
         { type: 'BUTTON', code: 'AddUser' },
+        { type: 'MENU', code: 'AppraisalMgt' },
+        { type: 'MENU', code: 'AppraisalList' },
       ];
     },
 

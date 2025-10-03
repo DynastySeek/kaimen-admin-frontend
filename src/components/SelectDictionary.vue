@@ -12,6 +12,8 @@
 <script setup>
 import { computed } from 'vue';
 import {
+  AppraisalClass,
+  AppraisalClassLabelMap,
   CategoryStatus,
   CategoryStatusLabelMap,
   Gender,
@@ -40,7 +42,7 @@ const props = defineProps({
   },
   width: {
     type: String,
-    default: '120px',
+    default: '100%',
   },
   modelValue: {
     type: [String, Number, Boolean],
@@ -56,6 +58,7 @@ const EnumMap = {
   UserType: [UserType, UserTypeLabelMap],
   CategoryStatus: [CategoryStatus, CategoryStatusLabelMap],
   ProductStatus: [ProductStatus, ProductStatusLabelMap],
+  AppraisalClass: [AppraisalClass, AppraisalClassLabelMap],
 };
 
 /**

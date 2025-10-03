@@ -55,3 +55,33 @@ export const ProductStatusLabelMap = {
   [ProductStatus.OffSale]: '下架',
   [ProductStatus.Deleted]: '已删除',
 };
+
+export const AppraisalStatus = {
+  PendingCompletion: 0,
+  AuthenticCompleted: 1,
+  FakeCompleted: 2,
+  Rejected: 3,
+  Cancelled: 4,
+};
+
+export const AppraisalStatusLabelMap = {
+  [AppraisalStatus.PendingCompletion]: '待用户完善',
+  [AppraisalStatus.AuthenticCompleted]: '已完成鉴定为真',
+  [AppraisalStatus.FakeCompleted]: '已完成鉴定为伪',
+  [AppraisalStatus.Rejected]: '已驳回',
+  [AppraisalStatus.Cancelled]: '已取消',
+};
+
+export const AppraisalClass = {
+  YinYuan: 1,
+  GuQian: 2,
+  ZaXiang: 4,
+  ZhiBi: 5,
+};
+
+export const AppraisalClassLabelMap = {
+  [AppraisalClass.YinYuan]: '银元',
+  [AppraisalClass.GuQian]: '古钱',
+  [AppraisalClass.ZaXiang]: '杂项',
+  [AppraisalClass.ZhiBi]: '纸币',
+};

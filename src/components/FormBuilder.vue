@@ -77,6 +77,7 @@ const componentMap = {
   cascader: NCascader,
   date: NDatePicker,
   datetime: NDatePicker,
+  datetimerange: NDatePicker,
   time: NTimePicker,
   switch: NSwitch,
   checkbox: NCheckbox,
@@ -125,6 +126,14 @@ function getProps(item) {
       return {
         ...baseProps,
         type: 'datetime',
+        format: 'yyyy-MM-dd HH:mm:ss',
+        valueFormat: 'yyyy-MM-dd HH:mm:ss',
+      };
+    case 'datetimerange':
+      return {
+        ...baseProps,
+        type: 'datetimerange',
+        clearable: true,
         format: 'yyyy-MM-dd HH:mm:ss',
         valueFormat: 'yyyy-MM-dd HH:mm:ss',
       };
