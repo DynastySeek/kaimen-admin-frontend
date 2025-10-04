@@ -38,6 +38,7 @@
 
 <script setup>
 import { computed } from 'vue';
+import FallbackImage from '@/assets/images/image_fallback.png';
 
 /**
  * 图片预览组件
@@ -67,7 +68,7 @@ const props = defineProps({
   /** 占位图片 */
   fallbackSrc: {
     type: String,
-    default: '/placeholder.png',
+    default: FallbackImage,
   },
   /** 自定义容器样式 */
   containerStyle: {

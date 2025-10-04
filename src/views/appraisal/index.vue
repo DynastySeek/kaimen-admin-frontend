@@ -297,11 +297,8 @@ const mockData = [
   {
     id: 'AP001',
     images: [
-      'https://picsum.photos/200/200?random=1',
-      'https://picsum.photos/200/200?random=11',
-      'https://picsum.photos/200/200?random=12',
-      'https://picsum.photos/200/200?random=13',
-      'https://picsum.photos/200/200?random=14',
+      'cloud://cloudbase-3g9zthei11410463.636c-cloudbase-3g9zthei11410463-1360990667/images/20250606_214423_707.png',
+      'cloud://cloudbase-3g9zthei11410463.636c-cloudbase-3g9zthei11410463-1360990667/images/20250606_214416_752.png',
     ],
     videos: ['https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4'],
     categoryId: 1,
