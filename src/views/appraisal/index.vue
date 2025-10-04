@@ -1,16 +1,15 @@
 <template>
   <CommonPage>
-    <!-- Tab 选项 -->
-    <n-card>
-      <n-tabs v-model:value="activeTab" type="segment" @update:value="handleTabChange">
-        <n-tab-pane
+    <template #action>
+      <n-radio-group v-model:value="activeTab" name="appraisal-status" @update:value="handleTabChange">
+        <n-radio-button
           v-for="tab in tabs"
           :key="tab.value"
-          :name="tab.value"
-          :tab="tab.label"
+          :value="tab.value"
+          :label="tab.label"
         />
-      </n-tabs>
-    </n-card>
+      </n-radio-group>
+    </template>
 
     <!-- 搜索表单 -->
     <n-card v-if="searchFormItems && searchFormItems.length > 0" class="mt-10">

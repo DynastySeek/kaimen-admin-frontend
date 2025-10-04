@@ -19,25 +19,8 @@
       </n-button>
     </n-space>
 
-    <!-- 第二步：评语 -->
-    <template v-if="data.status === AppraisalStatus.PendingCompletion">
-      <div class="text-[#1560FA] font-bold">
-        第二步：评语（选填）
-      </div>
-      <n-input
-        v-model:value="formData.comment"
-        type="textarea"
-        placeholder="请输入评语"
-        :autosize="{
-          minRows: 2,
-          maxRows: 3,
-        }"
-        size="small"
-      />
-    </template>
-
     <!-- 第二步：原因（选填） - 存疑状态 -->
-    <template v-if="data.status === AppraisalStatus.DoubtCompleted">
+    <template v-if="[AppraisalStatus.DoubtCompleted, AppraisalStatus.Rejected].includes(formData.result)">
       <div class="text-[#1560FA] font-bold">
         第二步：原因（选填）
       </div>
@@ -60,6 +43,23 @@
         v-model:value="formData.comment"
         type="textarea"
         placeholder="照片质量过低，导致细节模糊不清"
+        :autosize="{
+          minRows: 2,
+          maxRows: 3,
+        }"
+        size="small"
+      />
+    </template>
+
+    <!-- 第二步：评语 -->
+    <template v-else>
+      <div class="text-[#1560FA] font-bold">
+        第二步：评语（选填）
+      </div>
+      <n-input
+        v-model:value="formData.comment"
+        type="textarea"
+        placeholder="请输入评语"
         :autosize="{
           minRows: 2,
           maxRows: 3,
@@ -120,7 +120,7 @@ const resultOptions = [
   },
   {
     label: '存疑',
-    value: 'pending',
+    value: AppraisalStatus.DoubtCompleted,
     color: '#FD9E28',
   },
   {
