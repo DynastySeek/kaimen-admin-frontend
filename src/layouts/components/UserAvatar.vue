@@ -1,7 +1,7 @@
 <template>
   <n-dropdown :options="options" @select="handleSelect">
     <div id="user-dropdown" class="flex cursor-pointer items-center">
-      <n-avatar round :size="36" :src="userStore.avatar" />
+      <n-avatar round :size="36" :src="userStore.avatar || DefaultAvatar" />
       <div v-if="userStore.userInfo" class="ml-12 flex-col flex-shrink-0 items-center">
         <span class="text-14">{{ userStore.nickName ?? userStore.username }}</span>
         <span class="text-12 opacity-50">[{{ userStore.currentRole?.name }}]</span>
@@ -11,6 +11,7 @@
 </template>
 
 <script setup>
+import DefaultAvatar from '@/assets/images/default_avatar.png';
 import { fetchLogout } from '@/services';
 import { useAuthStore, useUserStore } from '@/store';
 

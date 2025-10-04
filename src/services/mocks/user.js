@@ -74,7 +74,6 @@ export default defineMock(
           id: userId || 1,
           nickName: 'Admin',
           gender: null,
-          avatar: 'https://img.isme.top/isme/67bd93db39a90.png',
           address: null,
           email: null,
           userId: userId || 1,
