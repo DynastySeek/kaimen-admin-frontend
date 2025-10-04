@@ -62,6 +62,7 @@ import { computed, h, onMounted, reactive, ref } from 'vue';
 import { CommonPage, FormBuilder, SelectDictionary } from '@/components';
 import VideoModal from '@/components/VideoModal.vue';
 import { AppraisalStatus, AppraisalStatusLabelMap } from '@/constants';
+import AppraisalAction from './components/AppraisalAction.vue';
 import ImagePreview from './components/ImagePreview.vue';
 
 // Tab 选项配置
@@ -268,16 +269,13 @@ const columns = [
   {
     title: '操作/编辑',
     key: 'actions',
-    width: 100,
+    width: 300,
     fixed: 'right',
     render: (row) => {
-      return h(NSpace, [
-        h(NButton, {
-          size: 'small',
-          type: 'primary',
-          onClick: () => handleEdit(row),
-        }, { default: () => '编辑' }),
-      ]);
+      return h(AppraisalAction, {
+        data: row,
+        onSubmit: handleAppraisalSubmit,
+      });
     },
   },
 ];
@@ -333,7 +331,7 @@ const mockData = [
     createTime: '2024-01-14 09:15:00',
     updateTime: '2024-01-17 16:45:00',
     lastAppraiser: '李鉴定师',
-    status: AppraisalStatus.AuthenticCompleted,
+    status: AppraisalStatus.DoubtCompleted,
   },
   {
     id: 'AP003',
@@ -477,7 +475,15 @@ function handlePageSizeChange(pageSize) {
 /**
  * 编辑处理
  */
-function handleEdit(row) {
+function handleAppraisalSubmit(_data) {
+  $message.success('鉴定操作提交成功');
+  // TODO: 刷新列表数据
+}
+
+/**
+ * 编辑鉴定单处理（保留原有功能）
+ */
+function _handleEdit(row) {
   // 编辑鉴定单逻辑
   $message.info(`编辑鉴定单: ${row.id}`);
 }

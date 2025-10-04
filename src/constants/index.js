@@ -62,6 +62,7 @@ export const AppraisalStatus = {
   FakeCompleted: 2,
   Rejected: 3,
   Cancelled: 4,
+  DoubtCompleted: 5,
 };
 
 export const AppraisalStatusLabelMap = {
@@ -70,6 +71,7 @@ export const AppraisalStatusLabelMap = {
   [AppraisalStatus.FakeCompleted]: '已完成鉴定为伪',
   [AppraisalStatus.Rejected]: '已驳回',
   [AppraisalStatus.Cancelled]: '已取消',
+  [AppraisalStatus.DoubtCompleted]: '已完成鉴定存疑',
 };
 
 export const AppraisalClass = {
