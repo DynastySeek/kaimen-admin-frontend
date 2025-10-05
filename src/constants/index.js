@@ -89,21 +89,21 @@ export const ProductStatusLabelMap = {
 };
 
 export const AppraisalStatus = {
-  PendingCompletion: 0,
-  AuthenticCompleted: 1,
-  FakeCompleted: 2,
-  Rejected: 3,
-  Cancelled: 4,
-  DoubtCompleted: 5,
+  PendingAppraisal: 1,
+  InProgress: 2,
+  Completed: 3,
+  PendingCompletion: 4,
+  Rejected: 5,
+  Cancelled: 6,
 };
 
 export const AppraisalStatusLabelMap = {
-  [AppraisalStatus.PendingCompletion]: '待用户完善',
-  [AppraisalStatus.AuthenticCompleted]: '已完成鉴定为真',
-  [AppraisalStatus.FakeCompleted]: '已完成鉴定为伪',
-  [AppraisalStatus.Rejected]: '已驳回',
+  [AppraisalStatus.PendingAppraisal]: '待鉴定',
+  [AppraisalStatus.InProgress]: '鉴定中',
+  [AppraisalStatus.Completed]: '已完结',
+  [AppraisalStatus.PendingCompletion]: '待完善',
+  [AppraisalStatus.Rejected]: '已退回',
   [AppraisalStatus.Cancelled]: '已取消',
-  [AppraisalStatus.DoubtCompleted]: '已完成鉴定存疑',
 };
 
 export const AppraisalClass = {
@@ -125,7 +125,6 @@ export const AppraisalResult = {
   Fake: 2,
   Doubt: 3,
   Rejected: 4,
-  Unspecified: 999,
 };
 
 export const AppraisalResultLabelMap = {
@@ -133,5 +132,4 @@ export const AppraisalResultLabelMap = {
   [AppraisalResult.Fake]: '假',
   [AppraisalResult.Doubt]: '存疑',
   [AppraisalResult.Rejected]: '驳回',
-  [AppraisalResult.Unspecified]: '未指定',
 };

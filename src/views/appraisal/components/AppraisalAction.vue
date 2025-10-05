@@ -86,10 +86,9 @@
 </template>
 
 <script setup>
-import { useRequest } from 'alova/client';
 import { reactive } from 'vue';
-import { AppraisalStatus } from '@/constants';
-import { fetchAppraisalUpdate } from '@/services';
+import { AppraisalResult, AppraisalStatus } from '@/constants';
+import { fetchAppraisalResultAdd, fetchAppraisalUpdate } from '@/services';
 
 const props = defineProps({
   data: {
@@ -102,33 +101,33 @@ const emit = defineEmits(['submit']);
 
 // 原因选项配置
 const reasonOptions = [
-  { label: '需补充正面图片', value: 'need_front_image' },
-  { label: '需补充侧面图片', value: 'need_side_image' },
-  { label: '需补充背面图片', value: 'need_back_image' },
-  { label: '需补充孔道图片', value: 'need_hole_image' },
-  { label: '图片不清晰', value: 'image_unclear' },
+  { label: '需补充正面图片', value: '需补充正面图片' },
+  { label: '需补充侧面图片', value: '需补充侧面图片' },
+  { label: '需补充背面图片', value: '需补充背面图片' },
+  { label: '需补充孔道图片', value: '需补充孔道图片' },
+  { label: '图片不清晰', value: '图片不清晰' },
 ];
 
 // 结果选项配置
 const resultOptions = [
   {
     label: '真',
-    value: AppraisalStatus.AuthenticCompleted,
+    value: AppraisalResult.Authentic,
     color: '#21D476',
   },
   {
     label: '伪',
-    value: AppraisalStatus.FakeCompleted,
+    value: AppraisalResult.Fake,
     color: '#FD4648',
   },
   {
     label: '存疑',
-    value: AppraisalStatus.DoubtCompleted,
+    value: AppraisalResult.Doubt,
     color: '#FD9E28',
   },
   {
     label: '驳回',
-    value: AppraisalStatus.Rejected,
+    value: AppraisalResult.Rejected,
     color: '#555555',
   },
 ];
@@ -140,14 +139,6 @@ const formData = reactive({
   reasons: [],
   customReason: '',
 });
-
-// 使用 alova 的 useRequest 处理鉴定更新
-const { send: submitAppraisal, loading: isSubmitting } = useRequest(
-  data => fetchAppraisalUpdate(data),
-  {
-    immediate: false,
-  },
-);
 
 /**
  * 重置表单
@@ -168,22 +159,34 @@ async function handleSubmit() {
   }
 
   try {
-    const submitData = {
-      id: props.data.id,
-      result: formData.result,
+    const params = {
+      orderid: props.data.appraisal_id,
+      appraisalSesult: formData.result,
       comment: formData.comment,
       reasons: formData.reasons,
       customReason: formData.customReason,
     };
 
-    // 使用 alova 的 useRequest 提交数据
-    await submitAppraisal(submitData);
+    let appraisal_status = null;
+    if (formData.result === AppraisalResult.Authentic) {
+      appraisal_status = AppraisalStatus.Completed;
+    } else if (formData.result === AppraisalResult.Fake) {
+      appraisal_status = AppraisalStatus.Completed;
+    } else if (formData.result === AppraisalResult.Doubt) {
+      appraisal_status = AppraisalStatus.PendingCompletion;
+    } else if (formData.result === AppraisalResult.Rejected) {
+      appraisal_status = AppraisalStatus.Rejected;
+    }
 
-    emit('submit', submitData);
+    await fetchAppraisalUpdate([{ id: props.data.id, appraisal_status }]);
+    await fetchAppraisalResultAdd({ items: [params] });
 
+    emit('submit', params);
+    $message.success('鉴定结果提交成功');
     // 重置表单
     resetForm();
   } catch (error) {
+    $message.error('提交鉴定结果失败');
     console.error('提交鉴定结果失败:', error);
   }
 }

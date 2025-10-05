@@ -76,7 +76,7 @@
 </template>
 
 <script setup>
-import { usePagination, useRequest } from 'alova/client';
+import { usePagination } from 'alova/client';
 import { cloneDeep } from 'lodash-es';
 import { NButton, NIcon, NSpace, NTag } from 'naive-ui';
 import { h, reactive, ref } from 'vue';
@@ -92,10 +92,11 @@ import ImagePreview from './components/ImagePreview.vue';
 
 const tabs = [
   { label: '全部', value: 'all' },
-  { label: '待用户完善', value: AppraisalStatus.PendingCompletion },
-  { label: '已完成鉴定为真', value: AppraisalStatus.AuthenticCompleted },
-  { label: '已完成鉴定为伪', value: AppraisalStatus.FakeCompleted },
-  { label: '已驳回', value: AppraisalStatus.Rejected },
+  { label: '待鉴定', value: AppraisalStatus.PendingAppraisal },
+  { label: '鉴定中', value: AppraisalStatus.InProgress },
+  { label: '已完结', value: AppraisalStatus.Completed },
+  { label: '待完善', value: AppraisalStatus.PendingCompletion },
+  { label: '已退回', value: AppraisalStatus.Rejected },
   { label: '已取消', value: AppraisalStatus.Cancelled },
 ];
 
@@ -146,13 +147,6 @@ const {
     initialPage: 1,
     initialPageSize: 10,
     immediate: true,
-  },
-);
-
-const { send: updateAppraisalCategory } = useRequest(
-  data => fetchAppraisalUpdate(data),
-  {
-    immediate: false,
   },
 );
 
@@ -421,14 +415,12 @@ function handleVideoPlay(row, videoIndex = 0) {
 
 async function handleCategoryChange(value, row) {
   try {
-    const updateData = {
-      items: [{
-        appraisalId: row.appraisal_id,
-        appraisalClass: value,
-      }],
-    };
+    const updateData = [{
+      id: row.appraisal_id,
+      appraisal_class: value,
+    }];
 
-    await updateAppraisalCategory(updateData);
+    await fetchAppraisalUpdate(updateData);
     $message.success('分类更新成功');
     refresh();
   } catch (error) {

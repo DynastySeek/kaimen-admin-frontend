@@ -67,10 +67,9 @@
 </template>
 
 <script setup>
-import { useRequest } from 'alova/client';
-import { computed, reactive } from 'vue';
-import { AppraisalResult } from '@/constants';
-import { fetchAppraisalUpdate } from '@/services';
+import { computed, reactive, ref } from 'vue';
+import { AppraisalResult, AppraisalStatus } from '@/constants';
+import { fetchAppraisalResultAdd, fetchAppraisalUpdate } from '@/services';
 
 const props = defineProps({
   /**
@@ -127,13 +126,8 @@ const formData = reactive({
   comment: '',
 });
 
-// 使用 alova 的 useRequest 处理批量鉴定更新
-const { send: submitBatchAppraisal, loading: isSubmitting } = useRequest(
-  data => fetchAppraisalUpdate(data),
-  {
-    immediate: false,
-  },
-);
+// 提交状态
+const isSubmitting = ref(false);
 
 /**
  * 重置表单
@@ -159,23 +153,58 @@ async function handleSubmit() {
     return;
   }
 
+  isSubmitting.value = true;
+
   try {
+    // 构建批量鉴定结果数据
+    const resultItems = props.checkedRowKeys.map(id => ({
+      orderid: id,
+      appraisalSesult: formData.result,
+      comment: formData.comment,
+      reasons: [],
+      customReason: '',
+    }));
+
+    // 构建批量状态更新数据
+    let appraisal_status = null;
+    if (formData.result === AppraisalResult.Authentic) {
+      appraisal_status = AppraisalStatus.Completed;
+    } else if (formData.result === AppraisalResult.Fake) {
+      appraisal_status = AppraisalStatus.Completed;
+    } else if (formData.result === AppraisalResult.Doubt) {
+      appraisal_status = AppraisalStatus.PendingCompletion;
+    } else if (formData.result === AppraisalResult.Rejected) {
+      appraisal_status = AppraisalStatus.Rejected;
+    }
+
+    const updateItems = props.checkedRowKeys.map(id => ({
+      id,
+      appraisal_status,
+    }));
+
+    // 批量更新鉴定状态
+    await fetchAppraisalUpdate(updateItems);
+
+    // 批量添加鉴定结果
+    await fetchAppraisalResultAdd({ items: resultItems });
+
     const submitData = {
       ids: props.checkedRowKeys,
       result: formData.result,
       comment: formData.comment,
     };
 
-    // 使用 alova 的 useRequest 提交批量数据
-    await submitBatchAppraisal(submitData);
-
     emit('submit', submitData);
+    $message.success('批量鉴定提交成功');
 
     // 重置表单并关闭弹窗
     resetForm();
     visible.value = false;
   } catch (error) {
+    $message.error('批量鉴定提交失败');
     console.error('批量鉴定提交失败:', error);
+  } finally {
+    isSubmitting.value = false;
   }
 }
 </script>
