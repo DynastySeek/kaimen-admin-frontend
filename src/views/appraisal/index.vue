@@ -335,6 +335,14 @@ const columns = [
   },
 ];
 
+// async function fetchList(page = 1, pageSize = 10) {
+//   const list = await fetchAppraisalList({
+//     page,
+//     size: pageSize,
+//     ...searchForm,
+//   });
+// }
+
 function handleCheckChange(rowKeys) {
   checkedRowKeysRef.value = rowKeys;
 }
