@@ -178,8 +178,9 @@ async function handleSubmit() {
       appraisal_status = AppraisalStatus.Rejected;
     }
 
-    await fetchAppraisalUpdate([{ id: props.data.id, appraisal_status }]);
+    console.log('🍈 -> handleSubmit -> props:', props);
     await fetchAppraisalResultAdd({ items: [params] });
+    await fetchAppraisalUpdate([{ id: props.data.appraisal_id, appraisal_status }]);
 
     emit('submit', params);
     $message.success('鉴定结果提交成功');

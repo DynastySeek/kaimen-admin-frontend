@@ -38,13 +38,14 @@ export const fetchAppraisalUpdate = data => alovaInstance.Post('/order/update', 
 
 /**
  * 批量添加鉴定结果
- * @param {object[]} items - 鉴定结果数组
- * @param {string} items[].orderId - 订单ID
- * @param {string} items[].appraisalResult - 鉴定结果
- * @param {string} items[].comment - 鉴定评语
- * @param {string} items[].reason - 原因
- * @param {string} items[].userId - 用户ID
- * @param {string} items[].customReason - 自定义原因
+ * @param {object} data - 请求参数
+ * @param {object[]} data.items - 鉴定结果数组
+ * @param {string} data.items[].orderId - 订单ID
+ * @param {string} data.items[].appraisalResult - 鉴定结果
+ * @param {string} data.items[].comment - 鉴定评语
+ * @param {string} data.items[].reason - 原因
+ * @param {string} data.items[].userId - 用户ID
+ * @param {string} data.items[].customReason - 自定义原因
  * @returns {Promise<object>} 批量添加结果
  */
-export const fetchAppraisalResultAdd = items => alovaInstance.Post('/appraisal/result/add', { items });
+export const fetchAppraisalResultAdd = data => alovaInstance.Post('/appraisal/result/add', data);

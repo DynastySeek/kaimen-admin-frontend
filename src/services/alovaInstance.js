@@ -3,7 +3,7 @@ import { createAlova } from 'alova';
 import adapterFetch from 'alova/fetch';
 import vueHook from 'alova/vue';
 import { VITE_BASE_REQUEST_API, VITE_USE_MOCK } from '@/config/env';
-import { cleanParams, getToken, sleep } from '@/utils';
+import { cleanParams, getToken, isObject, sleep } from '@/utils';
 import mockGroups from './mocks';
 
 // 创建 mock 适配器
@@ -35,7 +35,7 @@ const alovaInstance = createAlova({
       method.config.params = cleanParams(method.config.params);
     }
 
-    if (method.data && typeof method.data === 'object') {
+    if (method.data && isObject(method.data)) {
       method.data = cleanParams(method.data);
     }
 

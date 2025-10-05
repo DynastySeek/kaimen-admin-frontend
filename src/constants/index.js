@@ -121,10 +121,10 @@ export const AppraisalClassLabelMap = {
 };
 
 export const AppraisalResult = {
-  Authentic: 1,
-  Fake: 2,
-  Doubt: 3,
-  Rejected: 4,
+  Authentic: '真',
+  Fake: '假',
+  Doubt: '存疑',
+  Rejected: '驳回',
 };
 
 export const AppraisalResultLabelMap = {

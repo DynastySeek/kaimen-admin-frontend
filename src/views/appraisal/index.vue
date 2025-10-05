@@ -135,6 +135,7 @@ const {
     page,
     pageSize,
     status: activeTab.value === 'all' ? null : activeTab.value,
+    firstClass: 2,
     ...searchForm,
   }),
   {
@@ -264,12 +265,12 @@ const columns = [
   },
   {
     title: '类目',
-    key: 'appraisalClass',
+    key: 'first_class',
     width: 100,
     render: (row) => {
       return h(SelectDictionary, {
         'name': 'AppraisalClass',
-        'modelValue': row.appraisalClass,
+        'modelValue': row.first_class ? Number(row.first_class) : null,
         'clearable': false,
         'onUpdate:modelValue': value => handleCategoryChange(value, row),
       });
@@ -342,24 +343,38 @@ const columns = [
 ];
 
 handleAppraisalListSuccess(async ({ data }) => {
-  const { list } = cloneDeep(data.data);
-  const ids = list.map(item => item.appraisal_id);
-  const { data: detailList } = await fetchAppraisalDetail({ ids });
-  list.forEach((item) => {
-    const detail = detailList.find(d => d.order_id === item.appraisal_id);
-    if (detail) {
-      item.latest_appraisal = detail.latest_appraisal;
+  try {
+    const { list } = cloneDeep(data.data);
+    const ids = list.map(item => item.appraisal_id);
+    const { data: detailList } = await fetchAppraisalDetail({ ids });
+    list.forEach((item) => {
+      const detail = detailList.find(d => d.order_id === item.appraisal_id);
+      if (detail) {
+        item.latest_appraisal = detail.latest_appraisal;
+      }
+    });
+    const allCloudImages = list.reduce((acc, d) => acc.concat(d.images || []), []).filter(v => v.startsWith('cloud://'));
+    const allCloudVideos = list.reduce((acc, d) => acc.concat(d.videos || []), []).filter(v => v.startsWith('cloud://'));
+    const allCloudUrl = [...allCloudImages, ...allCloudVideos];
+    if (allCloudUrl.length > 0) {
+      const tempFileUrls = await getTempFileUrls(allCloudUrl);
+      list.forEach((item) => {
+        item.images = item.images.map((img) => {
+          const tempFile = tempFileUrls.find(file => file.fileID === img);
+          return tempFile ? tempFile.tempFileURL : img;
+        });
+        item.videos = item.videos.map((vid) => {
+          const tempFile = tempFileUrls.find(file => file.fileID === vid);
+          return tempFile ? tempFile.tempFileURL : vid;
+        });
+      });
     }
-  });
-  const allCloudImages = list.reduce((acc, d) => acc.concat(d.images || []), []).filter(v => v.startsWith('cloud://'));
-  const allCloudVideos = list.reduce((acc, d) => acc.concat(d.videos || []), []).filter(v => v.startsWith('cloud://'));
-  const allCloudUrl = [...allCloudImages, ...allCloudVideos];
-  if (allCloudUrl.length > 0) {
-    const tempFileUrls = await getTempFileUrls(allCloudUrl);
-    console.log('🍈 -> tempFileUrls:', tempFileUrls);
+    console.log('🍈 -> list:', list);
+    tableData.value = list;
+  } catch (error) {
+    console.error('获取鉴定详情失败:', error);
+    $message.error('获取鉴定列表数据失败');
   }
-  console.log('🍈 -> list:', list);
-  tableData.value = list;
 });
 
 function handleCheckChange(rowKeys) {
