@@ -22,7 +22,7 @@
       >
         <template #actions>
           <NSpace class="w-full" justify="end">
-            <NButton type="primary" @click="refresh">
+            <NButton type="primary" @click="reload">
               搜索
             </NButton>
             <NButton @click="handleReset">
@@ -120,7 +120,7 @@ const defaultSearchForm = {
   updateTimeRange: null,
   lastAppraiser: '',
 };
-const searchForm = reactive(defaultSearchForm);
+const searchForm = reactive({ ...defaultSearchForm });
 
 const {
   loading,
@@ -134,7 +134,7 @@ const {
   (page, pageSize) => fetchAppraisalList({
     page,
     pageSize,
-    status: activeTab.value === 'all' ? null : activeTab.value,
+    appraisalStatus: activeTab.value === 'all' ? null : activeTab.value,
     firstClass: 2,
     ...searchForm,
   }),
@@ -315,9 +315,10 @@ const columns = [
     width: 120,
     render: (row) => {
       const statusConfig = {
+        [AppraisalStatus.PendingAppraisal]: { type: 'default' },
+        [AppraisalStatus.InProgress]: { type: 'info' },
+        [AppraisalStatus.Completed]: { type: 'success' },
         [AppraisalStatus.PendingCompletion]: { type: 'warning' },
-        [AppraisalStatus.AuthenticCompleted]: { type: 'success' },
-        [AppraisalStatus.FakeCompleted]: { type: 'error' },
         [AppraisalStatus.Rejected]: { type: 'error' },
         [AppraisalStatus.Cancelled]: { type: 'default' },
       };
