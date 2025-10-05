@@ -60,8 +60,7 @@
 <script setup>
 import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { CommonPage } from '@/components';
-import FormBuilder from '@/components/FormBuilder.vue';
+import { CommonPage, FormBuilder } from '@/components';
 import { UserStatus, UserStatusLabelMap, UserTypeLabelMap } from '@/constants';
 import { fetchChangePassword, fetchCurrentUserInfo, fetchUpdateUserInfo } from '@/services';
 import { useAuthStore } from '@/store';

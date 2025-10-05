@@ -35,12 +35,19 @@
 
     <!-- 数据表格 -->
     <n-card class="mt-10">
+      <NSpace class="mb-10">
+        <NButton type="primary" @click="handleBatchAppraisal">
+          批量鉴定
+        </NButton>
+      </NSpace>
       <n-data-table
         :columns="columns"
         :data="tableData"
         :loading="loading"
         :pagination="pagination"
         :scroll-x="1400"
+        :row-key="item => item.id"
+        @update:checked-row-keys="handleCheckChange"
         @update:page="handlePageChange"
         @update:page-size="handlePageSizeChange"
       />
@@ -52,6 +59,13 @@
       :src="currentVideoSrc"
       :title="currentVideoTitle"
     />
+
+    <!-- 批量鉴定弹窗 -->
+    <BatchAppraisalModal
+      v-model:show="batchAppraisalModalVisible"
+      :checked-row-keys="checkedRowKeysRef"
+      @submit="handleBatchAppraisalSubmit"
+    />
   </CommonPage>
 </template>
 
@@ -62,6 +76,7 @@ import { CommonPage, FormBuilder, SelectDictionary } from '@/components';
 import VideoModal from '@/components/VideoModal.vue';
 import { AppraisalStatus, AppraisalStatusLabelMap } from '@/constants';
 import AppraisalAction from './components/AppraisalAction.vue';
+import BatchAppraisalModal from './components/BatchAppraisalModal.vue';
 import ImagePreview from './components/ImagePreview.vue';
 
 // Tab 选项配置
@@ -81,6 +96,11 @@ const loading = ref(false);
 const videoModalVisible = ref(false);
 const currentVideoSrc = ref('');
 const currentVideoTitle = ref('');
+
+// 批量鉴定弹窗状态
+const batchAppraisalModalVisible = ref(false);
+
+const checkedRowKeysRef = ref([]);
 
 // 搜索表单配置
 const searchForm = reactive({
@@ -148,6 +168,9 @@ const searchFormItems = [
 
 // 表格列配置
 const columns = [
+  {
+    type: 'selection',
+  },
   {
     title: '鉴定ID',
     key: 'id',
@@ -424,6 +447,10 @@ const filteredData = computed(() => {
   return mockData.filter(item => item.status === activeTab.value);
 });
 
+function handleCheckChange(rowKeys) {
+  checkedRowKeysRef.value = rowKeys;
+}
+
 /**
  * Tab 切换处理
  */
@@ -477,6 +504,29 @@ function handleAppraisalSubmit(_data) {
 }
 
 /**
+ * 批量鉴定处理
+ */
+function handleBatchAppraisal() {
+  if (checkedRowKeysRef.value.length === 0) {
+    $message.warning('请先选择要鉴定的数据');
+    return;
+  }
+  batchAppraisalModalVisible.value = true;
+}
+
+/**
+ * 批量鉴定提交处理
+ */
+function handleBatchAppraisalSubmit(data) {
+  console.log('批量鉴定提交数据:', data);
+  $message.success(`已对 ${data.ids.length} 条数据进行批量鉴定`);
+  // TODO: 调用批量鉴定API
+  // TODO: 刷新列表数据
+  // 清空选中状态
+  checkedRowKeysRef.value = [];
+}
+
+/**
  * 编辑鉴定单处理（保留原有功能）
  */
 function _handleEdit(row) {
@@ -527,9 +577,3 @@ onMounted(() => {
   loadData();
 });
 </script>
-
-<style scoped>
-.card-container {
-  margin-bottom: 16px;
-}
-</style>
