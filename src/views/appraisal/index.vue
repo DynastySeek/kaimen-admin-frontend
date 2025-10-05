@@ -52,7 +52,7 @@
           pageSizes: [10, 20, 50, 100],
         }"
         :scroll-x="1400"
-        :row-key="item => item.id"
+        :row-key="item => item.appraisal_id"
         @update:checked-row-keys="handleCheckChange"
         @update:page="handlePageChange"
         @update:page-size="handlePageSizeChange"
@@ -77,12 +77,16 @@
 
 <script setup>
 import { usePagination, useRequest } from 'alova/client';
+import { cloneDeep } from 'lodash-es';
 import { NButton, NIcon, NSpace, NTag } from 'naive-ui';
 import { h, reactive, ref } from 'vue';
+import { getTempFileUrls } from '@/cloud';
 import { CommonPage, FormBuilder, SelectDictionary } from '@/components';
 import VideoModal from '@/components/VideoModal.vue';
 import { AppraisalStatus, AppraisalStatusLabelMap } from '@/constants';
-import { fetchAppraisalList, fetchAppraisalUpdate } from '@/services';
+import { fetchAppraisalDetail, fetchAppraisalList, fetchAppraisalUpdate } from '@/services';
+
+import { formatDateTime } from '@/utils';
 import AppraisalAction from './components/AppraisalAction.vue';
 import BatchAppraisalModal from './components/BatchAppraisalModal.vue';
 import ImagePreview from './components/ImagePreview.vue';
@@ -97,6 +101,7 @@ const tabs = [
 ];
 
 const activeTab = ref('all');
+const tableData = ref([]);
 
 const batchAppraisalModalVisible = ref(false);
 
@@ -119,12 +124,12 @@ const searchForm = reactive(defaultSearchForm);
 
 const {
   loading,
-  data: tableData,
   page,
   pageSize,
   total,
   refresh,
   reload,
+  onSuccess: handleAppraisalListSuccess,
 } = usePagination(
   (page, pageSize) => fetchAppraisalList({
     page,
@@ -133,6 +138,12 @@ const {
     ...searchForm,
   }),
   {
+    total: response => response.data.total,
+    data: response => response.data.list,
+    initialData: {
+      total: 0,
+      data: [],
+    },
     initialPage: 1,
     initialPageSize: 10,
     immediate: true,
@@ -206,7 +217,7 @@ const columns = [
   },
   {
     title: '鉴定ID',
-    key: 'id',
+    key: 'appraisal_id',
     width: 100,
     fixed: 'left',
   },
@@ -289,13 +300,15 @@ const columns = [
   },
   {
     title: '创建时间',
-    key: 'createTime',
+    key: 'create_time',
     width: 160,
+    render: ({ create_time }) => formatDateTime(create_time),
   },
   {
     title: '最后修改时间',
-    key: 'updateTime',
+    key: 'update_time',
     width: 160,
+    render: ({ update_time }) => formatDateTime(update_time),
   },
   {
     title: '最后提交鉴定师',
@@ -304,7 +317,7 @@ const columns = [
   },
   {
     title: '状态',
-    key: 'status',
+    key: 'appraisal_status',
     width: 120,
     render: (row) => {
       const statusConfig = {
@@ -315,9 +328,9 @@ const columns = [
         [AppraisalStatus.Cancelled]: { type: 'default' },
       };
       return h(NTag, {
-        type: statusConfig[row.status]?.type || 'default',
+        type: statusConfig[row.appraisal_status]?.type || 'default',
       }, {
-        default: () => AppraisalStatusLabelMap[row.status] || '未知',
+        default: () => AppraisalStatusLabelMap[row.appraisal_status] || '未知',
       });
     },
   },
@@ -335,13 +348,26 @@ const columns = [
   },
 ];
 
-// async function fetchList(page = 1, pageSize = 10) {
-//   const list = await fetchAppraisalList({
-//     page,
-//     size: pageSize,
-//     ...searchForm,
-//   });
-// }
+handleAppraisalListSuccess(async ({ data }) => {
+  const { list } = cloneDeep(data.data);
+  const ids = list.map(item => item.appraisal_id);
+  const { data: detailList } = await fetchAppraisalDetail({ ids });
+  list.forEach((item) => {
+    const detail = detailList.find(d => d.order_id === item.appraisal_id);
+    if (detail) {
+      item.latest_appraisal = detail.latest_appraisal;
+    }
+  });
+  const allCloudImages = list.reduce((acc, d) => acc.concat(d.images || []), []).filter(v => v.startsWith('cloud://'));
+  const allCloudVideos = list.reduce((acc, d) => acc.concat(d.videos || []), []).filter(v => v.startsWith('cloud://'));
+  const allCloudUrl = [...allCloudImages, ...allCloudVideos];
+  if (allCloudUrl.length > 0) {
+    const tempFileUrls = await getTempFileUrls(allCloudUrl);
+    console.log('🍈 -> tempFileUrls:', tempFileUrls);
+  }
+  console.log('🍈 -> list:', list);
+  tableData.value = list;
+});
 
 function handleCheckChange(rowKeys) {
   checkedRowKeysRef.value = rowKeys;
@@ -398,7 +424,7 @@ async function handleCategoryChange(value, row) {
   try {
     const updateData = {
       items: [{
-        appraisalId: row.id,
+        appraisalId: row.appraisal_id,
         appraisalClass: value,
       }],
     };

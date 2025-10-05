@@ -143,7 +143,7 @@ const formData = reactive({
 
 // 使用 alova 的 useRequest 处理鉴定更新
 const { send: submitAppraisal, loading: isSubmitting } = useRequest(
-  data => fetchAppraisalUpdate(data.id, data),
+  data => fetchAppraisalUpdate(data),
   {
     immediate: false,
   },

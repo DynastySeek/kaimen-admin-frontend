@@ -28,14 +28,23 @@ export const fetchAppraisalDetail = data => alovaInstance.Post('/appraisal/detai
 
 /**
  * 批量修改鉴定单
- * @param {object} data - 请求参数
- * @param {object[]} data.items - 修改项目数组
- * @param {string} data.items[].appraisalId - 鉴定单ID (必填)
- * @param {string} [data.items[].appraisalClass] - 类目 (可选)
- * @param {number} [data.items[].appraisalResult] - 鉴定结果 (可选)
- * @param {string} [data.items[].comment] - 评语 (可选)
- * @param {string[]} [data.items[].reasons] - 原因数组 (可选，存疑/驳回时填写)
- * @param {string} [data.items[].customReason] - 自定义原因 (可选)
+ * @param {object[]} data - 修改项目数组
+ * @param {string} data[].id - 鉴定单ID
+ * @param {string} data[].appraisal_class - 鉴定类目
+ * @param {string} data[].appraisal_status - 鉴定状态
  * @returns {Promise<object>} 批量修改结果
  */
-export const fetchAppraisalUpdate = data => alovaInstance.Post('/appraisal/update', data);
+export const fetchAppraisalUpdate = data => alovaInstance.Post('/order/update', data);
+
+/**
+ * 批量添加鉴定结果
+ * @param {object[]} items - 鉴定结果数组
+ * @param {string} items[].orderId - 订单ID
+ * @param {string} items[].appraisalResult - 鉴定结果
+ * @param {string} items[].comment - 鉴定评语
+ * @param {string} items[].reason - 原因
+ * @param {string} items[].userId - 用户ID
+ * @param {string} items[].customReason - 自定义原因
+ * @returns {Promise<object>} 批量添加结果
+ */
+export const fetchAppraisalResultAdd = items => alovaInstance.Post('/appraisal/result/add', { items });
