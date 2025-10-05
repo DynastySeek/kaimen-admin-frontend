@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { usePermissionStore, useRouterStore, useTabStore, useUserStore } from '@/store';
+import { usePermissionStore, useRouterStore, useTabStore, useUserStore } from '@/stores';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({

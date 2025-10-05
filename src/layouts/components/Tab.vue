@@ -28,7 +28,7 @@
 </template>
 
 <script setup>
-import { useTabStore } from '@/store';
+import { useTabStore } from '@/stores';
 import TabContextMenu from './TabContextMenu.vue';
 
 const router = useRouter();

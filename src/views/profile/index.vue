@@ -63,7 +63,7 @@ import { useRouter } from 'vue-router';
 import { CommonPage, FormBuilder } from '@/components';
 import { UserStatus, UserStatusLabelMap, UserTypeLabelMap } from '@/constants';
 import { fetchChangePassword, fetchCurrentUserInfo, fetchUpdateUserInfo } from '@/services';
-import { useAuthStore } from '@/store';
+import { useAuthStore } from '@/stores';
 import { formatDateTime } from '@/utils';
 
 const router = useRouter();

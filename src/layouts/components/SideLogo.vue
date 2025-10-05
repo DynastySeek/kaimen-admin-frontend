@@ -13,7 +13,7 @@
 <script setup>
 import { TheLogo } from '@/components';
 import { VITE_APP_TITLE } from '@/config/env';
-import { useAppStore } from '@/store';
+import { useAppStore } from '@/stores';
 
 const title = VITE_APP_TITLE;
 

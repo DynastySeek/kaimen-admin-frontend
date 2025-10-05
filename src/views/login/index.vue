@@ -64,7 +64,7 @@
 <script setup>
 import { VITE_APP_TITLE } from '@/config/env';
 import { fetchLogin } from '@/services';
-import { useAuthStore } from '@/store';
+import { useAuthStore } from '@/stores';
 
 const authStore = useAuthStore();
 const router = useRouter();

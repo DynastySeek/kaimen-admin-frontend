@@ -18,7 +18,7 @@
 
 <script setup>
 import { getPresetColors } from '@arco-design/color';
-import { useAppStore } from '@/store';
+import { useAppStore } from '@/stores';
 
 const appStore = useAppStore();
 

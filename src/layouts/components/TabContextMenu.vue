@@ -11,7 +11,7 @@
 </template>
 
 <script setup>
-import { useTabStore } from '@/store';
+import { useTabStore } from '@/stores';
 
 const props = defineProps({
   show: {

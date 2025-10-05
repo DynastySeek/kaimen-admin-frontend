@@ -9,7 +9,7 @@
 
 <script setup>
 // import { useDark, useToggle } from '@vueuse/core';
-// import { useAppStore } from '@/store';
+// import { useAppStore } from '@/stores';
 
 // const appStore = useAppStore();
 // const isDark = useDark();

@@ -3,7 +3,7 @@ import { videoPlay as VideoPlay } from 'vue3-video-play/lib/index.js';
 import App from './App.vue';
 import { setupDirectives } from './directives';
 import { setupRouter } from './router';
-import { setupStore } from './store';
+import { setupStore } from './stores';
 import { setupNaiveDiscreteApi } from './utils';
 import 'vue3-video-play/dist/style.css';
 import '@/styles/reset.css';

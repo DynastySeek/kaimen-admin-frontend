@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import { useAppStore, usePermissionStore } from '@/store';
+import { useAppStore, usePermissionStore } from '@/stores';
 import { isExternal } from '@/utils';
 
 const router = useRouter();

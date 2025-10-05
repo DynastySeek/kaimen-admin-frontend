@@ -14,7 +14,7 @@
 import DefaultAvatar from '@/assets/images/default_avatar.png';
 import { RoleLabelMap } from '@/constants';
 import { fetchLogout } from '@/services';
-import { useAuthStore, useUserStore } from '@/store';
+import { useAuthStore, useUserStore } from '@/stores';
 
 const router = useRouter();
 const userStore = useUserStore();

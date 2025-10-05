@@ -24,7 +24,7 @@
 </template>
 
 <script setup>
-import { usePermissionStore } from '@/store';
+import { usePermissionStore } from '@/stores';
 
 const router = useRouter();
 const route = useRoute();

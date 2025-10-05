@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { useAuthStore } from '@/store';
+import { useAuthStore } from '@/stores';
 
 /**
  * @param {(object | string | number)} time

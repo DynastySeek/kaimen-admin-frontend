@@ -26,7 +26,7 @@
 <script setup>
 import { darkTheme, dateZhCN, zhCN } from 'naive-ui';
 import { PageMissing } from '@/components';
-import { useAppStore, useTabStore } from '@/store';
+import { useAppStore, useTabStore } from '@/stores';
 
 const layouts = new Map();
 function getLayout(name) {

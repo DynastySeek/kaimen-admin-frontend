@@ -1,4 +1,4 @@
-import { useAuthStore, usePermissionStore, useUserStore } from '@/store';
+import { useAuthStore, usePermissionStore, useUserStore } from '@/stores';
 
 const WHITE_LIST = ['/login', '/404'];
 export function createPermissionGuard(router) {

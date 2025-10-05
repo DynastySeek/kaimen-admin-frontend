@@ -28,7 +28,7 @@
 <script setup>
 import { Loader, PlusCircle } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
-import { useAuthStore } from '@/store';
+import { useAuthStore } from '@/stores';
 
 const props = defineProps({
   modelValue: {

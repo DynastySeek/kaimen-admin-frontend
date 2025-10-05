@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import { useAppStore } from '@/store';
+import { useAppStore } from '@/stores';
 import { Header, Sidebar } from './components';
 
 const appStore = useAppStore();

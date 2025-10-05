@@ -1,5 +1,5 @@
 import * as NaiveUI from 'naive-ui';
-import { useAppStore } from '@/store';
+import { useAppStore } from '@/stores';
 import { isNullOrUndef } from '@/utils';
 
 export function setupMessage(NMessage) {

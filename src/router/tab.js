@@ -1,4 +1,4 @@
-import { useTabStore } from '@/store';
+import { useTabStore } from '@/stores';
 
 export const EXCLUDE_TAB = ['/404', '/403', '/login'];
 
