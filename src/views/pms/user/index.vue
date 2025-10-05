@@ -46,8 +46,7 @@
 
 <script setup>
 import { computed, h, inject, ref } from 'vue';
-import CommonPage from '@/components/CommonPage.vue';
-import ProTable from '@/components/ProTable.vue';
+import { CommonPage, ProTable } from '@/components';
 import { UserStatus, UserStatusLabelMap, UserTypeLabelMap } from '@/constants';
 import { fetchDeleteUser, fetchDisableUser, fetchEnableDisableUser, fetchUserInfoById, fetchUserList } from '@/services';
 import { formatDateTime } from '@/utils';

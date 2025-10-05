@@ -84,7 +84,7 @@
 import { usePagination } from 'alova/client';
 import { NButton, NDataTable, NDescriptions, NDescriptionsItem, NEmpty, NModal, NPagination, NPopconfirm, NSpace } from 'naive-ui';
 import { computed, h, reactive, ref, useSlots, watch } from 'vue';
-import FormBuilder from '@/components/FormBuilder.vue';
+import FormBuilder from './FormBuilder.vue';
 
 const props = defineProps({
   // 搜索表单项配置

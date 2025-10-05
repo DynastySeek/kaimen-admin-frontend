@@ -81,8 +81,7 @@ import { cloneDeep } from 'lodash-es';
 import { NButton, NIcon, NSpace, NTag } from 'naive-ui';
 import { h, reactive, ref } from 'vue';
 import { getTempFileUrls } from '@/cloud';
-import { CommonPage, FormBuilder, SelectDictionary } from '@/components';
-import VideoModal from '@/components/VideoModal.vue';
+import { CommonPage, FormBuilder, SelectDictionary, VideoModal } from '@/components';
 import { AppraisalStatus, AppraisalStatusLabelMap } from '@/constants';
 import { fetchAppraisalDetail, fetchAppraisalList, fetchAppraisalUpdate } from '@/services';
 
