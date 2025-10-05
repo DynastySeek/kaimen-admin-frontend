@@ -53,7 +53,6 @@ const alovaInstance = createAlova({
         return { code: 200, success: true, data: response.body };
       }
       const json = await response.json();
-      console.log('🍈 -> json:', json);
 
       if (response.status >= 400 || json.success === false) {
         if (response.status === 401) {

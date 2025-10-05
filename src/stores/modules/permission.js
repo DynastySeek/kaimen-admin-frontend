@@ -30,7 +30,6 @@ export const usePermissionStore = defineStore('permission', {
   actions: {
     /** 更新权限数据 */
     updatePermissions(userInfo) {
-      console.log('🍈 -> updatePermissions -> userInfo:', userInfo);
       try {
         const userRole = userInfo?.role;
         const permissions = RolePermissionMap[userRole] || [];

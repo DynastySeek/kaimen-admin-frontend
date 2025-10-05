@@ -17,8 +17,7 @@ const auth = app.auth();
 async function login() {
   await auth.signInAnonymously();
   // 匿名登录成功检测登录状态isAnonymous字段为true
-  const loginState = await auth.getLoginState();
-  console.log('🍈 -> login -> loginState:', loginState); // true
+  await auth.getLoginState();
 }
 
 login();
