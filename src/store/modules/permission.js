@@ -1,7 +1,24 @@
 import { defineStore } from 'pinia';
 import { h } from 'vue';
+import { Permission, Role } from '@/constants';
 import { authRoutes } from '@/router';
-import { fetchPermissions } from '@/services';
+
+export const RolePermissionMap = {
+  [Role.SuperAdmin]: [
+    Permission.SysMgt,
+    Permission.ResourceMgt,
+    Permission.RoleMgt,
+    Permission.RoleUser,
+    Permission.UserMgt,
+    Permission.AddUser,
+    Permission.AppraisalMgt,
+    Permission.AppraisalList,
+  ],
+  [Role.Appraiser]: [
+    Permission.AppraisalMgt,
+    Permission.AppraisalList,
+  ],
+};
 
 export const usePermissionStore = defineStore('permission', {
   state: () => ({
@@ -12,12 +29,14 @@ export const usePermissionStore = defineStore('permission', {
 
   actions: {
     /** 更新权限数据 */
-    async updatePermissions() {
+    updatePermissions(userInfo) {
+      console.log('🍈 -> updatePermissions -> userInfo:', userInfo);
       try {
-        const { data } = await fetchPermissions();
-        this.setPermissions(data);
+        const userRole = userInfo?.role;
+        const permissions = RolePermissionMap[userRole] || [];
+        this.setPermissions(permissions);
       } catch (error) {
-        console.error('获取权限失败:', error);
+        console.error('设置权限失败:', error);
         throw error;
       }
     },
@@ -62,12 +81,11 @@ export const usePermissionStore = defineStore('permission', {
     },
     /** 根据权限数据过滤 authRoutes 生成路由树 */
     generateRoute(permissions) {
-      const menuPermissions = permissions.filter(item => item.type === 'MENU');
       const filterRoutes = (routes) => {
         const filteredRoutes = [];
         for (const route of routes) {
           if (route.meta?.code) {
-            const hasPermission = menuPermissions.some(item => item.code === route.meta?.code);
+            const hasPermission = permissions.includes(route.meta?.code);
             if (!hasPermission) {
               continue;
             }

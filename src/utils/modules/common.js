@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import { useAuthStore } from '@/store';
 
 /**
  * @param {(object | string | number)} time
@@ -97,8 +98,8 @@ export function useResize(el, cb) {
 }
 
 export function getToken() {
-  // const { token } = useAuthStore();
-  return 'token';
+  const { accessToken } = useAuthStore();
+  return accessToken;
 }
 
 export function cleanParams(params) {

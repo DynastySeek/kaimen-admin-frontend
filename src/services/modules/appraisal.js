@@ -16,7 +16,7 @@ import alovaInstance from '../alovaInstance';
  * @param {string} [params.lastSubmitUser] - 最后提交鉴定师 (可选)
  * @returns {Promise<object>} 分页查询结果
  */
-export const fetchAppraisalList = params => alovaInstance.Get('/api/appraisal/list', { params });
+export const fetchAppraisalList = params => alovaInstance.Get('/appraisal/list', { params });
 
 /**
  * 批量查询鉴定单详情
@@ -24,7 +24,7 @@ export const fetchAppraisalList = params => alovaInstance.Get('/api/appraisal/li
  * @param {string[]} data.ids - 鉴定单ID数组
  * @returns {Promise<object[]>} 鉴定单详情数组
  */
-export const fetchAppraisalDetail = data => alovaInstance.Post('/api/appraisal/detail', data);
+export const fetchAppraisalDetail = data => alovaInstance.Post('/appraisal/detail', data);
 
 /**
  * 批量修改鉴定单
@@ -38,4 +38,4 @@ export const fetchAppraisalDetail = data => alovaInstance.Post('/api/appraisal/d
  * @param {string} [data.items[].customReason] - 自定义原因 (可选)
  * @returns {Promise<object>} 批量修改结果
  */
-export const fetchAppraisalUpdate = data => alovaInstance.Post('/api/appraisal/update', data);
+export const fetchAppraisalUpdate = data => alovaInstance.Post('/appraisal/update', data);

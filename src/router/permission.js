@@ -25,7 +25,8 @@ export function createPermissionGuard(router) {
     const userStore = useUserStore();
     const permissionStore = usePermissionStore();
     if (!userStore.userInfo) {
-      await Promise.all([userStore.updateUserInfo(), permissionStore.updatePermissions()]);
+      await userStore.updateUserInfo();
+      permissionStore.updatePermissions(userStore.userInfo);
       permissionStore.accessRoutes.forEach((route) => {
         !router.hasRoute(route.name) && router.addRoute(route);
       });

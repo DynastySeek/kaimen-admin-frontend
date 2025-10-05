@@ -2,7 +2,7 @@ import { createAlovaMockAdapter } from '@alova/mock';
 import { createAlova } from 'alova';
 import adapterFetch from 'alova/fetch';
 import vueHook from 'alova/vue';
-import { VITE_USE_MOCK } from '@/config/env';
+import { VITE_BASE_REQUEST_API, VITE_USE_MOCK } from '@/config/env';
 import { cleanParams, getToken, sleep } from '@/utils';
 import mockGroups from './mocks';
 
@@ -23,6 +23,7 @@ const mockAdapter = createAlovaMockAdapter(mockGroups, {
 });
 
 const alovaInstance = createAlova({
+  baseURL: VITE_BASE_REQUEST_API,
   requestAdapter: VITE_USE_MOCK ? mockAdapter : adapterFetch(),
   statesHook: vueHook,
   cacheFor: null,
@@ -52,6 +53,7 @@ const alovaInstance = createAlova({
         return { code: 200, success: true, data: response.body };
       }
       const json = await response.json();
+      console.log('🍈 -> json:', json);
 
       if (response.status >= 400 || json.success === false) {
         if (response.status === 401) {
@@ -65,7 +67,7 @@ const alovaInstance = createAlova({
         throw new Error(json.message || '请求失败');
       }
 
-      return json.data;
+      return json;
     },
   },
 });

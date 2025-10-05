@@ -1,3 +1,35 @@
+export const Role = {
+  SuperAdmin: 'admin',
+  Appraiser: 'appraiser',
+};
+
+export const RoleLabelMap = {
+  [Role.SuperAdmin]: '超级管理员',
+  [Role.Appraiser]: '鉴定师',
+};
+
+export const Permission = {
+  SysMgt: 'SysMgt',
+  ResourceMgt: 'ResourceMgt',
+  RoleMgt: 'RoleMgt',
+  RoleUser: 'RoleUser',
+  UserMgt: 'UserMgt',
+  AddUser: 'AddUser',
+  AppraisalMgt: 'AppraisalMgt',
+  AppraisalList: 'AppraisalList',
+};
+
+export const PermissionLabelMap = {
+  [Permission.SysMgt]: '系统管理',
+  [Permission.ResourceMgt]: '资源管理',
+  [Permission.RoleMgt]: '角色管理',
+  [Permission.RoleUser]: '角色用户',
+  [Permission.UserMgt]: '用户管理',
+  [Permission.AddUser]: '添加用户',
+  [Permission.AppraisalMgt]: '鉴定管理',
+  [Permission.AppraisalList]: '鉴定列表',
+};
+
 export const Gender = {
   Female: 0,
   Male: 1,

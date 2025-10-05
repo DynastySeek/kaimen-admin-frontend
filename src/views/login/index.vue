@@ -1,8 +1,6 @@
 <template>
   <div class="wh-full flex-col bg-[url(@/assets/images/login_bg.webp)] bg-cover">
-    <div
-      class="m-auto max-w-700 min-w-345 f-c-c rounded-8 auto-bg bg-opacity-20 bg-cover p-12 card-shadow"
-    >
+    <div class="m-auto max-w-700 min-w-345 f-c-c rounded-8 auto-bg bg-opacity-20 bg-cover p-12 card-shadow">
       <div class="hidden w-380 px-20 py-35 md:block">
         <img src="@/assets/images/login_banner.webp" class="w-full" alt="login_banner">
       </div>
@@ -13,10 +11,7 @@
           {{ title }}
         </h2>
         <n-input
-          v-model:value="loginInfo.username"
-          autofocus
-          class="mt-32 h-40 items-center"
-          placeholder="请输入用户名"
+          v-model:value="loginInfo.username" autofocus class="mt-32 h-40 items-center" placeholder="请输入用户名"
           :maxlength="20"
         >
           <template #prefix>
@@ -24,13 +19,8 @@
           </template>
         </n-input>
         <n-input
-          v-model:value="loginInfo.password"
-          class="mt-20 h-40 items-center"
-          type="password"
-          show-password-on="mousedown"
-          placeholder="请输入密码"
-          :maxlength="20"
-          @keydown.enter="handleLogin()"
+          v-model:value="loginInfo.password" class="mt-20 h-40 items-center" type="password"
+          show-password-on="mousedown" placeholder="请输入密码" :maxlength="20" @keydown.enter="handleLogin()"
         >
           <template #prefix>
             <i class="i-fe:lock mr-12 opacity-20" />
@@ -62,12 +52,7 @@
         -->
 
         <div class="mt-20 flex items-center">
-          <n-button
-            class="h-40 flex-1 rounded-5 text-16"
-            type="primary"
-            :loading="loading"
-            @click="handleLogin()"
-          >
+          <n-button class="h-40 flex-1 rounded-5 text-16" type="primary" :loading="loading" @click="handleLogin()">
             登录
           </n-button>
         </div>
@@ -87,8 +72,8 @@ const route = useRoute();
 const title = VITE_APP_TITLE;
 
 const loginInfo = ref({
-  username: 'admin',
-  password: '123456',
+  username: 'charlie',
+  password: 'charlie123',
 });
 
 // 验证码功能已注释
@@ -113,6 +98,7 @@ async function handleLogin() {
     $message.loading('正在验证，请稍后...', { key: 'login' });
     // 移除验证码参数和isQuick参数
     const { data } = await fetchLogin({ username, password: password.toString() });
+    console.log('🍈 -> handleLogin -> data:', data);
     onLoginSuccess(data);
   } catch (error) {
     // 验证码相关逻辑已注释

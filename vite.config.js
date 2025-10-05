@@ -32,7 +32,7 @@ function toTransformConfig(config) {
 
 export default defineConfig(({ mode }) => {
   const viteEnv = loadEnv(mode, process.cwd());
-  const { VITE_PUBLIC_PATH, VITE_PROXY_BASE_REQUEST_API, VITE_PORT, VITE_SOURCE_MAP, VITE_GZIP, VITE_REPORT } = toTransformConfig(viteEnv);
+  const { VITE_PUBLIC_PATH, VITE_BASE_REQUEST_API, VITE_PROXY_BASE_REQUEST_API, VITE_PORT, VITE_SOURCE_MAP, VITE_GZIP, VITE_REPORT } = toTransformConfig(viteEnv);
 
   return {
     base: VITE_PUBLIC_PATH || '/',
@@ -69,10 +69,10 @@ export default defineConfig(({ mode }) => {
       port: VITE_PORT,
       open: false,
       proxy: {
-        '/api': {
+        [VITE_BASE_REQUEST_API]: {
           target: VITE_PROXY_BASE_REQUEST_API,
           changeOrigin: true,
-          rewrite: path => path.replace(/^\/api/, ''),
+          // rewrite: path => path.replace(/^\/api/, ''),
           secure: false,
           configure: (proxy, options) => {
             // 配置此项可在响应头中看到请求的真实地址
