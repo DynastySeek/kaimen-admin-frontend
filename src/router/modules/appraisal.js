@@ -8,8 +8,8 @@ export const appraisalRoutes = [
     path: '/appraisal',
     redirect: '/appraisal/list',
     meta: {
-      title: '鉴定单管理',
-      icon: 'i-fe:file-text',
+      title: '订单管理',
+      icon: 'i-fe:list',
       code: 'AppraisalMgt',
       show: true,
       enable: true,
@@ -22,7 +22,7 @@ export const appraisalRoutes = [
         component: () => import('@/views/appraisal/index.vue'),
         meta: {
           title: '鉴定单列表',
-          icon: 'i-fe:list',
+          icon: 'i-fe:file-text',
           keepAlive: true,
           code: 'AppraisalList',
           show: true,

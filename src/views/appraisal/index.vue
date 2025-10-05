@@ -170,6 +170,7 @@ const searchFormItems = [
 const columns = [
   {
     type: 'selection',
+    fixed: 'left',
   },
   {
     title: '鉴定ID',
