@@ -22,7 +22,7 @@
       >
         <template #actions>
           <NSpace class="w-full" justify="end">
-            <NButton type="primary" @click="handleSearch">
+            <NButton type="primary" @click="refresh">
               搜索
             </NButton>
             <NButton @click="handleReset">
@@ -44,7 +44,13 @@
         :columns="columns"
         :data="tableData"
         :loading="loading"
-        :pagination="pagination"
+        :pagination="{
+          total,
+          page,
+          pageSize,
+          showSizeChanger: true,
+          pageSizes: [10, 20, 50, 100],
+        }"
         :scroll-x="1400"
         :row-key="item => item.id"
         @update:checked-row-keys="handleCheckChange"
@@ -70,16 +76,17 @@
 </template>
 
 <script setup>
+import { usePagination, useRequest } from 'alova/client';
 import { NButton, NIcon, NSpace, NTag } from 'naive-ui';
-import { computed, h, onMounted, reactive, ref } from 'vue';
+import { h, reactive, ref } from 'vue';
 import { CommonPage, FormBuilder, SelectDictionary } from '@/components';
 import VideoModal from '@/components/VideoModal.vue';
 import { AppraisalStatus, AppraisalStatusLabelMap } from '@/constants';
+import { fetchAppraisalList, fetchAppraisalUpdate } from '@/services';
 import AppraisalAction from './components/AppraisalAction.vue';
 import BatchAppraisalModal from './components/BatchAppraisalModal.vue';
 import ImagePreview from './components/ImagePreview.vue';
 
-// Tab 选项配置
 const tabs = [
   { label: '全部', value: 'all' },
   { label: '待用户完善', value: AppraisalStatus.PendingCompletion },
@@ -90,20 +97,16 @@ const tabs = [
 ];
 
 const activeTab = ref('all');
-const loading = ref(false);
 
-// 视频弹窗相关状态
+const batchAppraisalModalVisible = ref(false);
+
 const videoModalVisible = ref(false);
 const currentVideoSrc = ref('');
 const currentVideoTitle = ref('');
 
-// 批量鉴定弹窗状态
-const batchAppraisalModalVisible = ref(false);
-
 const checkedRowKeysRef = ref([]);
 
-// 搜索表单配置
-const searchForm = reactive({
+const defaultSearchForm = {
   appraisalId: '',
   phone: '',
   title: '',
@@ -111,7 +114,37 @@ const searchForm = reactive({
   createTimeRange: null,
   updateTimeRange: null,
   lastAppraiser: '',
-});
+};
+const searchForm = reactive(defaultSearchForm);
+
+const {
+  loading,
+  data: tableData,
+  page,
+  pageSize,
+  total,
+  refresh,
+  reload,
+} = usePagination(
+  (page, pageSize) => fetchAppraisalList({
+    page,
+    pageSize,
+    status: activeTab.value === 'all' ? null : activeTab.value,
+    ...searchForm,
+  }),
+  {
+    initialPage: 1,
+    initialPageSize: 10,
+    immediate: true,
+  },
+);
+
+const { send: updateAppraisalCategory } = useRequest(
+  data => fetchAppraisalUpdate(data),
+  {
+    immediate: false,
+  },
+);
 
 const searchFormItems = [
   {
@@ -166,7 +199,6 @@ const searchFormItems = [
   },
 ];
 
-// 表格列配置
 const columns = [
   {
     type: 'selection',
@@ -303,210 +335,34 @@ const columns = [
   },
 ];
 
-// 分页配置
-const pagination = reactive({
-  page: 1,
-  pageSize: 10,
-  itemCount: 0,
-  showSizePicker: true,
-  pageSizes: [10, 20, 50, 100],
-});
-
-// 表格数据
-const tableData = ref([]);
-
-// 演示数据
-const mockData = [
-  {
-    id: 'AP001',
-    images: [
-      'cloud://cloudbase-3g9zthei11410463.636c-cloudbase-3g9zthei11410463-1360990667/images/20250606_214423_707.png',
-      'cloud://cloudbase-3g9zthei11410463.636c-cloudbase-3g9zthei11410463-1360990667/images/20250606_214416_752.png',
-    ],
-    videos: ['https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4'],
-    categoryId: 1,
-    appraisalClass: '珠宝首饰',
-    title: '翡翠手镯鉴定',
-    description: '这是一只传家宝翡翠手镯，需要专业鉴定真伪',
-    phone: '138****1234',
-    createTime: '2024-01-15 10:30:00',
-    updateTime: '2024-01-16 14:20:00',
-    lastAppraiser: '张鉴定师',
-    status: AppraisalStatus.PendingCompletion,
-  },
-  {
-    id: 'AP002',
-    images: [
-      'https://picsum.photos/200/200?random=2',
-      'https://picsum.photos/200/200?random=3',
-      'https://picsum.photos/200/200?random=21',
-      'https://picsum.photos/200/200?random=22',
-    ],
-    videos: [],
-    categoryId: 2,
-    appraisalClass: '古董文玩',
-    title: '明代青花瓷鉴定',
-    description: '家传明代青花瓷器，希望确认年代和价值',
-    phone: '139****5678',
-    createTime: '2024-01-14 09:15:00',
-    updateTime: '2024-01-17 16:45:00',
-    lastAppraiser: '李鉴定师',
-    status: AppraisalStatus.DoubtCompleted,
-  },
-  {
-    id: 'AP003',
-    images: [
-      'https://picsum.photos/200/200?random=4',
-      'https://picsum.photos/200/200?random=31',
-      'https://picsum.photos/200/200?random=32',
-      'https://picsum.photos/200/200?random=33',
-      'https://picsum.photos/200/200?random=34',
-      'https://picsum.photos/200/200?random=35',
-      'https://picsum.photos/200/200?random=36',
-    ],
-    videos: [
-      'https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4',
-      'https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4',
-    ],
-    categoryId: 3,
-    appraisalClass: '艺术品',
-    title: '油画作品鉴定',
-    description: '疑似名家油画作品，需要专业鉴定',
-    phone: '136****9012',
-    createTime: '2024-01-13 15:20:00',
-    updateTime: '2024-01-18 11:30:00',
-    lastAppraiser: '王鉴定师',
-    status: AppraisalStatus.FakeCompleted,
-  },
-  {
-    id: 'AP004',
-    images: [],
-    videos: [],
-    categoryId: 4,
-    appraisalClass: '奢侈品',
-    title: '名牌包包鉴定',
-    description: '购买的二手名牌包包，需要验证真伪',
-    phone: '137****3456',
-    createTime: '2024-01-12 13:45:00',
-    updateTime: '2024-01-19 09:15:00',
-    lastAppraiser: '赵鉴定师',
-    status: AppraisalStatus.Rejected,
-  },
-  {
-    id: 'AP005',
-    images: [
-      'https://picsum.photos/200/200?random=5',
-      'https://picsum.photos/200/200?random=51',
-    ],
-    videos: [
-      'https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4',
-      'https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4',
-      'https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4',
-    ],
-    categoryId: 1,
-    appraisalClass: '珠宝首饰',
-    title: '钻石戒指鉴定',
-    description: '求婚钻戒，需要确认钻石等级和真伪',
-    phone: '135****7890',
-    createTime: '2024-01-11 16:00:00',
-    updateTime: '2024-01-20 14:30:00',
-    lastAppraiser: '陈鉴定师',
-    status: AppraisalStatus.Cancelled,
-  },
-  {
-    id: 'AP006',
-    images: [
-      'https://picsum.photos/200/200?random=6',
-      'https://picsum.photos/200/200?random=61',
-      'https://picsum.photos/200/200?random=62',
-    ],
-    videos: [
-      'https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4',
-      'https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4',
-      'https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4',
-      'https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4',
-    ],
-    categoryId: 2,
-    appraisalClass: '古董文玩',
-    title: '古代字画鉴定',
-    description: '收藏的古代字画，需要确认真伪和价值',
-    phone: '134****2468',
-    createTime: '2024-01-10 11:20:00',
-    updateTime: '2024-01-21 15:40:00',
-    lastAppraiser: '孙鉴定师',
-    status: AppraisalStatus.PendingCompletion,
-  },
-];
-
-/**
- * 根据当前 Tab 过滤数据
- */
-const filteredData = computed(() => {
-  if (activeTab.value === 'all') {
-    return mockData;
-  }
-  return mockData.filter(item => item.status === activeTab.value);
-});
-
 function handleCheckChange(rowKeys) {
   checkedRowKeysRef.value = rowKeys;
 }
 
-/**
- * Tab 切换处理
- */
 function handleTabChange(value) {
   activeTab.value = value;
-  loadData();
+  reload();
 }
 
-/**
- * 搜索处理
- */
-function handleSearch() {
-  // 搜索条件处理逻辑
-  loadData();
-}
-
-/**
- * 重置搜索表单
- */
 function handleReset() {
-  Object.keys(searchForm).forEach((key) => {
-    if (Array.isArray(searchForm[key])) {
-      searchForm[key] = null;
-    } else {
-      searchForm[key] = '';
-    }
-  });
-  loadData();
+  Object.assign(searchForm, defaultSearchForm);
+  reload();
 }
 
-/**
- * 分页处理
- */
-function handlePageChange(page) {
-  pagination.page = page;
-  loadData();
+function handlePageChange(newPage) {
+  page.value = newPage;
 }
 
-function handlePageSizeChange(pageSize) {
-  pagination.pageSize = pageSize;
-  pagination.page = 1;
-  loadData();
+function handlePageSizeChange(newPageSize) {
+  pageSize.value = newPageSize;
+  page.value = 1;
 }
 
-/**
- * 编辑处理
- */
 function handleAppraisalSubmit(_data) {
   $message.success('鉴定操作提交成功');
-  // TODO: 刷新列表数据
+  refresh();
 }
 
-/**
- * 批量鉴定处理
- */
 function handleBatchAppraisal() {
   if (checkedRowKeysRef.value.length === 0) {
     $message.warning('请先选择要鉴定的数据');
@@ -515,66 +371,36 @@ function handleBatchAppraisal() {
   batchAppraisalModalVisible.value = true;
 }
 
-/**
- * 批量鉴定提交处理
- */
-function handleBatchAppraisalSubmit(data) {
+async function handleBatchAppraisalSubmit(data) {
   console.log('批量鉴定提交数据:', data);
   $message.success(`已对 ${data.ids.length} 条数据进行批量鉴定`);
-  // TODO: 调用批量鉴定API
-  // TODO: 刷新列表数据
-  // 清空选中状态
+  refresh();
   checkedRowKeysRef.value = [];
 }
 
-/**
- * 编辑鉴定单处理（保留原有功能）
- */
-function _handleEdit(row) {
-  // 编辑鉴定单逻辑
-  $message.info(`编辑鉴定单: ${row.id}`);
-}
-
-/**
- * 视频播放处理
- */
 function handleVideoPlay(row, videoIndex = 0) {
   if (row.videos && row.videos.length > 0) {
-    // 使用指定索引的视频 URL，如果没有则使用测试视频
     currentVideoSrc.value = row.videos[videoIndex] || 'https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4';
     currentVideoTitle.value = `${row.title} - 视频${videoIndex + 1}`;
     videoModalVisible.value = true;
   }
 }
 
-/**
- * 加载数据
- */
-function loadData() {
-  loading.value = true;
+async function handleCategoryChange(value, row) {
+  try {
+    const updateData = {
+      items: [{
+        appraisalId: row.id,
+        appraisalClass: value,
+      }],
+    };
 
-  // 模拟异步加载
-  setTimeout(() => {
-    const data = filteredData.value;
-    const start = (pagination.page - 1) * pagination.pageSize;
-    const end = start + pagination.pageSize;
-
-    tableData.value = data.slice(start, end);
-    pagination.itemCount = data.length;
-    loading.value = false;
-  }, 500);
+    await updateAppraisalCategory(updateData);
+    $message.success('分类更新成功');
+    refresh();
+  } catch (error) {
+    console.error('分类更新失败:', error);
+    $message.error('分类更新失败');
+  }
 }
-
-/**
- * 处理类目选择变更事件
- * @param {string} _value - 选中的类目值
- * @param {object} _row - 当前行数据
- */
-function handleCategoryChange(_value, _row) {
-  // TODO: 实现类目变更逻辑
-}
-
-onMounted(() => {
-  loadData();
-});
 </script>

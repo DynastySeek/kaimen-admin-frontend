@@ -56,7 +56,7 @@
         <n-button
           type="primary"
           :disabled="!formData.result"
-          :loading="submitting"
+          :loading="isSubmitting"
           @click="handleSubmit"
         >
           确认提交
@@ -67,8 +67,10 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref } from 'vue';
+import { useRequest } from 'alova/client';
+import { computed, reactive } from 'vue';
 import { AppraisalResult } from '@/constants';
+import { fetchAppraisalUpdate } from '@/services';
 
 const props = defineProps({
   /**
@@ -125,8 +127,13 @@ const formData = reactive({
   comment: '',
 });
 
-// 提交状态
-const submitting = ref(false);
+// 使用 alova 的 useRequest 处理批量鉴定更新
+const { send: submitBatchAppraisal, loading: isSubmitting } = useRequest(
+  data => fetchAppraisalUpdate(data),
+  {
+    immediate: false,
+  },
+);
 
 /**
  * 重置表单
@@ -152,8 +159,6 @@ async function handleSubmit() {
     return;
   }
 
-  submitting.value = true;
-
   try {
     const submitData = {
       ids: props.checkedRowKeys,
@@ -161,13 +166,16 @@ async function handleSubmit() {
       comment: formData.comment,
     };
 
+    // 使用 alova 的 useRequest 提交批量数据
+    await submitBatchAppraisal(submitData);
+
     emit('submit', submitData);
 
     // 重置表单并关闭弹窗
     resetForm();
     visible.value = false;
-  } finally {
-    submitting.value = false;
+  } catch (error) {
+    console.error('批量鉴定提交失败:', error);
   }
 }
 </script>

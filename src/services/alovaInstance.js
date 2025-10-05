@@ -26,6 +26,7 @@ const alovaInstance = createAlova({
   requestAdapter: VITE_USE_MOCK ? mockAdapter : adapterFetch(),
   statesHook: vueHook,
   cacheFor: null,
+  timeout: 10000,
   beforeRequest: (method) => {
     const token = getToken();
 

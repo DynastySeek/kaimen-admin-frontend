@@ -77,6 +77,7 @@
       class="text-[12px]"
       round
       :disabled="!formData.result"
+      :loading="isSubmitting"
       @click="handleSubmit"
     >
       提交
@@ -85,8 +86,10 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue';
+import { useRequest } from 'alova/client';
+import { reactive } from 'vue';
 import { AppraisalStatus } from '@/constants';
+import { fetchAppraisalUpdate } from '@/services';
 
 const props = defineProps({
   data: {
@@ -138,8 +141,13 @@ const formData = reactive({
   customReason: '',
 });
 
-// 提交状态
-const submitting = ref(false);
+// 使用 alova 的 useRequest 处理鉴定更新
+const { send: submitAppraisal, loading: isSubmitting } = useRequest(
+  data => fetchAppraisalUpdate(data.id, data),
+  {
+    immediate: false,
+  },
+);
 
 /**
  * 重置表单
@@ -159,8 +167,6 @@ async function handleSubmit() {
     return;
   }
 
-  submitting.value = true;
-
   try {
     const submitData = {
       id: props.data.id,
@@ -170,12 +176,15 @@ async function handleSubmit() {
       customReason: formData.customReason,
     };
 
+    // 使用 alova 的 useRequest 提交数据
+    await submitAppraisal(submitData);
+
     emit('submit', submitData);
 
     // 重置表单
     resetForm();
-  } finally {
-    submitting.value = false;
+  } catch (error) {
+    console.error('提交鉴定结果失败:', error);
   }
 }
 </script>
