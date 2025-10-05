@@ -87,3 +87,19 @@ export const AppraisalClassLabelMap = {
   [AppraisalClass.ZaXiang]: '杂项',
   [AppraisalClass.ZhiBi]: '纸币',
 };
+
+export const AppraisalResult = {
+  Authentic: 1,
+  Fake: 2,
+  Doubt: 3,
+  Rejected: 4,
+  Unspecified: 999,
+};
+
+export const AppraisalResultLabelMap = {
+  [AppraisalResult.Authentic]: '真',
+  [AppraisalResult.Fake]: '假',
+  [AppraisalResult.Doubt]: '存疑',
+  [AppraisalResult.Rejected]: '驳回',
+  [AppraisalResult.Unspecified]: '未指定',
+};

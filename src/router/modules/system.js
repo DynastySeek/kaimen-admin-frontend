@@ -14,6 +14,7 @@ export const systemRoutes = [
       code: 'SysMgt',
       show: true,
       enable: true,
+      order: 2,
     },
     children: [
       {
