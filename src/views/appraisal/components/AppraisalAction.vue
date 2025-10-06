@@ -20,7 +20,7 @@
     </n-space>
 
     <!-- 第二步：原因（选填） - 存疑状态 -->
-    <template v-if="[AppraisalStatus.DoubtCompleted, AppraisalStatus.Rejected].includes(formData.result)">
+    <template v-if="[AppraisalResult.Doubt, AppraisalResult.Rejected].includes(formData.result)">
       <div class="text-[#1560FA] font-bold">
         第二步：原因（选填）
       </div>
@@ -86,7 +86,7 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue';
+import { reactive, watch } from 'vue';
 import { AppraisalResult, AppraisalStatus } from '@/constants';
 import { fetchAppraisalResultAdd, fetchAppraisalUpdate } from '@/services';
 
@@ -140,6 +140,36 @@ const formData = reactive({
   customReason: '',
 });
 
+// 监听 props.data 变化，初始化表单数据
+watch(() => props.data, initFormData, { immediate: true, deep: true });
+
+/**
+ * 根据传入的 data 初始化表单数据
+ */
+function initFormData() {
+  console.log('🍈 -> initFormData -> props.data:', props.data);
+  const { result, notes } = props.data?.latest_appraisal || {};
+  if (result && !formData.result) {
+    formData.result = result;
+
+    // 处理 notes 字段，可能包含评语和原因
+    if (notes) {
+      const parts = notes.split(' | 原因: ');
+      if (parts.length === 2) {
+        // 有原因部分
+        formData.comment = parts[0].trim();
+        const reasonsText = parts[1].trim();
+        if (reasonsText) {
+          // 将原因字符串按逗号分割并去除空格
+          formData.reasons = reasonsText.split(',').map(reason => reason.trim()).filter(reason => reason);
+        }
+      } else {
+        // 没有原因部分，全部作为评语
+        formData.comment = notes;
+      }
+    }
+  }
+}
 /**
  * 重置表单
  */
@@ -161,7 +191,7 @@ async function handleSubmit() {
   try {
     const params = {
       orderid: props.data.appraisal_id,
-      appraisalSesult: formData.result,
+      appraisalResult: formData.result,
       comment: formData.comment,
       reasons: formData.reasons,
       customReason: formData.customReason,

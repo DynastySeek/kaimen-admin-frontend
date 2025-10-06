@@ -115,7 +115,7 @@ const defaultSearchForm = {
   appraisalId: '',
   phone: '',
   title: '',
-  categoryId: null,
+  firstClass: null,
   createTimeRange: null,
   updateTimeRange: null,
   lastAppraiser: '',
@@ -135,7 +135,6 @@ const {
     page,
     pageSize,
     appraisalStatus: activeTab.value === 'all' ? null : activeTab.value,
-    firstClass: 2,
     ...searchForm,
   }),
   {
@@ -174,7 +173,7 @@ const searchFormItems = [
     span: 6,
   },
   {
-    prop: 'appraisalClass',
+    prop: 'firstClass',
     label: '类目',
     type: 'selectDictionary',
     name: 'AppraisalClass',
