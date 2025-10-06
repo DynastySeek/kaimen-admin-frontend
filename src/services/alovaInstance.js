@@ -2,7 +2,7 @@ import { createAlovaMockAdapter } from '@alova/mock';
 import { createAlova } from 'alova';
 import adapterFetch from 'alova/fetch';
 import vueHook from 'alova/vue';
-import { VITE_BASE_REQUEST_API, VITE_USE_MOCK } from '@/config/env';
+import { isLocal, VITE_BASE_REQUEST_API, VITE_USE_MOCK } from '@/config/env';
 import { cleanParams, getToken, isObject, sleep } from '@/utils';
 import mockGroups from './mocks';
 
@@ -23,7 +23,7 @@ const mockAdapter = createAlovaMockAdapter(mockGroups, {
 });
 
 const alovaInstance = createAlova({
-  baseURL: VITE_BASE_REQUEST_API,
+  baseURL: isLocal ? '/api' : VITE_BASE_REQUEST_API,
   requestAdapter: VITE_USE_MOCK ? mockAdapter : adapterFetch(),
   statesHook: vueHook,
   cacheFor: null,
