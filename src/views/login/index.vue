@@ -105,6 +105,7 @@ async function handleLogin() {
     //   initCaptcha();
     // }
     $message.destroy('login');
+    $message.error('登录失败');
     console.error(error);
   }
   loading.value = false;

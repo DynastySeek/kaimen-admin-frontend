@@ -147,7 +147,6 @@ watch(() => props.data, initFormData, { immediate: true, deep: true });
  * 根据传入的 data 初始化表单数据
  */
 function initFormData() {
-  console.log('🍈 -> initFormData -> props.data:', props.data);
   const { result, notes } = props.data?.latest_appraisal || {};
   if (result && !formData.result) {
     formData.result = result;
@@ -208,7 +207,6 @@ async function handleSubmit() {
       appraisal_status = AppraisalStatus.Rejected;
     }
 
-    console.log('🍈 -> handleSubmit -> props:', props);
     await fetchAppraisalResultAdd({ items: [params] });
     await fetchAppraisalUpdate([{ id: props.data.appraisal_id, appraisal_status }]);
 

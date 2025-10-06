@@ -288,7 +288,7 @@ const columns = [
   },
   {
     title: '用户手机号',
-    key: 'phone',
+    key: 'user_phone',
     width: 120,
   },
   {
@@ -350,6 +350,7 @@ handleAppraisalListSuccess(async ({ data }) => {
     list.forEach((item) => {
       const detail = detailList.find(d => d.order_id === item.appraisal_id);
       if (detail) {
+        item.user_phone = detail.user_phone || '-';
         item.latest_appraisal = detail.latest_appraisal;
       }
     });
@@ -369,7 +370,6 @@ handleAppraisalListSuccess(async ({ data }) => {
         });
       });
     }
-    console.log('🍈 -> list:', list);
     tableData.value = list;
   } catch (error) {
     console.error('获取鉴定详情失败:', error);
