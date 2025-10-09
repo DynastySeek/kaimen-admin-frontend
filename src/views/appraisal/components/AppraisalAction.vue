@@ -20,7 +20,7 @@
     </n-space>
 
     <!-- 第二步：原因（选填） - 存疑状态 -->
-    <template v-if="[AppraisalResult.Doubt, AppraisalResult.Rejected].includes(formData.result)">
+    <template v-if="[AppraisalResult.Doubt].includes(formData.result)">
       <div class="text-[#1560FA] font-bold">
         第二步：原因（选填）
       </div>
@@ -28,7 +28,7 @@
       <n-checkbox-group v-model:value="formData.reasons" class="mb-2">
         <n-grid :y-gap="8" :cols="2">
           <n-gi
-            v-for="option in reasonOptions"
+            v-for="option in doubtReasonOptions"
             :key="option.value"
           >
             <n-checkbox
@@ -42,7 +42,38 @@
       <n-input
         v-model:value="formData.comment"
         type="textarea"
-        placeholder="照片质量过低，导致细节模糊不清"
+        placeholder="其他问题可详细描述"
+        :autosize="{
+          minRows: 2,
+          maxRows: 3,
+        }"
+        size="small"
+      />
+    </template>
+
+    <template v-else-if="[AppraisalResult.Rejected].includes(formData.result)">
+      <div class="text-[#1560FA] font-bold">
+        第二步：原因（选填）
+      </div>
+      <!-- 原因选项 -->
+      <n-checkbox-group v-model:value="formData.reasons" class="mb-2">
+        <n-grid :y-gap="8" :cols="1">
+          <n-gi
+            v-for="option in rejectReasonOptions"
+            :key="option.value"
+          >
+            <n-checkbox
+              :value="option.value"
+              :label="option.label"
+              size="small"
+            />
+          </n-gi>
+        </n-grid>
+      </n-checkbox-group>
+      <n-input
+        v-model:value="formData.comment"
+        type="textarea"
+        placeholder="其他问题可详细描述"
         :autosize="{
           minRows: 2,
           maxRows: 3,
@@ -100,12 +131,17 @@ const props = defineProps({
 const emit = defineEmits(['submit']);
 
 // 原因选项配置
-const reasonOptions = [
+const doubtReasonOptions = [
   { label: '需补充正面图片', value: '需补充正面图片' },
   { label: '需补充侧面图片', value: '需补充侧面图片' },
   { label: '需补充背面图片', value: '需补充背面图片' },
   { label: '需补充孔道图片', value: '需补充孔道图片' },
   { label: '图片不清晰', value: '图片不清晰' },
+];
+
+// 驳回原因选项配置
+const rejectReasonOptions = [
+  { label: '请勿上传与鉴定无关的图片或视频', value: '请勿上传与鉴定无关的图片或视频' },
 ];
 
 // 结果选项配置

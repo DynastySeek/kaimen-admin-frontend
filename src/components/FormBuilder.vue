@@ -94,6 +94,7 @@ function getProps(item) {
   const baseProps = {
     placeholder: item.placeholder || `请输入${item.label}`,
     disabled: item.disabled,
+    clearable: true,
     ...item.props,
   };
 

@@ -113,7 +113,7 @@ const checkedRowKeysRef = ref([]);
 
 const defaultSearchForm = {
   appraisalId: '',
-  phone: '',
+  userPhone: '',
   title: '',
   firstClass: null,
   createTimeRange: null,
@@ -159,7 +159,7 @@ const searchFormItems = [
     span: 6,
   },
   {
-    prop: 'phone',
+    prop: 'userPhone',
     label: '用户手机号',
     type: 'input',
     placeholder: '请输入用户手机号',
@@ -194,13 +194,13 @@ const searchFormItems = [
     placeholder: '请选择修改时间范围',
     span: 6,
   },
-  {
-    prop: 'appraiserId',
-    label: '最后提交鉴定师',
-    type: 'input',
-    placeholder: '请输入鉴定师姓名',
-    span: 6,
-  },
+  // {
+  //   prop: 'appraiserId',
+  //   label: '最后提交鉴定师',
+  //   type: 'input',
+  //   placeholder: '请输入鉴定师姓名',
+  //   span: 6,
+  // },
 ];
 
 const columns = [
@@ -434,7 +434,7 @@ async function handleCategoryChange(value, row) {
   try {
     const updateData = [{
       id: row.appraisal_id,
-      appraisal_class: value,
+      appraisal_class: String(value),
     }];
 
     await fetchAppraisalUpdate(updateData);
