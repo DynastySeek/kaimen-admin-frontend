@@ -158,7 +158,7 @@ async function handleSubmit() {
   try {
     // 构建批量鉴定结果数据
     const resultItems = props.checkedRowKeys.map(id => ({
-      orderid: id,
+      appraisalId: id,
       appraisalResult: formData.result,
       comment: formData.comment,
       reasons: [],

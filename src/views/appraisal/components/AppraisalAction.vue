@@ -137,7 +137,6 @@ const formData = reactive({
   result: null,
   comment: '',
   reasons: [],
-  customReason: '',
 });
 
 // 监听 props.data 变化，初始化表单数据
@@ -147,7 +146,7 @@ watch(() => props.data, initFormData, { immediate: true, deep: true });
  * 根据传入的 data 初始化表单数据
  */
 function initFormData() {
-  const { result, notes } = props.data?.latest_appraisal || {};
+  const { result, notes } = props.data?.appraisal_result || {};
   if (result && !formData.result) {
     formData.result = result;
 
@@ -176,7 +175,6 @@ function resetForm() {
   formData.result = null;
   formData.comment = '';
   formData.reasons = [];
-  formData.customReason = '';
 }
 
 /**
@@ -189,11 +187,10 @@ async function handleSubmit() {
 
   try {
     const params = {
-      orderid: props.data.appraisal_id,
+      appraisalId: props.data.appraisal_id,
       appraisalResult: formData.result,
       comment: formData.comment,
       reasons: formData.reasons,
-      customReason: formData.customReason,
     };
 
     let appraisal_status = null;

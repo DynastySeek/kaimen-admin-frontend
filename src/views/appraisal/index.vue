@@ -307,6 +307,7 @@ const columns = [
     title: '最后提交鉴定师',
     key: 'lastAppraiser',
     width: 140,
+    render: ({ appraisal_result }) => appraisal_result?.appraiser_name || '-',
   },
   {
     title: '状态',
@@ -346,12 +347,12 @@ handleAppraisalListSuccess(async ({ data }) => {
   try {
     const { list } = cloneDeep(data.data);
     const ids = list.map(item => item.appraisal_id);
-    const { data: detailList } = await fetchAppraisalDetail({ ids });
+    const { data: resultList } = await fetchAppraisalDetail({ ids });
+    console.log('🍈 -> resultList:', resultList);
     list.forEach((item) => {
-      const detail = detailList.find(d => d.order_id === item.appraisal_id);
-      if (detail) {
-        item.user_phone = detail.user_phone || '-';
-        item.latest_appraisal = detail.latest_appraisal;
+      const result = resultList.find(d => d.appraisal_id === item.appraisal_id);
+      if (result) {
+        item.appraisal_result = result;
       }
     });
     const allCloudImages = list.reduce((acc, d) => acc.concat(d.images || []), []).filter(v => v.startsWith('cloud://'));
@@ -370,6 +371,7 @@ handleAppraisalListSuccess(async ({ data }) => {
         });
       });
     }
+    console.log('🍈 -> list:', list);
     tableData.value = list;
   } catch (error) {
     console.error('获取鉴定详情失败:', error);
