@@ -22,7 +22,7 @@
       >
         <template #actions>
           <NSpace class="w-full" justify="end">
-            <NButton type="primary" @click="reload">
+            <NButton type="primary" :loading="loading" @click="reload">
               搜索
             </NButton>
             <NButton @click="handleReset">
@@ -102,6 +102,7 @@ const tabs = [
 
 const activeTab = ref('all');
 const tableData = ref([]);
+const loading = ref(false);
 
 const batchAppraisalModalVisible = ref(false);
 
@@ -123,7 +124,6 @@ const defaultSearchForm = {
 const searchForm = reactive({ ...defaultSearchForm });
 
 const {
-  loading,
   page,
   pageSize,
   total,
@@ -344,6 +344,7 @@ const columns = [
 ];
 
 handleAppraisalListSuccess(async ({ data }) => {
+  loading.value = true;
   try {
     const { list } = cloneDeep(data.data);
     const ids = list.map(item => item.appraisal_id);
@@ -376,6 +377,8 @@ handleAppraisalListSuccess(async ({ data }) => {
   } catch (error) {
     console.error('获取鉴定详情失败:', error);
     $message.error('获取鉴定列表数据失败');
+  } finally {
+    loading.value = false;
   }
 });
 
