@@ -14,6 +14,8 @@ import { computed } from 'vue';
 import {
   AppraisalClass,
   AppraisalClassLabelMap,
+  AppraisalResult,
+  AppraisalResultLabelMap,
   CategoryStatus,
   CategoryStatusLabelMap,
   Gender,
@@ -63,6 +65,7 @@ const EnumMap = {
   CategoryStatus: [CategoryStatus, CategoryStatusLabelMap],
   ProductStatus: [ProductStatus, ProductStatusLabelMap],
   AppraisalClass: [AppraisalClass, AppraisalClassLabelMap],
+  AppraisalResult: [AppraisalResult, AppraisalResultLabelMap],
 };
 
 /**

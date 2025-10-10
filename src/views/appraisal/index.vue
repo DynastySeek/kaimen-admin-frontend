@@ -2,22 +2,14 @@
   <CommonPage>
     <template #action>
       <n-radio-group v-model:value="activeTab" name="appraisal-status" @update:value="handleTabChange">
-        <n-radio-button
-          v-for="tab in tabs"
-          :key="tab.value"
-          :value="tab.value"
-          :label="tab.label"
-        />
+        <n-radio-button v-for="tab in tabs" :key="tab.value" :value="tab.value" :label="tab.label" />
       </n-radio-group>
     </template>
 
     <!-- 搜索表单 -->
     <n-card v-if="searchFormItems && searchFormItems.length > 0" class="mt-10">
       <FormBuilder
-        v-model="searchForm"
-        :form-items="searchFormItems"
-        label-width="120px"
-        :actions-span="6"
+        v-model="searchForm" :form-items="searchFormItems" label-width="120px" :actions-span="6"
         :gutter="20"
       >
         <template #actions>
@@ -41,39 +33,24 @@
         </NButton>
       </NSpace>
       <n-data-table
-        :columns="columns"
-        :data="tableData"
-        :loading="loading"
-        :scroll-x="1400"
-        :row-key="item => item.appraisal_id"
-        @update:checked-row-keys="handleCheckChange"
+        :columns="columns" :data="tableData" :loading="loading" :scroll-x="1400"
+        :row-key="item => item.appraisal_id" @update:checked-row-keys="handleCheckChange"
       />
       <n-flex class="mt-10" justify="end">
         <n-pagination
-          :item-count="total"
-          :page="page"
-          :page-size="pageSize"
-          :page-sizes="[10, 20, 50, 100]"
-          :page-slot="6"
-          show-size-picker
-          :prefix="({ itemCount }) => `共 ${itemCount} 条`"
-          @update:page="handlePageChange"
-          @update:page-size="handlePageSizeChange"
+          :item-count="total" :page="page" :page-size="pageSize" :page-sizes="[10, 20, 50, 100]"
+          :page-slot="6" show-size-picker :prefix="({ itemCount }) => `共 ${itemCount} 条`"
+          @update:page="handlePageChange" @update:page-size="handlePageSizeChange"
         />
       </n-flex>
     </n-card>
 
     <!-- 视频播放弹窗 -->
-    <VideoModal
-      v-model:show="videoModalVisible"
-      :src="currentVideoSrc"
-      :title="currentVideoTitle"
-    />
+    <VideoModal v-model:show="videoModalVisible" :src="currentVideoSrc" :title="currentVideoTitle" />
 
     <!-- 批量鉴定弹窗 -->
     <BatchAppraisalModal
-      v-model:show="batchAppraisalModalVisible"
-      :checked-row-keys="checkedRowKeysRef"
+      v-model:show="batchAppraisalModalVisible" :checked-row-keys="checkedRowKeysRef"
       @submit="handleBatchAppraisalSubmit"
     />
   </CommonPage>
@@ -96,16 +73,16 @@ import BatchAppraisalModal from './components/BatchAppraisalModal.vue';
 import ImagePreview from './components/ImagePreview.vue';
 
 const tabs = [
-  { label: '全部', value: 'all' },
-  { label: '待鉴定', value: AppraisalStatus.PendingAppraisal },
-  { label: '鉴定中', value: AppraisalStatus.InProgress },
-  { label: '已完结', value: AppraisalStatus.Completed },
-  { label: '待完善', value: AppraisalStatus.PendingCompletion },
-  { label: '已退回', value: AppraisalStatus.Rejected },
-  { label: '已取消', value: AppraisalStatus.Cancelled },
+  { label: '全部', value: null },
+  { label: '待鉴定', value: { appraisalStatus: AppraisalStatus.PendingAppraisal } },
+  { label: '待用户完善', value: { appraisalStatus: AppraisalStatus.PendingCompletion } },
+  { label: '已完成，鉴定为真', value: { appraisalStatus: AppraisalStatus.Completed, appraisalResult: AppraisalStatus.PendingAppraisal } },
+  { label: '已完成，鉴定为伪', value: { appraisalStatus: AppraisalStatus.Completed, appraisalResult: AppraisalStatus.InProgress } },
+  { label: '已驳回', value: { appraisalStatus: AppraisalStatus.Rejected } },
+  { label: '已取消', value: { appraisalResult: AppraisalStatus.Cancelled } },
 ];
 
-const activeTab = ref('all');
+const activeTab = ref(null);
 const tableData = ref([]);
 const loading = ref(false);
 
@@ -126,7 +103,7 @@ const defaultSearchForm = {
   firstClass: null,
   createTimeRange: null,
   updateTimeRange: null,
-  lastAppraiser: '',
+  lastAppraiserId: null,
 };
 const searchForm = reactive({ ...defaultSearchForm });
 
@@ -141,7 +118,7 @@ const {
   (page, pageSize) => fetchAppraisalList({
     page,
     pageSize,
-    appraisalStatus: activeTab.value === 'all' ? null : activeTab.value,
+    ...(activeTab.value || {}),
     createStartTime: searchForm.createTimeRange?.[0] ? formatDateTime(searchForm.createTimeRange?.[0]) : null,
     createEndTime: searchForm.createTimeRange?.[1] ? formatDateTime(searchForm.createTimeRange?.[1]) : null,
     updateStartTime: searchForm.updateTimeRange?.[0] ? formatDateTime(searchForm.updateTimeRange?.[0]) : null,
@@ -169,6 +146,14 @@ const searchFormItems = [
     placeholder: '请输入鉴定ID',
     span: 6,
   },
+  {
+    prop: 'firstClass',
+    label: '类目',
+    type: 'selectDictionary',
+    name: 'AppraisalClass',
+    placeholder: '请选择类目',
+    span: 6,
+  },
   ...(userStore.isAdmin
     ? [{
         prop: 'userPhone',
@@ -186,14 +171,6 @@ const searchFormItems = [
     span: 6,
   },
   {
-    prop: 'firstClass',
-    label: '类目',
-    type: 'selectDictionary',
-    name: 'AppraisalClass',
-    placeholder: '请选择类目',
-    span: 6,
-  },
-  {
     prop: 'createTimeRange',
     label: '创建时间',
     type: 'datetimerange',
@@ -207,13 +184,14 @@ const searchFormItems = [
     placeholder: '请选择修改时间范围',
     span: 6,
   },
-  // {
-  //   prop: 'appraiserId',
-  //   label: '最后提交鉴定师',
-  //   type: 'input',
-  //   placeholder: '请输入鉴定师姓名',
-  //   span: 6,
-  // },
+  {
+    prop: 'lastAppraiserId',
+    label: '最后提交鉴定师',
+    type: 'selectRemote',
+    name: 'user',
+    placeholder: '请选择鉴定师',
+    span: 6,
+  },
 ];
 
 const columns = [
@@ -322,7 +300,7 @@ const columns = [
     title: '最后提交鉴定师',
     key: 'lastAppraiser',
     width: 140,
-    render: ({ appraisal_result }) => appraisal_result?.appraiser_name || '-',
+    render: ({ appraisal_result }) => appraisal_result?.appraiser_nickname || '-',
   },
   {
     title: '状态',

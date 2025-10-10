@@ -72,8 +72,8 @@ const route = useRoute();
 const title = VITE_APP_TITLE;
 
 const loginInfo = ref({
-  username: 'charlie',
-  password: 'charlie123',
+  username: '',
+  password: '',
 });
 
 // 验证码功能已注释

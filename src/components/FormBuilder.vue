@@ -21,6 +21,7 @@
 import { NCascader, NCheckbox, NDatePicker, NInput, NInputNumber, NRadioGroup, NSelect, NSwitch, NTimePicker } from 'naive-ui';
 import { computed, defineModel, useTemplateRef } from 'vue';
 import SelectDictionary from './SelectDictionary.vue';
+import SelectRemote from './SelectRemote.vue';
 import UploadImage from './UploadImage.vue';
 
 const props = defineProps({
@@ -84,6 +85,7 @@ const componentMap = {
   radio: NRadioGroup,
   upload: UploadImage,
   selectDictionary: SelectDictionary,
+  selectRemote: SelectRemote,
 };
 
 function getComponent(item) {
@@ -156,6 +158,12 @@ function getProps(item) {
         name: item.name,
         placeholder: `请选择${item.label}`,
         valueType: item.valueType || 'string',
+      };
+    case 'selectRemote':
+      return {
+        ...baseProps,
+        name: item.name,
+        placeholder: `请选择${item.label}`,
       };
     default:
       return baseProps;

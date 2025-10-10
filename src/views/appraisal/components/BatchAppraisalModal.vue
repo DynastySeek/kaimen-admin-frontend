@@ -133,7 +133,7 @@
 
 <script setup>
 import { computed, reactive, ref } from 'vue';
-import { AppraisalResult, AppraisalStatus } from '@/constants';
+import { AppraisalResult, AppraisalResultLabelMap, AppraisalStatus } from '@/constants';
 import { fetchAppraisalResultAdd, fetchAppraisalUpdate } from '@/services';
 
 const props = defineProps({
@@ -178,22 +178,22 @@ const visible = computed({
 // 结果选项配置
 const resultOptions = [
   {
-    label: '真',
+    label: AppraisalResultLabelMap[AppraisalResult.Authentic],
     value: AppraisalResult.Authentic,
     color: '#21D476',
   },
   {
-    label: '伪',
+    label: AppraisalResultLabelMap[AppraisalResult.Fake],
     value: AppraisalResult.Fake,
     color: '#FD4648',
   },
   {
-    label: '存疑',
+    label: AppraisalResultLabelMap[AppraisalResult.Doubt],
     value: AppraisalResult.Doubt,
     color: '#FD9E28',
   },
   {
-    label: '驳回',
+    label: AppraisalResultLabelMap[AppraisalResult.Rejected],
     value: AppraisalResult.Rejected,
     color: '#555555',
   },

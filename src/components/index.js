@@ -5,6 +5,7 @@ export { default as FormBuilder } from './FormBuilder.vue';
 export { default as PageMissing } from './PageMissing.vue';
 export { default as ProTable } from './ProTable.vue';
 export { default as SelectDictionary } from './SelectDictionary.vue';
+export { default as SelectRemote } from './SelectRemote.vue';
 export { default as TheFooter } from './TheFooter.vue';
 export { default as TheLogo } from './TheLogo.vue';
 export { default as ThemeSetting } from './ThemeSetting.vue';
