@@ -44,19 +44,23 @@
         :columns="columns"
         :data="tableData"
         :loading="loading"
-        :pagination="{
-          total,
-          page,
-          pageSize,
-          showSizeChanger: true,
-          pageSizes: [10, 20, 50, 100],
-        }"
         :scroll-x="1400"
         :row-key="item => item.appraisal_id"
         @update:checked-row-keys="handleCheckChange"
-        @update:page="handlePageChange"
-        @update:page-size="handlePageSizeChange"
       />
+      <n-flex class="mt-10" justify="end">
+        <n-pagination
+          :item-count="total"
+          :page="page"
+          :page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          :page-slot="6"
+          show-size-picker
+          :prefix="({ itemCount }) => `共 ${itemCount} 条`"
+          @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
+        />
+      </n-flex>
     </n-card>
 
     <!-- 视频播放弹窗 -->
@@ -84,6 +88,7 @@ import { getTempFileUrls } from '@/cloud';
 import { CommonPage, FormBuilder, SelectDictionary, VideoModal } from '@/components';
 import { AppraisalStatus, AppraisalStatusLabelMap } from '@/constants';
 import { fetchAppraisalDetail, fetchAppraisalList, fetchAppraisalUpdate } from '@/services';
+import { useUserStore } from '@/stores';
 
 import { formatDateTime } from '@/utils';
 import AppraisalAction from './components/AppraisalAction.vue';
@@ -103,6 +108,8 @@ const tabs = [
 const activeTab = ref('all');
 const tableData = ref([]);
 const loading = ref(false);
+
+const userStore = useUserStore();
 
 const batchAppraisalModalVisible = ref(false);
 
@@ -135,6 +142,10 @@ const {
     page,
     pageSize,
     appraisalStatus: activeTab.value === 'all' ? null : activeTab.value,
+    createStartTime: searchForm.createTimeRange?.[0] ? formatDateTime(searchForm.createTimeRange?.[0]) : null,
+    createEndTime: searchForm.createTimeRange?.[1] ? formatDateTime(searchForm.createTimeRange?.[1]) : null,
+    updateStartTime: searchForm.updateTimeRange?.[0] ? formatDateTime(searchForm.updateTimeRange?.[0]) : null,
+    updateEndTime: searchForm.updateTimeRange?.[1] ? formatDateTime(searchForm.updateTimeRange?.[1]) : null,
     ...searchForm,
   }),
   {
@@ -158,13 +169,15 @@ const searchFormItems = [
     placeholder: '请输入鉴定ID',
     span: 6,
   },
-  {
-    prop: 'userPhone',
-    label: '用户手机号',
-    type: 'input',
-    placeholder: '请输入用户手机号',
-    span: 6,
-  },
+  ...(userStore.isAdmin
+    ? [{
+        prop: 'userPhone',
+        label: '用户手机号',
+        type: 'input',
+        placeholder: '请输入用户手机号',
+        span: 6,
+      }]
+    : []),
   {
     prop: 'title',
     label: '标题',
@@ -286,11 +299,13 @@ const columns = [
       ]);
     },
   },
-  {
-    title: '用户手机号',
-    key: 'user_phone',
-    width: 120,
-  },
+  ...(userStore.isAdmin
+    ? [{
+        title: '用户手机号',
+        key: 'user_phone',
+        width: 120,
+      }]
+    : []),
   {
     title: '创建时间',
     key: 'create_time',

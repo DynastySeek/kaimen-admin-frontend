@@ -1,10 +1,15 @@
 import { defineStore } from 'pinia';
+import { Role } from '@/constants';
 import { fetchCurrentUserInfo } from '@/services';
 
 export const useUserStore = defineStore('user', {
   state: () => ({
     userInfo: null,
   }),
+  getters: {
+    isAdmin: state => state.userInfo?.role === Role.SuperAdmin,
+    isAppraiser: state => state.userInfo?.role === Role.Appraiser,
+  },
   actions: {
     setUser(user) {
       this.userInfo = user;
