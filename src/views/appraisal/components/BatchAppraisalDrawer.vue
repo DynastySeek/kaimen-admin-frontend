@@ -1,134 +1,121 @@
 <template>
-  <n-modal
+  <n-drawer
     v-model:show="visible"
-    preset="dialog"
-    title="批量鉴定"
-    :show-icon="false"
+    :width="360"
+    :block-scroll="true"
+    :show-mask="false"
     :mask-closable="false"
-    style="width: 500px"
   >
-    <n-space vertical class="text-[12px]">
-      <!-- 第一步：确定结果 -->
-      <div class="text-[#1560FA] font-bold">
-        第一步：确定结果
-      </div>
-      <n-space>
-        <n-button
-          v-for="option in resultOptions"
-          :key="option.value"
-          class="text-[12px]"
-          size="small"
-          round
-          :ghost="formData.result !== option.value"
-          :color="option.color"
-          @click="formData.result = option.value"
-        >
-          {{ option.label }}
-        </n-button>
+    <n-drawer-content title="批量鉴定" closable>
+      <n-space vertical class="text-[12px]">
+        <!-- 第一步：确定结果 -->
+        <div class="text-[#1560FA] font-bold">
+          第一步：确定结果
+        </div>
+        <n-space>
+          <n-button
+            v-for="option in resultOptions"
+            :key="option.value"
+            class="text-[12px]"
+            size="small"
+            round
+            :ghost="formData.result !== option.value"
+            :color="option.color"
+            @click="formData.result = option.value"
+          >
+            {{ option.label }}
+          </n-button>
+        </n-space>
+
+        <!-- 第二步：原因（选填） - 存疑状态 -->
+        <template v-if="[AppraisalResult.Doubt].includes(formData.result)">
+          <div class="text-[#1560FA] font-bold">
+            第二步：原因（选填）
+          </div>
+          <!-- 原因选项 -->
+          <n-checkbox-group v-model:value="formData.reasons" class="mb-2">
+            <n-grid :y-gap="8" :cols="1">
+              <n-gi v-for="option in doubtReasonOptions" :key="option.value">
+                <n-checkbox :value="option.value" :label="option.label" size="small" />
+              </n-gi>
+            </n-grid>
+          </n-checkbox-group>
+          <n-input
+            v-model:value="formData.comment"
+            type="textarea"
+            placeholder="其他问题可详细描述"
+            :autosize="{
+              minRows: 2,
+              maxRows: 3,
+            }"
+            size="small"
+          />
+        </template>
+
+        <template v-else-if="[AppraisalResult.Rejected].includes(formData.result)">
+          <div class="text-[#1560FA] font-bold">
+            第二步：原因（选填）
+          </div>
+          <!-- 原因选项 -->
+          <n-checkbox-group v-model:value="formData.reasons" class="mb-2">
+            <n-grid :y-gap="8" :cols="1">
+              <n-gi v-for="option in rejectReasonOptions" :key="option.value">
+                <n-checkbox :value="option.value" :label="option.label" size="small" />
+              </n-gi>
+            </n-grid>
+          </n-checkbox-group>
+          <n-input
+            v-model:value="formData.comment"
+            type="textarea"
+            placeholder="其他问题可详细描述"
+            :autosize="{
+              minRows: 2,
+              maxRows: 3,
+            }"
+            size="small"
+          />
+        </template>
+
+        <!-- 第二步：评语 -->
+        <template v-else>
+          <div class="text-[#1560FA] font-bold">
+            第二步：评语（选填）
+          </div>
+          <n-input
+            v-model:value="formData.comment"
+            type="textarea"
+            placeholder="请输入评语"
+            :autosize="{
+              minRows: 2,
+              maxRows: 3,
+            }"
+            size="small"
+          />
+        </template>
+
+        <!-- 选中的数据信息 -->
+        <div class="text-[12px] text-[#666]">
+          已选中 {{ checkedRowKeys.length }} 条数据
+        </div>
       </n-space>
 
-      <!-- 第二步：原因（选填） - 存疑状态 -->
-      <template v-if="[AppraisalResult.Doubt].includes(formData.result)">
-        <div class="text-[#1560FA] font-bold">
-          第二步：原因（选填）
-        </div>
-        <!-- 原因选项 -->
-        <n-checkbox-group v-model:value="formData.reasons" class="mb-2">
-          <n-grid :y-gap="8" :cols="2">
-            <n-gi
-              v-for="option in doubtReasonOptions"
-              :key="option.value"
-            >
-              <n-checkbox
-                :value="option.value"
-                :label="option.label"
-                size="small"
-              />
-            </n-gi>
-          </n-grid>
-        </n-checkbox-group>
-        <n-input
-          v-model:value="formData.comment"
-          type="textarea"
-          placeholder="其他问题可详细描述"
-          :autosize="{
-            minRows: 2,
-            maxRows: 3,
-          }"
-          size="small"
-        />
+      <template #footer>
+        <n-space>
+          <n-button @click="handleCancel">
+            取消
+          </n-button>
+          <n-button
+            type="primary"
+            :disabled="!formData.result"
+            :loading="isSubmitting"
+            @click="handleSubmit"
+          >
+            确认提交
+          </n-button>
+        </n-space>
       </template>
-
-      <template v-else-if="[AppraisalResult.Rejected].includes(formData.result)">
-        <div class="text-[#1560FA] font-bold">
-          第二步：原因（选填）
-        </div>
-        <!-- 原因选项 -->
-        <n-checkbox-group v-model:value="formData.reasons" class="mb-2">
-          <n-grid :y-gap="8" :cols="1">
-            <n-gi
-              v-for="option in rejectReasonOptions"
-              :key="option.value"
-            >
-              <n-checkbox
-                :value="option.value"
-                :label="option.label"
-                size="small"
-              />
-            </n-gi>
-          </n-grid>
-        </n-checkbox-group>
-        <n-input
-          v-model:value="formData.comment"
-          type="textarea"
-          placeholder="其他问题可详细描述"
-          :autosize="{
-            minRows: 2,
-            maxRows: 3,
-          }"
-          size="small"
-        />
-      </template>
-
-      <!-- 第二步：评语 -->
-      <template v-else>
-        <div class="text-[#1560FA] font-bold">
-          第二步：评语（选填）
-        </div>
-        <n-input
-          v-model:value="formData.comment"
-          type="textarea"
-          placeholder="请输入评语"
-          :autosize="{
-            minRows: 2,
-            maxRows: 3,
-          }"
-          size="small"
-        />
-      </template>
-
-      <!-- 选中的数据信息 -->
-      <div class="text-[12px] text-[#666]">
-        已选中 {{ checkedRowKeys.length }} 条数据
-      </div>
-    </n-space>
-
-    <template #action>
-      <n-space>
-        <n-button @click="handleCancel">
-          取消
-        </n-button>
-        <n-button
-          type="primary"
-          :disabled="!formData.result"
-          :loading="isSubmitting"
-          @click="handleSubmit"
-        >
-          确认提交
-        </n-button>
-      </n-space>
-    </template>
-  </n-modal>
+    </n-drawer-content>
+  </n-drawer>
 </template>
 
 <script setup>
@@ -276,7 +263,7 @@ async function handleSubmit() {
     };
 
     emit('submit', submitData);
-    $message.success('批量鉴定提交成功');
+    $message.success(`已对 ${resultItems.length} 条数据进行批量鉴定`);
 
     // 重置表单并关闭弹窗
     resetForm();

@@ -183,7 +183,7 @@ watch(() => props.data, initFormData, { immediate: true, deep: true });
  */
 function initFormData() {
   const { result, notes } = props.data?.appraisal_result || {};
-  if (result && !formData.result) {
+  if (result) {
     formData.result = result;
 
     // 处理 notes 字段，可能包含评语和原因

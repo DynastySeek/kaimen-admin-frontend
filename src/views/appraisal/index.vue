@@ -2,14 +2,22 @@
   <CommonPage>
     <template #action>
       <n-radio-group v-model:value="activeTab" name="appraisal-status" @update:value="handleTabChange">
-        <n-radio-button v-for="tab in tabs" :key="tab.value" :value="tab.value" :label="tab.label" />
+        <n-radio-button
+          v-for="tab in tabs"
+          :key="tab.value"
+          :value="tab.value"
+          :label="tab.label"
+        />
       </n-radio-group>
     </template>
 
     <!-- 搜索表单 -->
     <n-card v-if="searchFormItems && searchFormItems.length > 0" class="mt-10">
       <FormBuilder
-        v-model="searchForm" :form-items="searchFormItems" label-width="120px" :actions-span="6"
+        v-model="searchForm"
+        :form-items="searchFormItems"
+        label-width="120px"
+        :actions-span="6"
         :gutter="20"
       >
         <template #actions>
@@ -32,15 +40,27 @@
           批量鉴定
         </NButton>
       </NSpace>
-      <n-data-table
-        :columns="columns" :data="tableData" :loading="loading" :scroll-x="1400"
-        :row-key="item => item.appraisal_id" @update:checked-row-keys="handleCheckChange"
-      />
+      <div id="appraisal-table-container">
+        <n-data-table
+          :columns="columns"
+          :data="tableData"
+          :loading="loading"
+          :scroll-x="1400"
+          :row-key="item => item.appraisal_id"
+          @update:checked-row-keys="handleCheckChange"
+        />
+      </div>
       <n-flex class="mt-10" justify="end">
         <n-pagination
-          :item-count="total" :page="page" :page-size="pageSize" :page-sizes="[10, 20, 50, 100]"
-          :page-slot="6" show-size-picker :prefix="({ itemCount }) => `共 ${itemCount} 条`"
-          @update:page="handlePageChange" @update:page-size="handlePageSizeChange"
+          :item-count="total"
+          :page="page"
+          :page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          :page-slot="6"
+          show-size-picker
+          :prefix="({ itemCount }) => `共 ${itemCount} 条`"
+          @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
         />
       </n-flex>
     </n-card>
@@ -49,8 +69,9 @@
     <VideoModal v-model:show="videoModalVisible" :src="currentVideoSrc" :title="currentVideoTitle" />
 
     <!-- 批量鉴定弹窗 -->
-    <BatchAppraisalModal
-      v-model:show="batchAppraisalModalVisible" :checked-row-keys="checkedRowKeysRef"
+    <BatchAppraisalDrawer
+      v-model:show="batchAppraisalModalVisible"
+      :checked-row-keys="checkedRowKeysRef"
       @submit="handleBatchAppraisalSubmit"
     />
   </CommonPage>
@@ -66,10 +87,9 @@ import { CommonPage, FormBuilder, SelectDictionary, VideoModal } from '@/compone
 import { AppraisalStatus, AppraisalStatusLabelMap } from '@/constants';
 import { fetchAppraisalDetail, fetchAppraisalList, fetchAppraisalUpdate } from '@/services';
 import { useUserStore } from '@/stores';
-
 import { formatDateTime } from '@/utils';
 import AppraisalAction from './components/AppraisalAction.vue';
-import BatchAppraisalModal from './components/BatchAppraisalModal.vue';
+import BatchAppraisalDrawer from './components/BatchAppraisalDrawer.vue';
 import ImagePreview from './components/ImagePreview.vue';
 
 const tabs = [
@@ -342,7 +362,6 @@ handleAppraisalListSuccess(async ({ data }) => {
     const { list } = cloneDeep(data.data);
     const ids = list.map(item => item.appraisal_id);
     const { data: resultList } = await fetchAppraisalDetail({ ids });
-    console.log('🍈 -> resultList:', resultList);
     list.forEach((item) => {
       const result = resultList.find(d => d.appraisal_id === item.appraisal_id);
       if (result) {
@@ -399,21 +418,14 @@ function handlePageSizeChange(newPageSize) {
 }
 
 function handleAppraisalSubmit(_data) {
-  $message.success('鉴定操作提交成功');
   refresh();
 }
 
 function handleBatchAppraisal() {
-  if (checkedRowKeysRef.value.length === 0) {
-    $message.warning('请先选择要鉴定的数据');
-    return;
-  }
   batchAppraisalModalVisible.value = true;
 }
 
-async function handleBatchAppraisalSubmit(data) {
-  console.log('批量鉴定提交数据:', data);
-  $message.success(`已对 ${data.ids.length} 条数据进行批量鉴定`);
+async function handleBatchAppraisalSubmit() {
   refresh();
   checkedRowKeysRef.value = [];
 }
