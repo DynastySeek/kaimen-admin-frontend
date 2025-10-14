@@ -235,7 +235,7 @@ const columns = computed(() => [
         images: row.images,
         width: 110,
         height: 68,
-        maxDisplay: 3,
+        maxDisplay: 4,
       });
     },
   },
@@ -323,7 +323,7 @@ const columns = computed(() => [
     title: '最后提交鉴定师',
     key: 'lastAppraiser',
     width: 140,
-    render: ({ appraisal_result }) => appraisal_result?.appraiser_nickname || '-',
+    render: ({ consequence }) => consequence?.appraiser_nickname || '-',
   },
   {
     title: '状态',
@@ -370,7 +370,7 @@ handleAppraisalListSuccess(async ({ data }) => {
     list.forEach((item) => {
       const result = resultList.find(d => d.appraisal_id === item.appraisal_id);
       if (result) {
-        item.appraisal_result = result;
+        item.consequence = result;
       }
     });
     const allCloudImages = list.reduce((acc, d) => acc.concat(d.images || []), []).filter(v => v.startsWith('cloud://'));

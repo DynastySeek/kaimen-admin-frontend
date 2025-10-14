@@ -1,5 +1,5 @@
 <template>
-  <n-space v-if="!isEditing && data?.appraisal_result" vertical class="pl-10 text-[12px]">
+  <n-space v-if="!isEditing && data?.consequence" vertical class="text-[12px]">
     <div class="flex items-center gap-6 text-[#1560FA] font-bold">
       <span>鉴定结果</span>
       <n-button text style="font-size: 16px" @click="handleEdit">
@@ -9,13 +9,13 @@
       </n-button>
     </div>
     <div>
-      {{ AppraisalResultLabelMap[data.appraisal_result.result] }}
+      {{ AppraisalResultLabelMap[data.consequence.result] }}
     </div>
     <div class="text-[#1560FA] font-bold">
       原因
     </div>
     <div>
-      {{ data.appraisal_result.notes || '-' }}
+      {{ data.consequence.notes || '-' }}
     </div>
   </n-space>
   <n-space v-else vertical class="text-[12px]">
@@ -180,7 +180,7 @@ const resultOptions = [
 ];
 
 watch(
-  () => props.data?.appraisal_result,
+  () => props.data?.consequence,
   (val) => {
     isEditing.value = !val;
   },
@@ -194,7 +194,7 @@ function handleEdit() {
 }
 
 function initFormData() {
-  const { result, notes } = props.data?.appraisal_result || {};
+  const { result, notes } = props.data?.consequence || {};
   if (result) {
     formData.result = result;
     if (notes) {
