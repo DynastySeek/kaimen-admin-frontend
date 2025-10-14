@@ -14,8 +14,10 @@
             class="relative inline-block"
           >
             <n-image
-              :width="imageSize"
-              :height="imageSize"
+              :style="{ maxWidth: `${width}px`,
+                        maxHeight: `${height}px` }"
+              :width="width"
+              :height="height"
               :src="image"
               :fallback-src="fallbackSrc"
               object-fit="cover"
@@ -55,8 +57,13 @@ const props = defineProps({
     type: Number,
     default: 3,
   },
-  /** 图片尺寸 */
-  imageSize: {
+  /** 图片宽度 */
+  width: {
+    type: [String, Number],
+    default: 60,
+  },
+  /** 图片高度 */
+  height: {
     type: [String, Number],
     default: 60,
   },

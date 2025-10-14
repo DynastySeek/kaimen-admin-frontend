@@ -1,22 +1,46 @@
 <template>
-  <n-space vertical class="text-[12px]">
+  <n-space v-if="!isEditing && data?.appraisal_result" vertical class="pl-10 text-[12px]">
+    <div class="flex items-center gap-6 text-[#1560FA] font-bold">
+      <span>鉴定结果</span>
+      <n-button text style="font-size: 16px" @click="handleEdit">
+        <n-icon color="#1560FA">
+          <Edit />
+        </n-icon>
+      </n-button>
+    </div>
+    <div>
+      {{ AppraisalResultLabelMap[data.appraisal_result.result] }}
+    </div>
+    <div class="text-[#1560FA] font-bold">
+      原因
+    </div>
+    <div>
+      {{ data.appraisal_result.notes || '-' }}
+    </div>
+  </n-space>
+  <n-space v-else vertical class="text-[12px]">
     <!-- 第一步：确定结果 -->
     <div class="text-[#1560FA] font-bold">
       第一步：确定结果
     </div>
     <n-space>
-      <n-button
-        v-for="option in resultOptions"
-        :key="option.value"
-        class="text-[12px]"
-        size="small"
-        round
-        :ghost="formData.result !== option.value"
-        :color="option.color"
-        @click="formData.result = option.value"
-      >
-        {{ option.label }}
-      </n-button>
+      <n-grid :y-gap="8" :x-gap="8" :cols="2">
+        <n-gi
+          v-for="option in resultOptions"
+          :key="option.value"
+        >
+          <n-button
+            class="text-[12px]"
+            size="small"
+            round
+            :ghost="formData.result !== option.value"
+            :color="option.color"
+            @click="formData.result = option.value"
+          >
+            {{ option.label }}
+          </n-button>
+        </n-gi>
+      </n-grid>
     </n-space>
 
     <!-- 第二步：原因（选填） - 存疑状态 -->
@@ -117,20 +141,25 @@
 </template>
 
 <script setup>
-import { reactive, watch } from 'vue';
+import { Edit } from '@vicons/carbon';
+import { reactive, ref, watch } from 'vue';
 import { AppraisalResult, AppraisalResultLabelMap, AppraisalStatus } from '@/constants';
 import { fetchAppraisalResultAdd, fetchAppraisalUpdate } from '@/services';
 
 const props = defineProps({
-  data: {
-    type: Object,
-    default: () => ({}),
-  },
+  data: { type: Object, default: () => null },
 });
-
 const emit = defineEmits(['submit']);
 
-// 原因选项配置
+const isEditing = ref(false);
+const isSubmitting = ref(false);
+
+const formData = reactive({
+  result: null,
+  comment: '',
+  reasons: [],
+});
+
 const doubtReasonOptions = [
   { label: '需补充正面图片', value: '需补充正面图片' },
   { label: '需补充侧面图片', value: '需补充侧面图片' },
@@ -139,88 +168,61 @@ const doubtReasonOptions = [
   { label: '图片不清晰', value: '图片不清晰' },
 ];
 
-// 驳回原因选项配置
 const rejectReasonOptions = [
   { label: '请勿上传与鉴定无关的图片或视频', value: '请勿上传与鉴定无关的图片或视频' },
 ];
 
-// 结果选项配置
 const resultOptions = [
-  {
-    label: AppraisalResultLabelMap[AppraisalResult.Authentic],
-    value: AppraisalResult.Authentic,
-    color: '#21D476',
-  },
-  {
-    label: AppraisalResultLabelMap[AppraisalResult.Fake],
-    value: AppraisalResult.Fake,
-    color: '#FD4648',
-  },
-  {
-    label: AppraisalResultLabelMap[AppraisalResult.Doubt],
-    value: AppraisalResult.Doubt,
-    color: '#FD9E28',
-  },
-  {
-    label: AppraisalResultLabelMap[AppraisalResult.Rejected],
-    value: AppraisalResult.Rejected,
-    color: '#555555',
-  },
+  { label: AppraisalResultLabelMap[AppraisalResult.Authentic], value: AppraisalResult.Authentic, color: '#21D476' },
+  { label: AppraisalResultLabelMap[AppraisalResult.Fake], value: AppraisalResult.Fake, color: '#FD4648' },
+  { label: AppraisalResultLabelMap[AppraisalResult.Doubt], value: AppraisalResult.Doubt, color: '#FD9E28' },
+  { label: AppraisalResultLabelMap[AppraisalResult.Rejected], value: AppraisalResult.Rejected, color: '#555555' },
 ];
 
-// 表单数据
-const formData = reactive({
-  result: null,
-  comment: '',
-  reasons: [],
-});
+watch(
+  () => props.data?.appraisal_result,
+  (val) => {
+    isEditing.value = !val;
+  },
+  { immediate: true },
+);
 
-// 监听 props.data 变化，初始化表单数据
 watch(() => props.data, initFormData, { immediate: true, deep: true });
 
-/**
- * 根据传入的 data 初始化表单数据
- */
+function handleEdit() {
+  isEditing.value = true;
+}
+
 function initFormData() {
   const { result, notes } = props.data?.appraisal_result || {};
   if (result) {
     formData.result = result;
-
-    // 处理 notes 字段，可能包含评语和原因
     if (notes) {
       const parts = notes.split(' | 原因: ');
       if (parts.length === 2) {
-        // 有原因部分
         formData.comment = parts[0].trim();
         const reasonsText = parts[1].trim();
         if (reasonsText) {
-          // 将原因字符串按逗号分割并去除空格
           formData.reasons = reasonsText.split(',').map(reason => reason.trim()).filter(reason => reason);
         }
       } else {
-        // 没有原因部分，全部作为评语
         formData.comment = notes;
       }
     }
   }
 }
-/**
- * 重置表单
- */
+
 function resetForm() {
   formData.result = null;
   formData.comment = '';
   formData.reasons = [];
 }
 
-/**
- * 处理表单提交
- */
 async function handleSubmit() {
   if (!formData.result) {
     return;
   }
-
+  isSubmitting.value = true;
   try {
     const params = {
       appraisalId: props.data.appraisal_id,
@@ -228,7 +230,6 @@ async function handleSubmit() {
       comment: formData.comment,
       reasons: formData.reasons,
     };
-
     let appraisal_status = null;
     if (formData.result === AppraisalResult.Authentic) {
       appraisal_status = AppraisalStatus.Completed;
@@ -242,14 +243,15 @@ async function handleSubmit() {
 
     await fetchAppraisalResultAdd({ items: [params] });
     await fetchAppraisalUpdate([{ id: props.data.appraisal_id, appraisal_status }]);
-
     emit('submit', params);
     $message.success('鉴定结果提交成功');
-    // 重置表单
     resetForm();
+    isEditing.value = false;
   } catch (error) {
     $message.error('提交鉴定结果失败');
     console.error('提交鉴定结果失败:', error);
+  } finally {
+    isSubmitting.value = false;
   }
 }
 </script>

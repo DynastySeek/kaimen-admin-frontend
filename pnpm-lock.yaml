@@ -14,6 +14,9 @@ importers:
       '@cloudbase/js-sdk':
         specifier: ^2.21.9
         version: 2.21.9
+      '@vicons/carbon':
+        specifier: ^0.13.0
+        version: 0.13.0
       '@vueuse/core':
         specifier: ^13.3.0
         version: 13.3.0(vue@3.5.17(typescript@5.5.4))
@@ -1452,6 +1455,9 @@ packages:
     resolution: {integrity: sha512-k59o9ZyeyS0hAlcaKFezYSH2agQeRFEB7KoQLXl3Nb3rgkqT1NY9Vwy+SqODiLmYnEjxWJVRE/yq2jFVqdIxZw==}
     cpu: [x64]
     os: [win32]
+
+  '@vicons/carbon@0.13.0':
+    resolution: {integrity: sha512-Z/jExyyS4gsXJc66oTqV/j98nsaiX2JlQ0IUwu9Ms3rztf8VOHEQRuX8Jey1/zbxJpFY/tU+bWvKPRFYGIvCWQ==}
 
   '@vitejs/plugin-vue-jsx@4.2.0':
     resolution: {integrity: sha512-DSTrmrdLp+0LDNF77fqrKfx7X0ErRbOcUAgJL/HbSesqQwoUvUQ4uYQqaex+rovqgGcoPqVk+AwUh3v9CuiYIw==}
@@ -5423,6 +5429,8 @@ snapshots:
 
   '@unrs/resolver-binding-win32-x64-msvc@1.9.0':
     optional: true
+
+  '@vicons/carbon@0.13.0': {}
 
   '@vitejs/plugin-vue-jsx@4.2.0(vite@6.3.5(jiti@2.4.2)(less@4.4.1)(sass@1.79.3)(tsx@4.19.2)(yaml@2.8.0))(vue@3.5.17(typescript@5.5.4))':
     dependencies:

@@ -12,20 +12,23 @@
         <div class="text-[#1560FA] font-bold">
           第一步：确定结果
         </div>
-        <n-space>
-          <n-button
+        <n-grid :y-gap="8" :x-gap="8" :cols="2">
+          <n-gi
             v-for="option in resultOptions"
             :key="option.value"
-            class="text-[12px]"
-            size="small"
-            round
-            :ghost="formData.result !== option.value"
-            :color="option.color"
-            @click="formData.result = option.value"
           >
-            {{ option.label }}
-          </n-button>
-        </n-space>
+            <n-button
+              class="text-[12px]"
+              size="small"
+              round
+              :ghost="formData.result !== option.value"
+              :color="option.color"
+              @click="formData.result = option.value"
+            >
+              {{ option.label }}
+            </n-button>
+          </n-gi>
+        </n-grid>
 
         <!-- 第二步：原因（选填） - 存疑状态 -->
         <template v-if="[AppraisalResult.Doubt].includes(formData.result)">

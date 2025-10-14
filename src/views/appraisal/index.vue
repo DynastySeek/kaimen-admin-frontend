@@ -47,6 +47,7 @@
           :loading="loading"
           :scroll-x="1400"
           :row-key="item => item.appraisal_id"
+          :checked-row-keys="checkedRowKeys"
           @update:checked-row-keys="handleCheckChange"
         />
       </div>
@@ -71,7 +72,7 @@
     <!-- 批量鉴定弹窗 -->
     <BatchAppraisalDrawer
       v-model:show="batchAppraisalModalVisible"
-      :checked-row-keys="checkedRowKeysRef"
+      :checked-row-keys="checkedRowKeys"
       @submit="handleBatchAppraisalSubmit"
     />
   </CommonPage>
@@ -99,7 +100,7 @@ const tabs = [
   { label: '已完成，鉴定为真', value: { appraisalStatus: AppraisalStatus.Completed, appraisalResult: AppraisalStatus.PendingAppraisal } },
   { label: '已完成，鉴定为伪', value: { appraisalStatus: AppraisalStatus.Completed, appraisalResult: AppraisalStatus.InProgress } },
   { label: '已驳回', value: { appraisalStatus: AppraisalStatus.Rejected } },
-  { label: '已取消', value: { appraisalResult: AppraisalStatus.Cancelled } },
+  { label: '已取消', value: { appraisalStatus: AppraisalStatus.Cancelled } },
 ];
 
 const activeTab = ref(null);
@@ -114,7 +115,7 @@ const videoModalVisible = ref(false);
 const currentVideoSrc = ref('');
 const currentVideoTitle = ref('');
 
-const checkedRowKeysRef = ref([]);
+const checkedRowKeys = ref([]);
 
 const defaultSearchForm = {
   appraisalId: '',
@@ -214,7 +215,7 @@ const searchFormItems = [
   },
 ];
 
-const columns = [
+const columns = computed(() => [
   {
     type: 'selection',
     fixed: 'left',
@@ -232,7 +233,8 @@ const columns = [
     render: (row) => {
       return h(ImagePreview, {
         images: row.images,
-        imageSize: 80,
+        width: 110,
+        height: 68,
         maxDisplay: 3,
       });
     },
@@ -249,7 +251,7 @@ const columns = [
           [
             h(
               NSpace,
-              { size: 4 },
+              { size: 4, wrap: false },
               row.videos.map((video, index) =>
                 h(
                   NButton,
@@ -257,6 +259,7 @@ const columns = [
                     strong: true,
                     secondary: true,
                     size: 'medium',
+                    style: 'width: 110px; height: 68px;',
                     onClick: () => handleVideoPlay(row, index),
                   },
                   {
@@ -342,19 +345,21 @@ const columns = [
       });
     },
   },
-  {
-    title: '操作/编辑',
-    key: 'actions',
-    width: 300,
-    fixed: 'right',
-    render: (row) => {
-      return h(AppraisalAction, {
-        data: row,
-        onSubmit: handleAppraisalSubmit,
-      });
-    },
-  },
-];
+  ...(activeTab.value?.appraisalStatus !== AppraisalStatus.Cancelled
+    ? [{
+        title: '操作/编辑',
+        key: 'actions',
+        width: 300,
+        fixed: 'right',
+        render: (row) => {
+          return h(AppraisalAction, {
+            data: row,
+            onSubmit: handleAppraisalSubmit,
+          });
+        },
+      }]
+    : []),
+]);
 
 handleAppraisalListSuccess(async ({ data }) => {
   loading.value = true;
@@ -395,7 +400,7 @@ handleAppraisalListSuccess(async ({ data }) => {
 });
 
 function handleCheckChange(rowKeys) {
-  checkedRowKeysRef.value = rowKeys;
+  checkedRowKeys.value = rowKeys;
 }
 
 function handleTabChange(value) {
@@ -427,7 +432,8 @@ function handleBatchAppraisal() {
 
 async function handleBatchAppraisalSubmit() {
   refresh();
-  checkedRowKeysRef.value = [];
+  checkedRowKeys.value = [];
+  console.log('🍈 -> handleBatchAppraisalSubmit -> checkedRowKeys.value:', checkedRowKeys.value);
 }
 
 function handleVideoPlay(row, videoIndex = 0) {
