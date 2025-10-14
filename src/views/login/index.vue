@@ -11,7 +11,10 @@
           {{ title }}
         </h2>
         <n-input
-          v-model:value="loginInfo.username" autofocus class="mt-32 h-40 items-center" placeholder="请输入用户名"
+          v-model:value="loginInfo.username"
+          autofocus
+          class="mt-32 h-40 items-center"
+          placeholder="请输入用户名"
           :maxlength="20"
         >
           <template #prefix>
@@ -19,8 +22,13 @@
           </template>
         </n-input>
         <n-input
-          v-model:value="loginInfo.password" class="mt-20 h-40 items-center" type="password"
-          show-password-on="mousedown" placeholder="请输入密码" :maxlength="20" @keydown.enter="handleLogin()"
+          v-model:value="loginInfo.password"
+          class="mt-20 h-40 items-center"
+          type="password"
+          show-password-on="click"
+          placeholder="请输入密码"
+          :maxlength="20"
+          @keydown.enter="handleLogin()"
         >
           <template #prefix>
             <i class="i-fe:lock mr-12 opacity-20" />
@@ -52,7 +60,12 @@
         -->
 
         <div class="mt-20 flex items-center">
-          <n-button class="h-40 flex-1 rounded-5 text-16" type="primary" :loading="loading" @click="handleLogin()">
+          <n-button
+            class="h-40 flex-1 rounded-5 text-16"
+            type="primary"
+            :loading="loading"
+            @click="handleLogin()"
+          >
             登录
           </n-button>
         </div>
