@@ -105,7 +105,7 @@ const tabs = [
 
 const activeTab = ref(null);
 const tableData = ref([]);
-const loading = ref(false);
+const resultLoading = ref(false);
 
 const userStore = useUserStore();
 
@@ -132,6 +132,7 @@ const {
   page,
   pageSize,
   total,
+  loading: listLoading,
   refresh,
   reload,
   onSuccess: handleAppraisalListSuccess,
@@ -214,6 +215,8 @@ const searchFormItems = [
     span: 6,
   },
 ];
+
+const loading = computed(() => listLoading.value || resultLoading.value);
 
 const columns = computed(() => [
   {
@@ -362,7 +365,7 @@ const columns = computed(() => [
 ]);
 
 handleAppraisalListSuccess(async ({ data }) => {
-  loading.value = true;
+  resultLoading.value = true;
   try {
     const { list } = cloneDeep(data.data);
     const ids = list.map(item => item.appraisal_id);
@@ -395,7 +398,7 @@ handleAppraisalListSuccess(async ({ data }) => {
     console.error('获取鉴定详情失败:', error);
     $message.error('获取鉴定列表数据失败');
   } finally {
-    loading.value = false;
+    resultLoading.value = false;
   }
 });
 
