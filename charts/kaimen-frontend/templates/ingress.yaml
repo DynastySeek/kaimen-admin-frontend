@@ -1,0 +1,39 @@
+{{- $env := .Values.environment }}
+{{- $host := "" }}
+{{- if eq $env "prod" }}
+{{- $host = .Values.domains.prod }}
+{{- else if eq $env "test" }}
+{{- $host = .Values.domains.test }}
+{{- else }}
+{{- fail (printf "Unsupported environment: %s. Use 'prod' or 'test'." $env) }}
+{{- end }}
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "kaimen-admin-frontend.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kaimen-admin-frontend.labels" . | nindent 4 }}
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header X-Frame-Options "SAMEORIGIN";
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  tls:
+    - hosts:
+        - {{ $host }}
+      secretName: {{ .Values.ingress.tlsSecretName }}
+
+  rules:
+    - host: {{ $host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "kaimen-admin-frontend.fullname" . }}
+                port:
+                  number: {{ .Values.service.port }}
