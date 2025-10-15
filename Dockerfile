@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.4
 FROM node:20-alpine AS builder
 WORKDIR /app
-
+ARG BUILD_MODE=prod
 RUN npm i -g pnpm
 
 COPY package.json pnpm-lock.yaml .npmrc ./
@@ -11,7 +11,7 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.pnpm-store \
     pnpm install --frozen-lockfile
 
 COPY . .
-RUN pnpm build:prod
+RUN pnpm build:${BUILD_MODE}
 
 FROM nginx:alpine AS runner
 WORKDIR /usr/share/nginx/html
