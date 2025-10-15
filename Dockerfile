@@ -7,8 +7,7 @@ WORKDIR /app
 
 # 仅复制依赖清单以利用缓存
 COPY package.json pnpm-lock.yaml .npmrc ./
-RUN npm i -g pnpm@8 \
-  && pnpm install --frozen-lockfile
+RUN npm i -g pnpm && pnpm install --no-frozen-lockfile
 
 # 复制源代码并构建（生产模式）
 COPY . .
