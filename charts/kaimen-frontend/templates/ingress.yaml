@@ -11,7 +11,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "kaimen-admin-frontend.fullname" . }}
+  name: {{ include "kaimen-admin-frontend.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "kaimen-admin-frontend.labels" . | nindent 4 }}
@@ -34,6 +34,13 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ include "kaimen-admin-frontend.fullname" . }}
+                name: {{ include "kaimen-admin-frontend.name" . }}
                 port:
                   number: {{ .Values.service.port }}
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.backend.service.name }}
+                port:
+                  number: {{ .Values.backend.service.port }}

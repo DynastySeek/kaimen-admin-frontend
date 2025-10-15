@@ -29,3 +29,7 @@ resources:
   requests:
     cpu: 100m
     memory: 128Mi
+backend:
+  service:
+    name: kaimen-admin-backend
+    port: 8000
