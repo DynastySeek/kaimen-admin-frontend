@@ -3,8 +3,6 @@ name: Build, Push and Deploy Frontend
 on:
   push:
     branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
 
 env:
   REGISTRY: kaimen.tencentcloudcr.com
@@ -13,9 +11,9 @@ env:
 jobs:
   build-and-push-dev:
     if: ${{ github.ref == 'refs/heads/develop' }}
-    runs-on: ubuntu-latest
+    runs-on: ["self-hosted", "HK"]
     permissions:
-      contents: read
+      contents: write
       packages: write
 
     steps:
