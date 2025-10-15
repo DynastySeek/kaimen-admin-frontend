@@ -1,35 +1,27 @@
 environment: test
-
 # 镜像
 image:
   repository: kaimen-hk.tencentcloudcr.com/management.platform.frontend/kaimen-admin-frontend
-  tag: latest
+  tag: ""
   pullPolicy: IfNotPresent
-
 replicaCount: 1
-
 service:
   type: ClusterIP
   port: 80
-
 # 域名映射
 domains:
   prod: admin.kaimen.site
   test: admin-test.kaimen.site
-
 ingress:
   enabled: true
   className: nginx
   tlsSecretName: "kaimen-admin-frontend-tls"
   tlsCrt: ""
   tlsKey: ""
-
-
 imagePullSecrets:
   username: "dummy"
   password: "dummy"
   registry: "kaimen-hk.tencentcloudcr.com"
-
 resources:
   limits:
     cpu: 200m
