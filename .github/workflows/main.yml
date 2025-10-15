@@ -7,7 +7,7 @@ on:
     branches: [main, develop]
 
 env:
-  REGISTRY: kaimen.tencentcloudcr.com
+  REGISTRY: kaimen-hk.tencentcloudcr.com
   IMAGE_NAME: management.platform.frontend/kaimen-admin-frontend
 
 jobs:
