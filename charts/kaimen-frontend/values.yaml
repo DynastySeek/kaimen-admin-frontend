@@ -2,7 +2,7 @@ environment: test
 # 镜像
 image:
   repository: kaimen-hk.tencentcloudcr.com/management.platform.frontend/kaimen-admin-frontend
-  tag: sha-b1cd98a
+  tag: sha-638c9ae
   pullPolicy: Always
 replicaCount: 1
 service:
