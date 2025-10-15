@@ -6,9 +6,8 @@ RUN npm i -g pnpm
 
 COPY package.json pnpm-lock.yaml .npmrc ./
 
-# 使用 BuildKit cache mount 缓存 pnpm store
-RUN --mount=type=cache,id=pnpm-store,target=/root/.pnpm-store \
-    pnpm install --frozen-lockfile
+# 安装依赖（不使用缓存）
+RUN pnpm install --no-frozen-lockfile
 
 COPY . .
 RUN pnpm build:${BUILD_MODE}
