@@ -2,7 +2,7 @@
 Expand the name of the chart.
 */}}
 {{- define "kaimen-admin-frontend.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- .Chart.Name }}
 {{- end }}
 
 {{/*

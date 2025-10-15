@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "kaimen-admin-frontend.fullname" . }}
+  name: {{ include "kaimen-admin-frontend.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "kaimen-admin-frontend.labels" . | nindent 4 }}
