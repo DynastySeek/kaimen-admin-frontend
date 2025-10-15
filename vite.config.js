@@ -8,6 +8,7 @@ import { NaiveUiResolver } from 'unplugin-vue-components/resolvers';
 import Components from 'unplugin-vue-components/vite';
 import { defineConfig, loadEnv } from 'vite';
 import viteCompression from 'vite-plugin-compression';
+import { createHtmlPlugin } from 'vite-plugin-html';
 import removeNoMatch from 'vite-plugin-router-warn';
 import VueDevTools from 'vite-plugin-vue-devtools';
 import { pluginIcons, pluginPagePathes } from './build/plugin-isme';
@@ -33,6 +34,7 @@ function toTransformConfig(config) {
 export default defineConfig(({ mode }) => {
   const viteEnv = loadEnv(mode, process.cwd());
   const { VITE_PUBLIC_PATH, VITE_PROXY_BASE_REQUEST_API, VITE_PORT, VITE_SOURCE_MAP, VITE_GZIP, VITE_REPORT } = toTransformConfig(viteEnv);
+  const packTime = new Date().getTime();
 
   return {
     base: VITE_PUBLIC_PATH || '/',
@@ -55,6 +57,15 @@ export default defineConfig(({ mode }) => {
       pluginIcons(),
       // 移除非必要的vue-router动态路由警告: No match found for location with path
       removeNoMatch(),
+      createHtmlPlugin({
+        inject: {
+          data: {
+            injectScript: `<script>
+              window.packTime = parseInt(${packTime});
+            </script>`,
+          },
+        },
+      }),
       VITE_GZIP && viteCompression(),
       VITE_REPORT && visualizer(),
     ],
