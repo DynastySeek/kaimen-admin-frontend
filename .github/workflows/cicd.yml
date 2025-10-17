@@ -2,16 +2,16 @@ name: Build, Push and Deploy Frontend
 
 on:
   push:
-    branches: [main, develop]
+    branches: [develop, main]
 
 env:
-  REGISTRY: kaimen.tencentcloudcr.com
+  REGISTRY: kaimen-hk.tencentcloudcr.com
   IMAGE_NAME: management.platform.frontend/kaimen-admin-frontend
 
 jobs:
-  build-and-push-dev:
+  build-and-push:
     if: ${{ github.ref == 'refs/heads/develop' }}
-    runs-on: ["self-hosted", "HK"]
+    runs-on: [self-hosted, HK]
     permissions:
       contents: write
       packages: write
@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: develop
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -31,50 +33,6 @@ jobs:
           password: ${{ secrets.TCR_PASSWORD }}
 
       - name: Extract metadata (tags, labels) for dev
-        id: meta_dev
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=sha
-            type=raw,value=dev-latest
-
-      - name: Build and push Docker image (dev)
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name == 'push' }}
-          build-args: |
-            BUILD_MODE=dev
-          tags: ${{ steps.meta_dev.outputs.tags }}
-          labels: ${{ steps.meta_dev.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  build-and-push-prod:
-    if: ${{ github.ref == 'refs/heads/main' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Tencent Cloud TCR
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.TCR_USERNAME }}
-          password: ${{ secrets.TCR_PASSWORD }}
-
-      - name: Extract metadata (tags, labels)
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -83,22 +41,40 @@ jobs:
             type=sha
             type=raw,value=latest
 
-      - name: Build and push Docker image (prod)
+      - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name == 'push' }}
+          push: true
+          no-cache: true
+          build-args: |
+            BUILD_MODE=dev
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+
+      - name: Set IMAGE_TAG environment variable
+        run: |
+          TAG=$(echo "${{ steps.meta.outputs.tags }}" | tail -n1)
+          echo "IMAGE_TAG=$TAG" >> $GITHUB_ENV
+
+      - name: Update Helm values.yaml with commit tag
+        run: |
+          echo "Updating charts/kaimen-frontend/values.yaml with image tag $IMAGE_TAG"
+          yq e ".image.tag = \"${IMAGE_TAG##*:}\"" -i charts/kaimen-frontend/values.yaml
+
+      - name: Commit updated values.yaml (skip CI)
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add charts/kaimen-frontend/values.yaml
+          git commit -m "Update kaimen-frontend image tag to ${IMAGE_TAG##*:} [skip ci]" || echo "No changes to commit"
+          git push origin develop
 
   deploy-to-develop:
     name: Deploy to Dev Environment
     if: ${{ github.ref == 'refs/heads/develop' }}
-    needs: build-and-push-dev
+    needs: build-and-push
     runs-on: [self-hosted, HK]
 
     steps:
@@ -131,16 +107,15 @@ jobs:
         run: |
           helm upgrade --install kaimen-admin-frontend-dev ./charts/kaimen-frontend \
             --namespace kaimen-admin-dev --create-namespace \
-            --set-string image.repository=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} \
-            --set-string image.tag=${IMAGE_TAG} \
             --set-string imagePullSecrets.username='${{ secrets.TCR_USERNAME }}' \
             --set-string imagePullSecrets.password='${{ secrets.TCR_PASSWORD }}' \
+            --set-string ingress.tlsCrt='${{ secrets.INGRESS_TLS_CRT }}' \
+            --set-string ingress.tlsKey='${{ secrets.INGRESS_TLS_KEY }}' \
             --set-string config.ENVIRONMENT=development
 
   deploy-to-prod:
     name: Deploy to Prod Environment
     if: ${{ github.ref == 'refs/heads/main' }}
-    needs: build-and-push-prod
     runs-on: [self-hosted, HK]
 
     steps:
@@ -151,6 +126,7 @@ jobs:
 
       - name: Determine image tag from current commit
         run: |
+          # 镜像 tag 就是当前 commit SHA（与 main 构建时一致）
           echo "IMAGE_TAG=${{ github.sha }}" >> $GITHUB_ENV
 
       - name: Set up Helm
@@ -169,12 +145,12 @@ jobs:
       - name: Verify kubectl connection
         run: kubectl cluster-info
 
-      - name: Deploy with Helm (frontend prod)
+      - name: Deploy with Helm
         run: |
           helm upgrade --install kaimen-admin-frontend ./charts/kaimen-frontend \
             --namespace kaimen-admin --create-namespace \
-            --set-string image.repository=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} \
-            --set-string image.tag=${IMAGE_TAG} \
             --set-string imagePullSecrets.username='${{ secrets.TCR_USERNAME }}' \
             --set-string imagePullSecrets.password='${{ secrets.TCR_PASSWORD }}' \
-            --set-string config.ENVIRONMENT=production
+            --set-string ingress.tlsCrt='${{ secrets.INGRESS_TLS_CRT }}' \
+            --set-string ingress.tlsKey='${{ secrets.INGRESS_TLS_KEY }}' \
+            --set-string environment=prod

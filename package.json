@@ -14,7 +14,6 @@
     "deploy:dev": "pnpm build:dev && cross-env NODE_ENV=dev node ./deploy/index.js",
     "deploy:prod": "pnpm build:prod && cross-env NODE_ENV=production node ./deploy/index.js",
     "lint:fix": "eslint --fix",
-    "postinstall": "npx simple-git-hooks",
     "up": "taze major -I"
   },
   "dependencies": {
@@ -55,24 +54,17 @@
     "fs-extra": "^11.3.0",
     "glob": "^11.0.3",
     "less": "^4.4.1",
-    "lint-staged": "^16.1.2",
     "mockjs": "^1.1.0",
     "rollup-plugin-visualizer": "^6.0.3",
-    "simple-git-hooks": "^2.13.0",
     "taze": "^19.1.0",
     "unocss": "^66.2.3",
     "unplugin-auto-import": "^19.3.0",
     "unplugin-vue-components": "^28.7.0",
     "vite": "^6.3.5",
     "vite-plugin-compression": "^0.5.1",
+    "vite-plugin-html": "^3.2.2",
     "vite-plugin-router-warn": "^1.0.0",
     "vite-plugin-vue-devtools": "^7.7.7",
     "vue3-intro-step": "^1.0.5"
-  },
-  "simple-git-hooks": {
-    "pre-commit": "pnpm lint-staged"
-  },
-  "lint-staged": {
-    "*": "eslint --fix"
   }
 }

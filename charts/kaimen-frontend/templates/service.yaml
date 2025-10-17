@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kaimen-admin-frontend.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kaimen-admin-frontend.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "kaimen-admin-frontend.selectorLabels" . | nindent 4 }}

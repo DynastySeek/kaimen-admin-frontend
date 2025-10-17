@@ -4,3 +4,4 @@ dist
 stats.html
 deploy
 .DS_Store
+.vscode
