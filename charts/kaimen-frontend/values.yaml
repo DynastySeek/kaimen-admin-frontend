@@ -8,7 +8,6 @@ replicaCount: 1
 service:
   type: ClusterIP
   port: 80
-# 域名映射
 domains:
   prod: admin.kaimen.site
   test: admin-test.kaimen.site
