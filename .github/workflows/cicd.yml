@@ -153,4 +153,4 @@ jobs:
             --set-string imagePullSecrets.password='${{ secrets.TCR_PASSWORD }}' \
             --set-string ingress.tlsCrt='${{ secrets.INGRESS_TLS_CRT }}' \
             --set-string ingress.tlsKey='${{ secrets.INGRESS_TLS_KEY }}' \
-            --set-string config.ENVIRONMENT=development
+            --set-string environment=prod
