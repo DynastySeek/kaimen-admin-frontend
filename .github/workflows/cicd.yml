@@ -10,7 +10,6 @@ env:
 
 jobs:
   build-and-push:
-    if: ${{ github.ref == 'refs/heads/develop' }}
     runs-on: [self-hosted, HK]
     permissions:
       contents: read
