@@ -79,6 +79,7 @@ jobs:
         run: |
           helm upgrade --install kaimen-admin-frontend-dev ./charts/kaimen-frontend \
             --namespace kaimen-admin-dev --create-namespace \
+            --set image.tag=${{ env.IMAGE_TAG }} \
             --set-string imagePullSecrets.username='${{ secrets.TCR_USERNAME }}' \
             --set-string imagePullSecrets.password='${{ secrets.TCR_PASSWORD }}' \
             --set-string ingress.tlsCrt='${{ secrets.INGRESS_TLS_CRT }}' \
@@ -90,6 +91,7 @@ jobs:
         run: |
           helm upgrade --install kaimen-admin-frontend ./charts/kaimen-frontend \
             --namespace kaimen-admin --create-namespace \
+            --set image.tag=${{ env.IMAGE_TAG }} \
             --set-string imagePullSecrets.username='${{ secrets.TCR_USERNAME }}' \
             --set-string imagePullSecrets.password='${{ secrets.TCR_PASSWORD }}' \
             --set-string ingress.tlsCrt='${{ secrets.INGRESS_TLS_CRT }}' \
