@@ -23,33 +23,28 @@
           {{ addButtonText }}
         </NButton>
       </div>
-      <NDataTable
-        :data="data"
-        :loading="loading"
-        :columns="columns"
-        :scroll-x="1200"
-      >
-        <template #empty>
-          <NEmpty description="暂无数据" />
-        </template>
-      </NDataTable>
-
-      <!-- 保留原有表格插槽，用于兼容 -->
-      <div style="display: none;">
-        <slot name="table" />
-        <slot name="action" />
-      </div>
-
-      <div class="mt-4 flex justify-end">
-        <NPagination
-          v-model:page="page"
-          v-model:page-size="size"
-          :item-count="total"
-          :page-sizes="[10, 20, 50]"
-          show-size-picker
-          show-quick-jumper
+      <div id="appraisal-table-container">
+        <n-data-table
+          :columns="columns"
+          :data="data"
+          :loading="loading"
+          :scroll-x="1400"
+          :row-key="item => item.id"
         />
       </div>
+      <n-flex class="mt-10" justify="end">
+        <n-pagination
+          :item-count="total"
+          :page="page"
+          :page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          :page-slot="6"
+          show-size-picker
+          :prefix="({ itemCount }) => `共 ${itemCount} 条`"
+          @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
+        />
+      </n-flex>
     </n-card>
 
     <!-- 详情弹窗 -->
@@ -258,7 +253,7 @@ const {
   loading,
   total,
   page,
-  pageSize: size,
+  pageSize,
   send: fetchList,
 } = usePagination(
   (currentPage, currentSize) =>
@@ -268,8 +263,8 @@ const {
       ...searchForm,
     }),
   {
-    total: response => response.total,
-    data: response => response.list,
+    total: response => response.data.total,
+    data: response => response.data.list,
     initialData: {
       total: 0,
       data: [],
@@ -278,6 +273,7 @@ const {
     initialPageSize: 10,
   },
 );
+  console.log("🍈 -> data:", data)
 
 const computedSearchFormItems = computed(() => {
   return props.searchFormItems.map(item => ({
@@ -304,6 +300,15 @@ function initSearchForm() {
       searchForm[item.prop] = '';
     }
   });
+}
+
+function handlePageChange(newPage) {
+  page.value = newPage;
+}
+
+function handlePageSizeChange(newPageSize) {
+  pageSize.value = newPageSize;
+  page.value = 1;
 }
 
 function handleSearch() {

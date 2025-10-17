@@ -17,6 +17,8 @@ export const Permission = {
   AddUser: 'AddUser',
   AppraisalMgt: 'AppraisalMgt',
   AppraisalList: 'AppraisalList',
+  AppraisalConsignment: 'AppraisalConsignment',
+  AppraisalBuy: 'AppraisalBuy',
 };
 
 export const PermissionLabelMap = {
@@ -28,6 +30,8 @@ export const PermissionLabelMap = {
   [Permission.AddUser]: '添加用户',
   [Permission.AppraisalMgt]: '鉴定管理',
   [Permission.AppraisalList]: '鉴定列表',
+  [Permission.AppraisalConsignment]: '传递单列表',
+  [Permission.AppraisalBuy]: '求购单列表',
 };
 
 export const Gender = {

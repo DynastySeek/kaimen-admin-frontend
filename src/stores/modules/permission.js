@@ -13,10 +13,14 @@ export const RolePermissionMap = {
     Permission.AddUser,
     Permission.AppraisalMgt,
     Permission.AppraisalList,
+    Permission.AppraisalConsignment,
+    Permission.AppraisalBuy,
   ],
   [Role.Appraiser]: [
     Permission.AppraisalMgt,
     Permission.AppraisalList,
+    Permission.AppraisalConsignment,
+    Permission.AppraisalBuy,
   ],
 };
 
