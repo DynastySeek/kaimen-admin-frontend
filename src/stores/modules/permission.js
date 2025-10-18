@@ -22,8 +22,6 @@ export const RolePermissionMap = {
   [Role.Appraiser]: [
     Permission.AppraisalMgt,
     Permission.AppraisalList,
-    Permission.AppraisalConsignment,
-    Permission.AppraisalBuy,
   ],
 };
 

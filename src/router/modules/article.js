@@ -11,7 +11,7 @@ export const articleRoutes = [
     redirect: '/article/list',
     meta: {
       title: '文章管理',
-      icon: 'i-fe:file-text',
+      icon: 'i-fe:book-open',
       code: Permission.ArticleMgt,
       show: true,
       enable: true,
@@ -24,7 +24,6 @@ export const articleRoutes = [
         component: () => import('@/views/article/list.vue'),
         meta: {
           title: '文章列表',
-          icon: 'i-fe:list',
           keepAlive: true,
           code: Permission.ArticleList,
           show: true,
@@ -37,7 +36,6 @@ export const articleRoutes = [
         component: () => import('@/views/article/detail.vue'),
         meta: {
           title: '文章详情',
-          icon: 'i-fe:eye',
           keepAlive: false,
           code: Permission.ArticleDetail,
           show: false,

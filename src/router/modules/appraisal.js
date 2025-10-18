@@ -24,7 +24,6 @@ export const appraisalRoutes = [
         component: () => import('@/views/appraisal/list.vue'),
         meta: {
           title: '鉴定单列表',
-          icon: 'i-fe:file-text',
           keepAlive: true,
           code: Permission.AppraisalList,
           show: true,
@@ -37,7 +36,6 @@ export const appraisalRoutes = [
         component: () => import('@/views/appraisal/consignment-list.vue'),
         meta: {
           title: '传递单列表',
-          icon: 'i-fe:send',
           keepAlive: true,
           code: Permission.AppraisalConsignment,
           show: true,
@@ -50,7 +48,6 @@ export const appraisalRoutes = [
         component: () => import('@/views/appraisal/buy-list.vue'),
         meta: {
           title: '求购单列表',
-          icon: 'i-fe:shopping-cart',
           keepAlive: true,
           code: Permission.AppraisalBuy,
           show: true,
