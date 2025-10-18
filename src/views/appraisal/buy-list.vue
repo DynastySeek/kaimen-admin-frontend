@@ -2,9 +2,11 @@
   <CommonPage>
     <ProTable
       ref="proTableRef"
+      label-width="100px"
       :search-form-items="searchFormItems"
-      :fetch-data="handleFetchData"
+      :fetch-data="fetchAppraisalBuyList"
       :columns="columns"
+      :format-search-params="formatSearchParams"
     />
   </CommonPage>
 </template>
@@ -12,34 +14,37 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { CommonPage, ProTable } from '@/components';
-import { AppraisalClassLabelMap } from '@/constants';
+import { AppraisalClassLabelMap, PriceRangeValueMap } from '@/constants';
 import { fetchAppraisalBuyList } from '@/services';
 import { formatDateTime } from '@/utils';
+import { omit } from 'lodash-es';
 
 const proTableRef = ref();
 
 /**
- * 处理数据获取，转换时间范围参数
- * @param {object} params - 查询参数
- * @returns {Promise} 查询结果
+ * 搜索参数格式化函数
+ * @param {object} params - 搜索参数
+ * @returns {object} 格式化后的参数
  */
-function handleFetchData(params) {
-  const { createTimeRange, ...otherParams } = params;
-
-  return fetchAppraisalBuyList({
-    ...otherParams,
-    createStartTime: createTimeRange?.[0] ? formatDateTime(createTimeRange[0]) : null,
-    createEndTime: createTimeRange?.[1] ? formatDateTime(createTimeRange[1]) : null,
-  });
+function formatSearchParams(params) {
+  const [minPrice, maxPrice] = PriceRangeValueMap[params.expectedPrice] || [null, null];
+  return omit({
+    ...params,
+    minPrice,
+    maxPrice,
+    userPhone: params.userPhone,
+    createStartTime: params.createTimeRange?.[0] ? formatDateTime(params.createTimeRange?.[0]) : null,
+    createEndTime: params.createTimeRange?.[1] ? formatDateTime(params.createTimeRange?.[1]) : null,
+  }, ['expectedPrice', 'createTimeRange']);
 }
 
 // 表格列定义
 const columns = computed(() => [
   { title: 'ID', key: 'id', width: 80 },
-  { title: '类型', key: 'type', width: 100, render: row => AppraisalClassLabelMap[row.type] || '-' },
+  { title: '类型', key: 'buyer_type', width: 100, render: row => AppraisalClassLabelMap[row.buyer_type] || '-' },
   { title: '描述', key: 'desc', width: 200, ellipsis: { tooltip: true } },
   { title: '手机号', key: 'phone', width: 120 },
-  { title: '期望价格', key: 'expected_price', width: 120 },
+  { title: '期望价格', key: 'expected_price', width: 120, render: row => `${row.min_price} - ${row.max_price}` },
   {
     title: '创建时间',
     key: 'created_at',
@@ -64,7 +69,7 @@ const searchFormItems = [
     span: 6,
   },
   {
-    prop: 'type',
+    prop: 'buyer_type',
     label: '类目',
     type: 'selectDictionary',
     name: 'AppraisalClass',
@@ -79,22 +84,23 @@ const searchFormItems = [
     span: 6,
   },
   {
-    prop: 'expected_price',
+    prop: 'expectedPrice',
     label: '心理价位',
-    type: 'input',
-    placeholder: '请输入心理价位',
+    type: 'selectDictionary',
+    name: 'PriceRange',
+    placeholder: '请选择价格区间',
     span: 6,
   },
   {
-    prop: 'user_phone',
-    label: '用户登录授权手机号',
+    prop: 'userPhone',
+    label: '授权手机号',
     type: 'input',
     placeholder: '请输入授权手机号',
     span: 6,
   },
   {
-    prop: 'contact',
-    label: '用户填写联系方式',
+    prop: 'phone',
+    label: '联系方式',
     type: 'input',
     placeholder: '请输入联系方式',
     span: 6,
