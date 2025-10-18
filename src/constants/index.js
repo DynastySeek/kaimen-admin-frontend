@@ -155,3 +155,30 @@ export const PubStatusLabelMap = {
   [PubStatus.Published]: '已发布',
   [PubStatus.Offline]: '已下线',
 };
+
+export const PriceRange = {
+  Under1000: 1,
+  Range1000To5000: 2,
+  Range5000To10000: 3,
+  Range10000To50000: 4,
+  Range50000To100000: 5,
+  Above100000: 6,
+};
+
+export const PriceRangeLabelMap = {
+  [PriceRange.Under1000]: '1000元以下',
+  [PriceRange.Range1000To5000]: '1000-5000元',
+  [PriceRange.Range5000To10000]: '5000-10000元',
+  [PriceRange.Range10000To50000]: '1万-5万元',
+  [PriceRange.Range50000To100000]: '5万-10万元',
+  [PriceRange.Above100000]: '10万元以上',
+};
+
+export const PriceRangeValueMap = {
+  [PriceRange.Under1000]: [null, 1000],
+  [PriceRange.Range1000To5000]: [1000, 5000],
+  [PriceRange.Range5000To10000]: [5000, 10000],
+  [PriceRange.Range10000To50000]: [10000, 50000],
+  [PriceRange.Range50000To100000]: [50000, 100000],
+  [PriceRange.Above100000]: [100000, null],
+};

@@ -133,7 +133,6 @@ const searchFormItems = [
     label: '发布状态',
     type: 'selectDictionary',
     name: 'PubStatus',
-    placeholder: '请选择发布状态',
     span: 6,
   },
 ];

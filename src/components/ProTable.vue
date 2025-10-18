@@ -2,9 +2,9 @@
   <div class="">
     <!-- 搜索表单 -->
     <n-card v-if="searchFormItems && searchFormItems.length > 0" class="card-container">
-      <FormBuilder v-model="searchForm" :form-items="computedSearchFormItems" label-width="80px" :actions-span="6" :gutter="20">
+      <FormBuilder v-model="searchForm" :form-items="computedSearchFormItems" :label-width="labelWidth" :actions-span="6" :gutter="20">
         <template #actions>
-          <NSpace>
+          <NSpace class="w-full" justify="end">
             <NButton type="primary" @click="handleSearch">
               搜索
             </NButton>
@@ -69,6 +69,16 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  // 表单标签宽度
+  labelWidth: {
+    type: String,
+    default: '80px',
+  },
+  // 搜索参数格式化函数
+  formatSearchParams: {
+    type: Function,
+    default: null,
+  },
 });
 
 
@@ -87,7 +97,7 @@ const {
     props.fetchData({
       page: currentPage,
       size: currentSize,
-      ...searchForm,
+      ...(props.formatSearchParams ? props.formatSearchParams(searchForm) : searchForm),
     }),
   {
     total: response => response.data.total,
