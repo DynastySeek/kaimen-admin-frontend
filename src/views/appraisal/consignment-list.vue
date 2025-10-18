@@ -2,7 +2,6 @@
   <CommonPage>
     <ProTable
       ref="proTableRef"
-      :actionButtons="[]"
       :search-form-items="searchFormItems"
       :fetch-data="fetchAppraisalConsignmentList"
       :columns="columns"

@@ -33,7 +33,7 @@ export const articleRoutes = [
       },
       {
         name: 'ArticleDetail',
-        path: '/article/detail/:id?',
+        path: '/article/detail',
         component: () => import('@/views/article/detail.vue'),
         meta: {
           title: '文章详情',

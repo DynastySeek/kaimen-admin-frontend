@@ -21,10 +21,15 @@
 <script setup>
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue';
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue';
+import { fetchUploadImage } from '@/services';
 import '@wangeditor/editor/dist/css/style.css';
 
 const props = defineProps({
   modelValue: {
+    type: String,
+    default: '',
+  },
+  value: {
     type: String,
     default: '',
   },
@@ -38,23 +43,56 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'update:value', 'change']);
 
 const editorRef = shallowRef();
 const valueHtml = ref(props.modelValue || '');
+
+/**
+ * 处理图片上传
+ * @param {File} file - 图片文件
+ * @param {Function} insertFn - 插入图片的回调函数
+ */
+async function handleUploadImage(file, insertFn) {
+  console.log('🍈 -> handleUploadImage -> file:', file);
+  try {
+    const response = await fetchUploadImage(file);
+    if (response?.data?.url) {
+      // 插入图片到编辑器
+      insertFn(response.data.url, file.name, response.data.url);
+    } else {
+      console.error('图片上传失败：响应数据格式错误');
+    }
+  } catch (error) {
+    console.error('图片上传失败:', error);
+  }
+}
 
 const toolbarConfig = {};
 const editorConfig = computed(() => ({
   placeholder: props.placeholder,
   readOnly: props.disabled,
+  MENU_CONF: {
+    uploadImage: {
+      customUpload: handleUploadImage,
+      // 限制图片大小为 10M
+      maxFileSize: 10 * 1024 * 1024,
+      // 限制图片类型
+      allowedFileTypes: ['image/*'],
+    },
+  },
 }));
 const mode = 'default';
 
 watch(
-  () => props.modelValue,
+  () => props.value,
   (newValue) => {
     if (newValue !== valueHtml.value) {
       valueHtml.value = newValue || '';
+      // 如果编辑器已经创建，同步更新编辑器内容
+      if (editorRef.value) {
+        editorRef.value.setHtml(newValue || '');
+      }
     }
   },
 );
@@ -92,6 +130,8 @@ function handleChange(editor) {
   const html = editor.getHtml();
   valueHtml.value = html;
   emit('update:modelValue', html);
+  emit('update:value', html);
+  emit('change', html);
 }
 
 function handleDestroyed(editor) {

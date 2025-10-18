@@ -7,7 +7,7 @@
       :max="max"
       :disabled="disabled"
       :multiple="multiple"
-      :default-file-list="defaultFileList"
+      :file-list="fileList"
       :headers="{ Authorization: `Bearer ${getToken()}` }"
       @update:file-list="handleFileListChange"
       @finish="handleFinish"
@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { getToken } from '@/utils';
 
 const props = defineProps({
@@ -44,7 +44,57 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'update:value', 'change']);
 
-const defaultFileList = ref([]);
+/**
+ * 将URL转换为文件对象
+ * @param {string} url - 图片URL
+ * @param {number} index - 索引
+ * @returns {Object} 文件对象
+ */
+function createFileFromUrl(url, index = 0) {
+  if (!url) {
+    return null;
+  }
+
+  const fileName = url.split('/').pop() || `image_${index}.jpg`;
+  return {
+    id: `file_${Date.now()}_${index}`,
+    name: fileName,
+    status: 'finished',
+    url,
+    thumbnailUrl: url,
+  };
+}
+
+/**
+ * 将URL数组转换为文件列表
+ * @param {string|Array} value - URL或URL数组
+ * @returns {Array} 文件列表
+ */
+function createFileListFromValue(value) {
+  if (!value) {
+    return [];
+  }
+
+  if (Array.isArray(value)) {
+    return value.filter(url => url).map((url, index) => createFileFromUrl(url, index));
+  } else {
+    const fileObj = createFileFromUrl(value, 0);
+    return fileObj ? [fileObj] : [];
+  }
+}
+
+// 文件列表
+const fileList = ref([]);
+
+// 监听modelValue变化，更新fileList
+watch(
+  () => props.modelValue || props.value,
+  (newValue) => {
+    console.log('🍈 -> modelValue changed:', newValue);
+    fileList.value = createFileListFromValue(newValue);
+  },
+  { immediate: true },
+);
 
 function handleFinish({
   file,
@@ -61,8 +111,10 @@ function handleFinish({
 }
 
 function handleFileListChange(newFileList) {
-  const finishedFiles = newFileList.filter(file => file.status === 'finished');
+  // 更新文件列表
+  fileList.value = newFileList;
 
+  const finishedFiles = newFileList.filter(file => file.status === 'finished');
   const urls = finishedFiles.map(file => file.url);
 
   if (props.max === 1) {

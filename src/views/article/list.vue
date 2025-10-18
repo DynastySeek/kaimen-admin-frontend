@@ -2,23 +2,26 @@
   <CommonPage>
     <ProTable
       ref="proTableRef"
-      :action-buttons="['add', 'edit']"
-      add-button-text="新增文章"
       :search-form-items="searchFormItems"
       :fetch-data="fetchArticleList"
       :columns="columns"
-      @add="handleAdd"
-    />
+    >
+      <template #header>
+        <n-space>
+          <n-button type="primary" @click="handleAdd">新增文章</n-button>
+        </n-space>
+      </template>
+    </ProTable>
   </CommonPage>
 </template>
 
 <script setup>
-import { NTag } from 'naive-ui';
+import { NButton, NSpace, NTag } from 'naive-ui';
 import { computed, h, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { CommonPage, ProTable } from '@/components';
 import { PubStatus, PubStatusLabelMap } from '@/constants';
-import { fetchArticleList } from '@/services';
+import { fetchArticleList, fetchEnableArticle, fetchDisableArticle } from '@/services';
 import { formatDateTime } from '@/utils';
 
 const router = useRouter();
@@ -75,6 +78,38 @@ const columns = computed(() => [
     width: 180,
     render: row => formatDateTime(row.updated_at),
   },
+  {
+    title: '操作',
+    key: 'actions',
+    width: 200,
+    fixed: 'right',
+    render: (row) => {
+      return h(NSpace, { size: 'small' }, {
+        default: () => [
+          h(NButton, {
+            quaternary: true,
+            size: 'small',
+            type: 'primary',
+            onClick: () => handleEdit(row),
+          }, { default: () => '编辑' }),
+
+          row.pub_status === PubStatus.Published
+            ? h(NButton, {
+                quaternary: true,
+                size: 'small',
+                type: 'error',
+                onClick: () => handleTogglePublish(row),
+              }, { default: () => '取消发布' })
+            : h(NButton, {
+                quaternary: true,
+                size: 'small',
+                type: 'success',
+                onClick: () => handleTogglePublish(row),
+              }, { default: () => '发布' }),
+        ],
+      });
+    },
+  },
 ]);
 
 // 搜索表单项配置
@@ -103,7 +138,40 @@ const searchFormItems = [
   },
 ];
 
+/**
+ * 处理新增文章
+ */
 function handleAdd() {
   router.push('/article/detail');
+}
+
+/**
+ * 处理编辑文章
+ * @param {Object} row - 文章数据
+ */
+function handleEdit(row) {
+  router.push(`/article/detail?id=${row.id}`);
+}
+
+/**
+ * 处理发布状态切换
+ * @param {Object} row - 文章数据
+ */
+async function handleTogglePublish(row) {
+  try {
+    if (row.pub_status === PubStatus.Published) {
+      // 当前已发布，执行禁用操作
+      await fetchDisableArticle(row.id);
+      $message.success('文章已取消发布');
+    } else {
+      // 当前未发布，执行启用操作
+      await fetchEnableArticle(row.id);
+      $message.success('文章已发布');
+    }
+    // 刷新列表
+    proTableRef.value.refresh();
+  } catch (error) {
+    $message.error('操作失败：' + (error.message || '未知错误'));
+  }
 }
 </script>
