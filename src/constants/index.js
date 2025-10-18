@@ -19,6 +19,9 @@ export const Permission = {
   AppraisalList: 'AppraisalList',
   AppraisalConsignment: 'AppraisalConsignment',
   AppraisalBuy: 'AppraisalBuy',
+  ArticleMgt: 'ArticleMgt',
+  ArticleList: 'ArticleList',
+  ArticleDetail: 'ArticleDetail',
 };
 
 export const PermissionLabelMap = {
@@ -32,6 +35,9 @@ export const PermissionLabelMap = {
   [Permission.AppraisalList]: '鉴定列表',
   [Permission.AppraisalConsignment]: '传递单列表',
   [Permission.AppraisalBuy]: '求购单列表',
+  [Permission.ArticleMgt]: '文章管理',
+  [Permission.ArticleList]: '文章列表',
+  [Permission.ArticleDetail]: '文章详情',
 };
 
 export const Gender = {
@@ -136,4 +142,16 @@ export const AppraisalResultLabelMap = {
   [AppraisalResult.Fake]: '假',
   [AppraisalResult.Doubt]: '存疑',
   [AppraisalResult.Rejected]: '驳回',
+};
+
+export const PubStatus = {
+  ToPublish: '1',
+  Published: '2',
+  Offline: '3',
+};
+
+export const PubStatusLabelMap = {
+  [PubStatus.ToPublish]: '待发布',
+  [PubStatus.Published]: '已发布',
+  [PubStatus.Offline]: '已下线',
 };

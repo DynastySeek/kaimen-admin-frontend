@@ -15,6 +15,9 @@ export const RolePermissionMap = {
     Permission.AppraisalList,
     Permission.AppraisalConsignment,
     Permission.AppraisalBuy,
+    Permission.ArticleMgt,
+    Permission.ArticleList,
+    Permission.ArticleDetail,
   ],
   [Role.Appraiser]: [
     Permission.AppraisalMgt,

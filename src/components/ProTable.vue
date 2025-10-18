@@ -200,6 +200,7 @@ const columns = computed(() => {
       key: 'actions',
       align: 'center',
       fixed: 'right',
+      width: 120,
       render: (row) => {
         const buttons = [];
 

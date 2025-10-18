@@ -26,6 +26,8 @@ import {
   UserStatusLabelMap,
   UserType,
   UserTypeLabelMap,
+  PubStatus,
+  PubStatusLabelMap,
 } from '@/constants';
 
 const props = defineProps({
@@ -66,6 +68,7 @@ const EnumMap = {
   ProductStatus: [ProductStatus, ProductStatusLabelMap],
   AppraisalClass: [AppraisalClass, AppraisalClassLabelMap],
   AppraisalResult: [AppraisalResult, AppraisalResultLabelMap],
+  PubStatus: [PubStatus, PubStatusLabelMap],
 };
 
 /**

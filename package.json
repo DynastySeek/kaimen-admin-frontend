@@ -21,6 +21,8 @@
     "@cloudbase/js-sdk": "^2.21.9",
     "@vicons/carbon": "^0.13.0",
     "@vueuse/core": "^13.3.0",
+    "@wangeditor/editor": "^5.1.23",
+    "@wangeditor/editor-for-vue": "^5.1.12",
     "alova": "^3.3.4",
     "axios": "^1.10.0",
     "dayjs": "^1.11.13",

@@ -12,3 +12,4 @@ export { default as ThemeSetting } from './ThemeSetting.vue';
 export { default as ToggleTheme } from './ToggleTheme.vue';
 export { default as UploadImage } from './UploadImage.vue';
 export { default as VideoModal } from './VideoModal.vue';
+export { default as BasicEditor } from './BasicEditor.vue';
