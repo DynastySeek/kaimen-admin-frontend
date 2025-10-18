@@ -16,17 +16,21 @@ import { computed, ref } from 'vue';
 import { CommonPage, ProTable } from '@/components';
 import { AppraisalClassLabelMap, PriceRangeValueMap } from '@/constants';
 import { fetchAppraisalConsignmentList } from '@/services';
+import { useUserStore } from '@/stores';
 import { formatDateTime } from '@/utils';
 import { omit } from 'lodash-es';
 
 const proTableRef = ref();
+const userStore = useUserStore();
 
 // 表格列定义
 const columns = computed(() => [
   { title: 'ID', key: 'id', width: 80 },
   { title: '宝贝类型', key: 'type', width: 100, render: row => AppraisalClassLabelMap[row.type] || '-' },
   { title: '描述', key: 'desc', width: 200, ellipsis: { tooltip: true } },
-  { title: '手机号', key: 'phone', width: 120 },
+  ...(userStore.isAdmin
+    ? [{ title: '手机号', key: 'phone', width: 120 }]
+    : []),
   { title: '心理价位', key: 'expected_price', width: 120 },
   {
     title: '创建时间',
@@ -74,20 +78,24 @@ const searchFormItems = [
     placeholder: '请选择价格区间',
     span: 6,
   },
-  {
-    prop: 'userPhone',
-    label: '授权手机号',
-    type: 'input',
-    placeholder: '请输入授权手机号',
-    span: 6,
-  },
-  {
-    prop: 'phone',
-    label: '联系方式',
-    type: 'input',
-    placeholder: '请输入联系方式',
-    span: 6,
-  },
+  ...(userStore.isAdmin
+    ? [{
+        prop: 'userPhone',
+        label: '授权手机号',
+        type: 'input',
+        placeholder: '请输入授权手机号',
+        span: 6,
+      }]
+    : []),
+  ...(userStore.isAdmin
+    ? [{
+        prop: 'phone',
+        label: '联系方式',
+        type: 'input',
+        placeholder: '请输入联系方式',
+        span: 6,
+      }]
+    : []),
   {
     prop: 'createTimeRange',
     label: '创建时间',
