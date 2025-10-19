@@ -17,6 +17,11 @@ export const Permission = {
   AddUser: 'AddUser',
   AppraisalMgt: 'AppraisalMgt',
   AppraisalList: 'AppraisalList',
+  AppraisalConsignment: 'AppraisalConsignment',
+  AppraisalBuy: 'AppraisalBuy',
+  ArticleMgt: 'ArticleMgt',
+  ArticleList: 'ArticleList',
+  ArticleDetail: 'ArticleDetail',
 };
 
 export const PermissionLabelMap = {
@@ -28,6 +33,11 @@ export const PermissionLabelMap = {
   [Permission.AddUser]: '添加用户',
   [Permission.AppraisalMgt]: '鉴定管理',
   [Permission.AppraisalList]: '鉴定列表',
+  [Permission.AppraisalConsignment]: '传递单列表',
+  [Permission.AppraisalBuy]: '求购单列表',
+  [Permission.ArticleMgt]: '文章管理',
+  [Permission.ArticleList]: '文章列表',
+  [Permission.ArticleDetail]: '文章详情',
 };
 
 export const Gender = {
@@ -132,4 +142,43 @@ export const AppraisalResultLabelMap = {
   [AppraisalResult.Fake]: '假',
   [AppraisalResult.Doubt]: '存疑',
   [AppraisalResult.Rejected]: '驳回',
+};
+
+export const PubStatus = {
+  ToPublish: '1',
+  Published: '2',
+  Offline: '3',
+};
+
+export const PubStatusLabelMap = {
+  [PubStatus.ToPublish]: '待发布',
+  [PubStatus.Published]: '已发布',
+  [PubStatus.Offline]: '已下线',
+};
+
+export const PriceRange = {
+  Under1000: 1,
+  Range1000To5000: 2,
+  Range5000To10000: 3,
+  Range10000To50000: 4,
+  Range50000To100000: 5,
+  Above100000: 6,
+};
+
+export const PriceRangeLabelMap = {
+  [PriceRange.Under1000]: '1000元以下',
+  [PriceRange.Range1000To5000]: '1000-5000元',
+  [PriceRange.Range5000To10000]: '5000-10000元',
+  [PriceRange.Range10000To50000]: '1万-5万元',
+  [PriceRange.Range50000To100000]: '5万-10万元',
+  [PriceRange.Above100000]: '10万元以上',
+};
+
+export const PriceRangeValueMap = {
+  [PriceRange.Under1000]: [null, 1000],
+  [PriceRange.Range1000To5000]: [1000, 5000],
+  [PriceRange.Range5000To10000]: [5000, 10000],
+  [PriceRange.Range10000To50000]: [10000, 50000],
+  [PriceRange.Range50000To100000]: [50000, 100000],
+  [PriceRange.Above100000]: [100000, null],
 };

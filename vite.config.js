@@ -34,7 +34,6 @@ function toTransformConfig(config) {
 export default defineConfig(({ mode }) => {
   const viteEnv = loadEnv(mode, process.cwd());
   const { VITE_PUBLIC_PATH, VITE_PROXY_BASE_REQUEST_API, VITE_PORT, VITE_SOURCE_MAP, VITE_GZIP, VITE_REPORT } = toTransformConfig(viteEnv);
-  const packTime = new Date().getTime();
 
   return {
     base: VITE_PUBLIC_PATH || '/',
@@ -61,7 +60,7 @@ export default defineConfig(({ mode }) => {
         inject: {
           data: {
             injectScript: `<script>
-              window.packTime = parseInt(${packTime});
+              window.packTime = '${new Date().getTime()}';
             </script>`,
           },
         },
@@ -81,8 +80,8 @@ export default defineConfig(({ mode }) => {
       open: false,
       proxy: {
         '/api': {
-          // target: 'http://localhost:8000',
-          target: VITE_PROXY_BASE_REQUEST_API,
+          target: 'http://localhost:8000',
+          // target: VITE_PROXY_BASE_REQUEST_API,
           changeOrigin: true,
           // rewrite: path => path.replace(/^\/api/, ''),
           secure: false,
