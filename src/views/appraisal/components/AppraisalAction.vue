@@ -145,6 +145,7 @@ import { Edit } from '@vicons/carbon';
 import { reactive, ref, watch } from 'vue';
 import { AppraisalResult, AppraisalResultLabelMap, AppraisalStatus } from '@/constants';
 import { fetchAppraisalResultAdd, fetchAppraisalUpdate } from '@/services';
+import { isEmpty } from 'lodash-es';
 
 const props = defineProps({
   data: { type: Object, default: () => null },
@@ -228,7 +229,6 @@ async function handleSubmit() {
       appraisalId: props.data.appraisal_id,
       appraisalResult: formData.result,
       comment: formData.comment,
-      reasons: formData.reasons,
     };
     let appraisal_status = null;
     if (formData.result === AppraisalResult.Authentic) {
@@ -237,8 +237,14 @@ async function handleSubmit() {
       appraisal_status = AppraisalStatus.Completed;
     } else if (formData.result === AppraisalResult.Doubt) {
       appraisal_status = AppraisalStatus.PendingCompletion;
+      if (!isEmpty(formData.reasons)) {
+        params.reasons = formData.reasons;
+      }
     } else if (formData.result === AppraisalResult.Rejected) {
       appraisal_status = AppraisalStatus.Rejected;
+      if (!isEmpty(formData.reasons)) {
+        params.reasons = formData.reasons;
+      }
     }
 
     await fetchAppraisalResultAdd({ items: [params] });
