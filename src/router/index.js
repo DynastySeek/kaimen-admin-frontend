@@ -1,12 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { VITE_PUBLIC_PATH } from '@/config/env';
 import { appraisalRoutes } from './modules/appraisal';
+import { articleRoutes } from './modules/article';
 import { basicRoutes } from './modules/basic';
 import { createPageLoadingGuard } from './page-loading';
 import { createPermissionGuard } from './permission';
 import { createTabGuard } from './tab';
 
-export const authRoutes = [...appraisalRoutes];
+export const authRoutes = [...appraisalRoutes, ...articleRoutes];
 
 export const router = createRouter({
   history: createWebHistory(VITE_PUBLIC_PATH),

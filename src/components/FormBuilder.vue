@@ -20,6 +20,7 @@
 <script setup>
 import { NCascader, NCheckbox, NDatePicker, NInput, NInputNumber, NRadioGroup, NSelect, NSwitch, NTimePicker } from 'naive-ui';
 import { computed, defineModel, useTemplateRef } from 'vue';
+import BasicEditor from './BasicEditor.vue';
 import SelectDictionary from './SelectDictionary.vue';
 import SelectRemote from './SelectRemote.vue';
 import UploadImage from './UploadImage.vue';
@@ -83,9 +84,10 @@ const componentMap = {
   switch: NSwitch,
   checkbox: NCheckbox,
   radio: NRadioGroup,
-  upload: UploadImage,
+  uploadImage: UploadImage,
   selectDictionary: SelectDictionary,
   selectRemote: SelectRemote,
+  basicEditor: BasicEditor,
 };
 
 function getComponent(item) {
@@ -164,6 +166,11 @@ function getProps(item) {
         ...baseProps,
         name: item.name,
         placeholder: `请选择${item.label}`,
+      };
+    case 'uploadImage':
+      return {
+        ...baseProps,
+        max: item.max || 1,
       };
     default:
       return baseProps;
