@@ -392,7 +392,6 @@ handleAppraisalListSuccess(async ({ data }) => {
         });
       });
     }
-    console.log('🍈 -> list:', list);
     tableData.value = list;
   } catch (error) {
     console.error('获取鉴定详情失败:', error);
@@ -436,12 +435,11 @@ function handleBatchAppraisal() {
 async function handleBatchAppraisalSubmit() {
   refresh();
   checkedRowKeys.value = [];
-  console.log('🍈 -> handleBatchAppraisalSubmit -> checkedRowKeys.value:', checkedRowKeys.value);
 }
 
 function handleVideoPlay(row, videoIndex = 0) {
   if (row.videos && row.videos.length > 0) {
-    currentVideoSrc.value = row.videos[videoIndex] || 'https://cdn.jsdelivr.net/gh/xdlumia/files/video-play/IronMan.mp4';
+    currentVideoSrc.value = row.videos[videoIndex];
     currentVideoTitle.value = `${row.title} - 视频${videoIndex + 1}`;
     videoModalVisible.value = true;
   }

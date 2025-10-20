@@ -33,7 +33,6 @@ import { CommonPage, FormBuilder } from '@/components';
 import { fetchArticleDetail, fetchCreateArticle, fetchUpdateArticle } from '@/services';
 
 const route = useRoute();
-console.log('🍈 -> route:', route);
 const router = useRouter();
 
 const formRef = ref();
@@ -41,7 +40,6 @@ const loading = ref(false);
 
 // 判断是否为新增模式
 const articleId = computed(() => route.query.id);
-console.log("🍈 -> articleId:", articleId)
 
 // 表单数据
 const formData = reactive({
@@ -74,7 +72,6 @@ async function handleSubmit() {
       return;
     }
     loading.value = true;
-    console.log('🍈 -> handleSubmit -> formData:', formData);
 
     if (articleId.value) {
       await fetchUpdateArticle(articleId.value, formData);

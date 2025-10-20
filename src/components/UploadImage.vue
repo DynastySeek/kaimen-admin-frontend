@@ -90,7 +90,6 @@ const fileList = ref([]);
 watch(
   () => props.modelValue || props.value,
   (newValue) => {
-    console.log('🍈 -> modelValue changed:', newValue);
     fileList.value = createFileListFromValue(newValue);
   },
   { immediate: true },
