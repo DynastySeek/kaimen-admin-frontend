@@ -24,7 +24,7 @@
       <div id="appraisal-table-container">
         <n-data-table
           :columns="columns"
-          :data="data"
+          :data="tableData"
           :loading="loading"
           :scroll-x="1400"
           :row-key="item => item.id"
@@ -79,19 +79,23 @@ const props = defineProps({
     type: Function,
     default: null,
   },
+  // 响应数据格式化函数
+  formatResponseList: {
+    type: Function,
+    default: null,
+  },
 });
 
-
-
 const searchForm = reactive({});
+ const tableData = ref([]);
 
 const {
-  data,
   loading,
   total,
   page,
   pageSize,
   send: fetchList,
+  onSuccess: handleSuccess,
 } = usePagination(
   (currentPage, currentSize) =>
     props.fetchData({
@@ -101,11 +105,7 @@ const {
     }),
   {
     total: response => response.data.total,
-    data: response => response.data.list,
-    initialData: {
-      total: 0,
-      data: [],
-    },
+    data: response => response.data.list || [],
     initialPage: 1,
     initialPageSize: 10,
   },
@@ -134,6 +134,14 @@ function initSearchForm() {
     }
   });
 }
+
+handleSuccess(async ({ data }) => {
+  let tableList = data?.data?.list || [];
+  if (props.formatResponseList) {
+    tableList = await props.formatResponseList(tableList);
+  }
+  tableData.value = tableList;
+})
 
 function handlePageChange(newPage) {
   page.value = newPage;
