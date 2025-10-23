@@ -19,14 +19,6 @@ import alovaInstance from '../alovaInstance';
 export const fetchAppraisalList = params => alovaInstance.Get('/appraisal/list', { params });
 
 /**
- * 批量查询鉴定单详情
- * @param {object} data - 请求参数
- * @param {string[]} data.ids - 鉴定单ID数组
- * @returns {Promise<object[]>} 鉴定单详情数组
- */
-export const fetchAppraisalDetail = data => alovaInstance.Post('/appraisal/result', data);
-
-/**
  * 批量修改鉴定单
  * @param {object[]} data - 修改项目数组
  * @param {string} data[].id - 鉴定单ID

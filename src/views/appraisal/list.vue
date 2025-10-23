@@ -86,7 +86,7 @@ import { h, reactive, ref } from 'vue';
 import { getTempFileUrls } from '@/cloud';
 import { CommonPage, FormBuilder, SelectDictionary, VideoModal } from '@/components';
 import { AppraisalStatus, AppraisalStatusLabelMap } from '@/constants';
-import { fetchAppraisalDetail, fetchAppraisalList, fetchAppraisalUpdate } from '@/services';
+import { fetchAppraisalList, fetchAppraisalUpdate } from '@/services';
 import { useUserStore } from '@/stores';
 import { formatDateTime } from '@/utils';
 import AppraisalAction from './components/AppraisalAction.vue';
@@ -326,7 +326,7 @@ const columns = computed(() => [
     title: '最后提交鉴定师',
     key: 'lastAppraiser',
     width: 140,
-    render: ({ consequence }) => consequence?.appraiser_nickname || '-',
+    render: ({ last_appraiser }) => last_appraiser?.nickname || '-',
   },
   {
     title: '状态',
@@ -368,14 +368,6 @@ handleAppraisalListSuccess(async ({ data }) => {
   resultLoading.value = true;
   try {
     const { list } = cloneDeep(data.data);
-    const ids = list.map(item => item.appraisal_id);
-    const { data: resultList } = await fetchAppraisalDetail({ ids });
-    list.forEach((item) => {
-      const result = resultList.find(d => d.appraisal_id === item.appraisal_id);
-      if (result) {
-        item.consequence = result;
-      }
-    });
     const allCloudImages = list.reduce((acc, d) => acc.concat(d.images || []), []).filter(v => v.startsWith('cloud://'));
     const allCloudVideos = list.reduce((acc, d) => acc.concat(d.videos || []), []).filter(v => v.startsWith('cloud://'));
     const allCloudUrl = [...allCloudImages, ...allCloudVideos];

@@ -94,7 +94,7 @@ const columns = computed(() => [
   { title: '宝贝类型', key: 'type', width: 100, render: row => AppraisalClassLabelMap[row.type] || '-' },
   { title: '描述', key: 'desc', width: 200, ellipsis: { tooltip: true } },
   ...(userStore.isAdmin
-    ? [{ title: '手机号', key: 'phone', width: 120 }]
+    ? [{ title: '授权手机号', key: 'user_phone', width: 120, render: row => row.user_phone || '-' }, { title: '联系方式', key: 'phone', width: 120, render: row => row.phone || '-' }]
     : []),
   { title: '心理价位', key: 'expected_price', width: 120 },
   {

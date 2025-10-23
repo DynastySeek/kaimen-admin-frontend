@@ -97,17 +97,17 @@ const {
   send: fetchList,
   onSuccess: handleSuccess,
 } = usePagination(
-  (currentPage, currentSize) =>
+  (currentPage, currentPageSize) =>
     props.fetchData({
       page: currentPage,
-      size: currentSize,
+      pageSize: currentPageSize,
       ...(props.formatSearchParams ? props.formatSearchParams(searchForm) : searchForm),
     }),
   {
     total: response => response.data.total,
     data: response => response.data.list || [],
     initialPage: 1,
-    initialPageSize: 10,
+    initialPageSize: 20,
   },
 );
 
