@@ -140,24 +140,22 @@ const searchFormItems = [
     placeholder: '请选择价格区间',
     span: 6,
   },
-  ...(userStore.isAdmin
-    ? [{
-        prop: 'userPhone',
-        label: '授权手机号',
-        type: 'input',
-        placeholder: '请输入授权手机号',
-        span: 6,
-      }]
-    : []),
-  ...(userStore.isAdmin
-    ? [{
-        prop: 'phone',
-        label: '联系方式',
-        type: 'input',
-        placeholder: '请输入联系方式',
-        span: 6,
-      }]
-    : []),
+  {
+    prop: 'userPhone',
+    label: '授权手机号',
+    type: 'input',
+    placeholder: '请输入授权手机号',
+    span: 6,
+    hidden: !userStore.isAdmin,
+  },
+  {
+    prop: 'phone',
+    label: '联系方式',
+    type: 'input',
+    placeholder: '请输入联系方式',
+    span: 6,
+    hidden: !userStore.isAdmin,
+  },
   {
     prop: 'createTimeRange',
     label: '创建时间',
