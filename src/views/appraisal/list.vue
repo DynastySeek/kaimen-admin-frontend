@@ -176,15 +176,14 @@ const searchFormItems = [
     placeholder: '请选择类目',
     span: 6,
   },
-  ...(userStore.isAdmin
-    ? [{
-        prop: 'userPhone',
-        label: '用户手机号',
-        type: 'input',
-        placeholder: '请输入用户手机号',
-        span: 6,
-      }]
-    : []),
+  {
+    prop: 'userPhone',
+    label: '用户手机号',
+    type: 'input',
+    placeholder: '请输入用户手机号',
+    span: 6,
+    hidden: !userStore.isAdmin,
+  },
   {
     prop: 'title',
     label: '标题',
@@ -214,7 +213,7 @@ const searchFormItems = [
     placeholder: '请选择鉴定师',
     span: 6,
   },
-];
+].filter(item => !item.hidden);
 
 const loading = computed(() => listLoading.value || resultLoading.value);
 
@@ -303,13 +302,12 @@ const columns = computed(() => [
       ]);
     },
   },
-  ...(userStore.isAdmin
-    ? [{
-        title: '用户手机号',
-        key: 'user_phone',
-        width: 120,
-      }]
-    : []),
+  {
+    title: '用户手机号',
+    key: 'user_phone',
+    width: 120,
+    hidden: !userStore.isAdmin,
+  },
   {
     title: '创建时间',
     key: 'create_time',
@@ -348,21 +346,20 @@ const columns = computed(() => [
       });
     },
   },
-  ...(activeTab.value?.appraisalStatus !== AppraisalStatus.Cancelled
-    ? [{
-        title: '操作/编辑',
-        key: 'actions',
-        width: 300,
-        fixed: 'right',
-        render: (row) => {
-          return h(AppraisalAction, {
-            data: row,
-            onSubmit: handleAppraisalSubmit,
-          });
-        },
-      }]
-    : []),
-]);
+  {
+    title: '操作/编辑',
+    key: 'actions',
+    width: 300,
+    fixed: 'right',
+    hidden: activeTab.value?.appraisalStatus === AppraisalStatus.Cancelled,
+    render: (row) => {
+      return h(AppraisalAction, {
+        data: row,
+        onSubmit: handleAppraisalSubmit,
+      });
+    },
+  },
+].filter(column => !column.hidden));
 
 handleAppraisalListSuccess(async ({ data }) => {
   resultLoading.value = true;

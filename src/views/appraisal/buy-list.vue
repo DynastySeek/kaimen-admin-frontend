@@ -45,9 +45,8 @@ const columns = computed(() => [
   { title: 'ID', key: 'id', width: 80 },
   { title: '类型', key: 'buyer_type', width: 100, render: row => AppraisalClassLabelMap[row.buyer_type] || '-' },
   { title: '描述', key: 'desc', width: 200, ellipsis: { tooltip: true } },
-  ...(userStore.isAdmin
-    ? [{ title: '授权手机号', key: 'user_phone', width: 120, render: row => row.user_phone || '-' }, { title: '联系方式', key: 'phone', width: 120, render: row => row.phone || '-' }]
-    : []),
+  { title: '授权手机号', key: 'user_phone', width: 120, render: row => row.user_phone || '-', hidden: !userStore.isAdmin },
+  { title: '联系方式', key: 'phone', width: 120, render: row => row.phone || '-', hidden: !userStore.isAdmin },
   { title: '期望价格', key: 'expected_price', width: 120, render: row => `${row.min_price} - ${row.max_price}` },
   {
     title: '创建时间',
@@ -61,7 +60,7 @@ const columns = computed(() => [
     width: 180,
     render: row => formatDateTime(row.updated_at),
   },
-]);
+].filter(column => !column.hidden));
 
 // 搜索表单项配置
 const searchFormItems = [
