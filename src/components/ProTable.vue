@@ -116,6 +116,7 @@ const {
   page,
   pageSize,
   send: fetchList,
+  reload,
   onSuccess: handleSuccess,
 } = usePagination(
   (currentPage, currentPageSize) =>
@@ -190,6 +191,7 @@ function handleCheckedRowKeysChange(keys) {
 
 defineExpose({
   refresh: fetchList,
+  reload,
   searchForm,
 });
 </script>

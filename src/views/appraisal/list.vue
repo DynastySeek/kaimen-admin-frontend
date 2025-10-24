@@ -21,7 +21,7 @@
       :format-search-params="formatSearchParams"
       :format-response-list="formatResponseList"
       :row-key="item => item.appraisal_id"
-      @update:checked-row-keys="handleCheckChange"
+      @update:checked-row-keys="keys => checkedRowKeys = keys"
     >
       <template #header>
         <NSpace>
@@ -335,10 +335,6 @@ function handleTabChange(value) {
 
 function handleAppraisalSubmit(_data) {
   proTableRef.value?.refresh();
-}
-
-function handleCheckChange(keys) {
-  checkedRowKeys.value = keys;
 }
 
 async function handleBatchAppraisalSubmit() {
