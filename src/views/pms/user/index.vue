@@ -18,7 +18,12 @@
     >
       <!-- 自定义操作按钮插槽 -->
       <template #action="{ row }">
-        <n-button :type="row?.status === UserStatus.Active ? 'warning' : 'success'" quaternary size="small" @click="handleToggleStatus(row)">
+        <n-button
+          :type="row?.status === UserStatus.Active ? 'warning' : 'success'"
+          quaternary
+          size="small"
+          @click="handleToggleStatus(row)"
+        >
           {{ row?.status === UserStatus.Active ? '禁用' : '启用' }}
         </n-button>
       </template>

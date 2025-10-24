@@ -2,7 +2,13 @@
   <div class="">
     <!-- 搜索表单 -->
     <n-card v-if="searchFormItems && searchFormItems.length > 0" class="card-container">
-      <FormBuilder v-model="searchForm" :form-items="computedSearchFormItems" :label-width="labelWidth" :actions-span="6" :gutter="20">
+      <FormBuilder
+        v-model="searchForm"
+        :form-items="computedSearchFormItems"
+        :label-width="labelWidth"
+        :actions-span="6"
+        :gutter="20"
+      >
         <template #actions>
           <NSpace class="w-full" justify="end">
             <NButton type="primary" @click="handleSearch">
@@ -22,7 +28,7 @@
         <slot name="header" />
       </div>
       <div id="appraisal-table-container">
-        <n-data-table
+        <NDataTable
           :columns="columns"
           :data="tableData"
           :loading="loading"
@@ -31,7 +37,7 @@
         />
       </div>
       <n-flex class="mt-10" justify="end">
-        <n-pagination
+        <NPagination
           :item-count="total"
           :page="page"
           :page-size="pageSize"
@@ -87,7 +93,7 @@ const props = defineProps({
 });
 
 const searchForm = reactive({});
- const tableData = ref([]);
+const tableData = ref([]);
 
 const {
   loading,
@@ -118,7 +124,6 @@ const computedSearchFormItems = computed(() => {
   }));
 });
 
-
 watch(
   () => props.searchFormItems,
   () => {
@@ -141,7 +146,7 @@ handleSuccess(async ({ data }) => {
     tableList = await props.formatResponseList(tableList);
   }
   tableData.value = tableList;
-})
+});
 
 function handlePageChange(newPage) {
   page.value = newPage;

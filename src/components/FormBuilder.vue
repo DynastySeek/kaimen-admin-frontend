@@ -1,5 +1,11 @@
 <template>
-  <n-form ref="formRef" :model="modelValue" :rules="extractedRules" :label-width="labelWidth" label-placement="left">
+  <n-form
+    ref="formRef"
+    :model="modelValue"
+    :rules="extractedRules"
+    :label-width="labelWidth"
+    label-placement="left"
+  >
     <n-grid :cols="24" :x-gap="gutter">
       <n-grid-item v-for="item in filterFormItems" :key="item.prop" :span="item.span || 24">
         <n-form-item :label="item.label" :path="item.prop">

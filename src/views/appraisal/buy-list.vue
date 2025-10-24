@@ -12,13 +12,13 @@
 </template>
 
 <script setup>
+import { omit } from 'lodash-es';
 import { computed, ref } from 'vue';
 import { CommonPage, ProTable } from '@/components';
 import { AppraisalClassLabelMap, PriceRangeValueMap } from '@/constants';
 import { fetchAppraisalBuyList } from '@/services';
 import { useUserStore } from '@/stores';
 import { formatDateTime } from '@/utils';
-import { omit } from 'lodash-es';
 
 const proTableRef = ref();
 const userStore = useUserStore();

@@ -13,7 +13,7 @@
     "preview:prod": "vite preview --mode prod",
     "deploy:dev": "pnpm build:dev && cross-env NODE_ENV=dev node ./deploy/index.js",
     "deploy:prod": "pnpm build:prod && cross-env NODE_ENV=production node ./deploy/index.js",
-    "lint:fix": "eslint --fix",
+    "lint:fix": "eslint \"src/**/*.{js,ts,vue,tsx,jsx}\" --fix",
     "up": "taze major -I"
   },
   "dependencies": {

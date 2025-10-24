@@ -48,7 +48,7 @@ const emit = defineEmits(['update:modelValue', 'update:value', 'change']);
  * 将URL转换为文件对象
  * @param {string} url - 图片URL
  * @param {number} index - 索引
- * @returns {Object} 文件对象
+ * @returns {object} 文件对象
  */
 function createFileFromUrl(url, index = 0) {
   if (!url) {

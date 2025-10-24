@@ -65,7 +65,13 @@
           </n-tag>
         </n-descriptions-item>
         <n-descriptions-item label="User Agent" :span="3">
-          <n-input v-model:value="userAgent" type="textarea" readonly :autosize="{ minRows: 3, maxRows: 5 }" />
+          <n-input
+            v-model:value="userAgent"
+            type="textarea"
+            readonly
+            :autosize="{ minRows: 3,
+                         maxRows: 5 }"
+          />
         </n-descriptions-item>
         <n-descriptions-item v-for="(supported, feature) in featureSupport" :key="feature" :label="feature">
           <n-tag :type="supported ? 'success' : 'error'">

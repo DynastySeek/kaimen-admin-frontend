@@ -20,16 +20,16 @@ import {
   CategoryStatusLabelMap,
   Gender,
   GenderLabelMap,
+  PriceRange,
+  PriceRangeLabelMap,
   ProductStatus,
   ProductStatusLabelMap,
+  PubStatus,
+  PubStatusLabelMap,
   UserStatus,
   UserStatusLabelMap,
   UserType,
   UserTypeLabelMap,
-  PubStatus,
-  PubStatusLabelMap,
-  PriceRange,
-  PriceRangeLabelMap,
 } from '@/constants';
 
 const props = defineProps({

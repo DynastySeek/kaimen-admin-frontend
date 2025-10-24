@@ -142,10 +142,10 @@
 
 <script setup>
 import { Edit } from '@vicons/carbon';
+import { isEmpty } from 'lodash-es';
 import { reactive, ref, watch } from 'vue';
 import { AppraisalResult, AppraisalResultLabelMap, AppraisalStatus } from '@/constants';
 import { fetchAppraisalResultAdd, fetchAppraisalUpdate } from '@/services';
-import { isEmpty } from 'lodash-es';
 
 const props = defineProps({
   data: { type: Object, default: () => null },

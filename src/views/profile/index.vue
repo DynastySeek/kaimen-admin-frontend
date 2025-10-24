@@ -14,7 +14,12 @@
       </n-flex>
     </template>
     <n-card>
-      <FormBuilder ref="formRef" v-model="formState" :form-items="formItems" label-width="120px">
+      <FormBuilder
+        ref="formRef"
+        v-model="formState"
+        :form-items="formItems"
+        label-width="120px"
+      >
         <template #userType>
           <n-tag type="primary">
             {{ UserTypeLabelMap[formState.userType] }}
@@ -42,7 +47,12 @@
       title="修改密码"
       style="width: 500px;"
     >
-      <FormBuilder ref="passwordFormRef" v-model="passwordFormState" :form-items="passwordFormItems" label-width="100px" />
+      <FormBuilder
+        ref="passwordFormRef"
+        v-model="passwordFormState"
+        :form-items="passwordFormItems"
+        label-width="100px"
+      />
       <template #footer>
         <n-flex justify="end">
           <n-button @click="handlePasswordCancel">

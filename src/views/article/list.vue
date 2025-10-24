@@ -7,9 +7,11 @@
       :columns="columns"
     >
       <template #header>
-        <n-space>
-          <n-button type="primary" @click="handleAdd">新增文章</n-button>
-        </n-space>
+        <NSpace>
+          <NButton type="primary" @click="handleAdd">
+            新增文章
+          </NButton>
+        </NSpace>
       </template>
     </ProTable>
   </CommonPage>
@@ -21,7 +23,7 @@ import { computed, h, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { CommonPage, ProTable } from '@/components';
 import { PubStatus, PubStatusLabelMap } from '@/constants';
-import { fetchArticleList, fetchEnableArticle, fetchDisableArticle } from '@/services';
+import { fetchArticleList, fetchDisableArticle, fetchEnableArticle } from '@/services';
 import { formatDateTime } from '@/utils';
 
 const router = useRouter();
@@ -146,7 +148,7 @@ function handleAdd() {
 
 /**
  * 处理编辑文章
- * @param {Object} row - 文章数据
+ * @param {object} row - 文章数据
  */
 function handleEdit(row) {
   router.push(`/article/detail?id=${row.id}`);
@@ -154,7 +156,7 @@ function handleEdit(row) {
 
 /**
  * 处理发布状态切换
- * @param {Object} row - 文章数据
+ * @param {object} row - 文章数据
  */
 async function handleTogglePublish(row) {
   try {
@@ -170,7 +172,7 @@ async function handleTogglePublish(row) {
     // 刷新列表
     proTableRef.value.refresh();
   } catch (error) {
-    $message.error('操作失败：' + (error.message || '未知错误'));
+    $message.error(`操作失败：${error.message || '未知错误'}`);
   }
 }
 </script>

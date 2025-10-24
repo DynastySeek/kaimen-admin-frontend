@@ -63,7 +63,7 @@ handleLoadSuccess(({ data }) => {
   if (data?.data) {
     Object.assign(formData, data.data);
   }
-})
+});
 
 async function handleSubmit() {
   try {

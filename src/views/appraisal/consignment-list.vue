@@ -16,17 +16,15 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { cloneDeep, omit } from 'lodash-es';
 import { NButton, NIcon, NSpace } from 'naive-ui';
-import { h } from 'vue';
-import { cloneDeep } from 'lodash-es';
+import { computed, h, ref } from 'vue';
 import { getTempFileUrls } from '@/cloud';
 import { CommonPage, ProTable, VideoModal } from '@/components';
 import { AppraisalClassLabelMap, PriceRangeValueMap } from '@/constants';
 import { fetchAppraisalConsignmentList } from '@/services';
 import { useUserStore } from '@/stores';
 import { formatDateTime } from '@/utils';
-import { omit } from 'lodash-es';
 import ImagePreview from './components/ImagePreview.vue';
 
 const proTableRef = ref();
@@ -185,7 +183,7 @@ function formatSearchParams(params) {
 
 /**
  * 处理视频播放
- * @param {Object} row - 行数据
+ * @param {object} row - 行数据
  * @param {number} videoIndex - 视频索引，默认为0
  */
 function handleVideoPlay(row, videoIndex = 0) {
@@ -198,7 +196,7 @@ function handleVideoPlay(row, videoIndex = 0) {
 
 /**
  * 处理委托列表数据成功回调，转换云存储文件URL
- * @param {Object} response - 响应数据
+ * @param {object} response - 响应数据
  */
 async function handleConsignmentListSuccess(list) {
   if (!list) {
@@ -227,7 +225,7 @@ async function handleConsignmentListSuccess(list) {
         }
       });
     }
-    return cloneList
+    return cloneList;
   } catch (error) {
     console.error('处理委托列表数据失败:', error);
     return [];

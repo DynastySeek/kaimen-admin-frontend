@@ -9,7 +9,12 @@
         size="large"
       >
         <template #footer>
-          <n-button v-if="back" type="primary" ghost @click="router.replace(back)">
+          <n-button
+            v-if="back"
+            type="primary"
+            ghost
+            @click="router.replace(back)"
+          >
             返回上一页
           </n-button>
           <n-button type="primary" class="ml-20" @click="router.replace('/')">

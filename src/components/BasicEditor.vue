@@ -2,7 +2,7 @@
   <div style="border: 1px solid #ccc">
     <Toolbar
       :editor="editorRef"
-      :defaultConfig="toolbarConfig"
+      :default-config="toolbarConfig"
       :mode="mode"
       style="border-bottom: 1px solid #ccc"
     />
@@ -10,10 +10,10 @@
       v-model="valueHtml"
       style="height: 400px; overflow-y: hidden"
       :mode="mode"
-      :defaultConfig="editorConfig"
-      @onCreated="handleCreated"
-      @onChange="handleChange"
-      @onDestroyed="handleDestroyed"
+      :default-config="editorConfig"
+      @on-created="handleCreated"
+      @on-change="handleChange"
+      @on-destroyed="handleDestroyed"
     />
   </div>
 </template>
