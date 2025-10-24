@@ -33,7 +33,9 @@
           :data="tableData"
           :loading="loading"
           :scroll-x="1400"
-          :row-key="item => item.id"
+          :row-key="rowKey"
+          :checked-row-keys="checkedRowKeys"
+          @update:checked-row-keys="handleCheckedRowKeysChange"
         />
       </div>
       <n-flex class="mt-10" justify="end">
@@ -56,7 +58,7 @@
 <script setup>
 import { usePagination } from 'alova/client';
 import { NButton, NDataTable, NPagination, NSpace } from 'naive-ui';
-import { computed, reactive, watch } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import FormBuilder from './FormBuilder.vue';
 
 const props = defineProps({
@@ -90,7 +92,20 @@ const props = defineProps({
     type: Function,
     default: null,
   },
+  // 选中的行键
+  checkedRowKeys: {
+    type: Array,
+    default: () => [],
+  },
+  // 行数据的 key，用于表格行的唯一标识
+  rowKey: {
+    type: Function,
+    default: item => item.id,
+  },
+
 });
+
+const emit = defineEmits(['update:checked-row-keys']);
 
 const searchForm = reactive({});
 const tableData = ref([]);
@@ -167,6 +182,10 @@ function handleReset() {
     searchForm[key] = '';
   });
   handleSearch();
+}
+
+function handleCheckedRowKeysChange(keys) {
+  emit('update:checked-row-keys', keys);
 }
 
 defineExpose({

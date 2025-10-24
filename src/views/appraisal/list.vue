@@ -11,60 +11,29 @@
       </n-radio-group>
     </template>
 
-    <!-- 搜索表单 -->
-    <n-card v-if="searchFormItems && searchFormItems.length > 0" class="mt-10">
-      <FormBuilder
-        v-model="searchForm"
-        :form-items="searchFormItems"
-        label-width="120px"
-        :actions-span="6"
-        :gutter="20"
-      >
-        <template #actions>
-          <NSpace class="w-full" justify="end">
-            <NButton type="primary" :loading="loading" @click="reload">
-              搜索
-            </NButton>
-            <NButton @click="handleReset">
-              重置
-            </NButton>
-          </NSpace>
-        </template>
-      </FormBuilder>
-    </n-card>
-
-    <!-- 数据表格 -->
-    <n-card class="mt-10">
-      <NSpace class="mb-10">
-        <NButton type="primary" @click="handleBatchAppraisal">
-          批量鉴定
-        </NButton>
-      </NSpace>
-      <div id="appraisal-table-container">
-        <n-data-table
-          :columns="columns"
-          :data="tableData"
-          :loading="loading"
-          :scroll-x="1400"
-          :row-key="item => item.appraisal_id"
-          :checked-row-keys="checkedRowKeys"
-          @update:checked-row-keys="handleCheckChange"
-        />
-      </div>
-      <n-flex class="mt-10" justify="end">
-        <n-pagination
-          :item-count="total"
-          :page="page"
-          :page-size="pageSize"
-          :page-sizes="[10, 20, 50, 100]"
-          :page-slot="6"
-          show-size-picker
-          :prefix="({ itemCount }) => `共 ${itemCount} 条`"
-          @update:page="handlePageChange"
-          @update:page-size="handlePageSizeChange"
-        />
-      </n-flex>
-    </n-card>
+    <ProTable
+      ref="proTableRef"
+      label-width="120px"
+      :columns="columns"
+      :checked-row-keys="checkedRowKeys"
+      :search-form-items="searchFormItems"
+      :fetch-data="fetchAppraisalList"
+      :format-search-params="formatSearchParams"
+      :format-response-list="formatResponseList"
+      :row-key="item => item.appraisal_id"
+      @update:checked-row-keys="handleCheckChange"
+    >
+      <template #header>
+        <NSpace>
+          <NButton
+            type="primary"
+            @click="batchAppraisalModalVisible = true"
+          >
+            批量鉴定
+          </NButton>
+        </NSpace>
+      </template>
+    </ProTable>
 
     <!-- 视频播放弹窗 -->
     <VideoModal v-model:show="videoModalVisible" :src="currentVideoSrc" :title="currentVideoTitle" />
@@ -79,12 +48,11 @@
 </template>
 
 <script setup>
-import { usePagination } from 'alova/client';
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep, omit } from 'lodash-es';
 import { NButton, NIcon, NSpace, NTag } from 'naive-ui';
-import { h, reactive, ref } from 'vue';
+import { computed, ref } from 'vue';
 import { getTempFileUrls } from '@/cloud';
-import { CommonPage, FormBuilder, SelectDictionary, VideoModal } from '@/components';
+import { CommonPage, ProTable, SelectDictionary, VideoModal } from '@/components';
 import { AppraisalStatus, AppraisalStatusLabelMap } from '@/constants';
 import { fetchAppraisalList, fetchAppraisalUpdate } from '@/services';
 import { useUserStore } from '@/stores';
@@ -104,63 +72,64 @@ const tabs = [
 ];
 
 const activeTab = ref(null);
-const tableData = ref([]);
-const resultLoading = ref(false);
-
 const userStore = useUserStore();
+const proTableRef = ref();
 
 const batchAppraisalModalVisible = ref(false);
-
 const videoModalVisible = ref(false);
 const currentVideoSrc = ref('');
 const currentVideoTitle = ref('');
-
 const checkedRowKeys = ref([]);
 
-const defaultSearchForm = {
-  appraisalId: '',
-  userPhone: '',
-  title: '',
-  firstClass: null,
-  createTimeRange: null,
-  updateTimeRange: null,
-  lastAppraiserId: null,
-};
-const searchForm = reactive({ ...defaultSearchForm });
-
-const {
-  page,
-  pageSize,
-  total,
-  loading: listLoading,
-  refresh,
-  reload,
-  onSuccess: handleAppraisalListSuccess,
-} = usePagination(
-  (page, pageSize) => fetchAppraisalList({
-    page,
-    pageSize,
+/**
+ * 搜索参数格式化函数
+ * @param {object} params - 搜索参数
+ * @returns {object} 格式化后的参数
+ */
+function formatSearchParams(params) {
+  return omit({
+    ...params,
     ...(activeTab.value || {}),
-    createStartTime: searchForm.createTimeRange?.[0] ? formatDateTime(searchForm.createTimeRange?.[0]) : null,
-    createEndTime: searchForm.createTimeRange?.[1] ? formatDateTime(searchForm.createTimeRange?.[1]) : null,
-    updateStartTime: searchForm.updateTimeRange?.[0] ? formatDateTime(searchForm.updateTimeRange?.[0]) : null,
-    updateEndTime: searchForm.updateTimeRange?.[1] ? formatDateTime(searchForm.updateTimeRange?.[1]) : null,
-    ...searchForm,
-  }),
-  {
-    total: response => response.data.total,
-    data: response => response.data.list,
-    initialData: {
-      total: 0,
-      data: [],
-    },
-    initialPage: 1,
-    initialPageSize: 10,
-    immediate: true,
-  },
-);
+    createStartTime: params.createTimeRange?.[0] ? formatDateTime(params.createTimeRange?.[0]) : null,
+    createEndTime: params.createTimeRange?.[1] ? formatDateTime(params.createTimeRange?.[1]) : null,
+    updateStartTime: params.updateTimeRange?.[0] ? formatDateTime(params.updateTimeRange?.[0]) : null,
+    updateEndTime: params.updateTimeRange?.[1] ? formatDateTime(params.updateTimeRange?.[1]) : null,
+  }, ['createTimeRange', 'updateTimeRange']);
+}
 
-const searchFormItems = [
+/**
+ * 响应数据格式化函数
+ * @param {Array} list - 原始数据列表
+ * @returns {Array} 格式化后的数据列表
+ */
+async function formatResponseList(list) {
+  try {
+    const clonedList = cloneDeep(list);
+    const allCloudImages = clonedList.reduce((acc, d) => acc.concat(d.images || []), []).filter(v => v.startsWith('cloud://'));
+    const allCloudVideos = clonedList.reduce((acc, d) => acc.concat(d.videos || []), []).filter(v => v.startsWith('cloud://'));
+    const allCloudUrl = [...allCloudImages, ...allCloudVideos];
+    if (allCloudUrl.length > 0) {
+      const tempFileUrls = await getTempFileUrls(allCloudUrl);
+      clonedList.forEach((item) => {
+        item.images = item.images.map((img) => {
+          const tempFile = tempFileUrls.find(file => file.fileID === img);
+          return tempFile ? tempFile.tempFileURL : img;
+        });
+        item.videos = item.videos.map((vid) => {
+          const tempFile = tempFileUrls.find(file => file.fileID === vid);
+          return tempFile ? tempFile.tempFileURL : vid;
+        });
+      });
+    }
+    return clonedList;
+  } catch (error) {
+    console.error('获取鉴定详情失败:', error);
+    $message.error('获取鉴定列表数据失败');
+    return list;
+  }
+}
+
+const searchFormItems = computed(() => [
   {
     prop: 'appraisalId',
     label: '鉴定ID',
@@ -213,9 +182,7 @@ const searchFormItems = [
     placeholder: '请选择鉴定师',
     span: 6,
   },
-].filter(item => !item.hidden);
-
-const loading = computed(() => listLoading.value || resultLoading.value);
+].filter(item => !item.hidden));
 
 const columns = computed(() => [
   {
@@ -361,68 +328,21 @@ const columns = computed(() => [
   },
 ].filter(column => !column.hidden));
 
-handleAppraisalListSuccess(async ({ data }) => {
-  resultLoading.value = true;
-  try {
-    const { list } = cloneDeep(data.data);
-    const allCloudImages = list.reduce((acc, d) => acc.concat(d.images || []), []).filter(v => v.startsWith('cloud://'));
-    const allCloudVideos = list.reduce((acc, d) => acc.concat(d.videos || []), []).filter(v => v.startsWith('cloud://'));
-    const allCloudUrl = [...allCloudImages, ...allCloudVideos];
-    if (allCloudUrl.length > 0) {
-      const tempFileUrls = await getTempFileUrls(allCloudUrl);
-      list.forEach((item) => {
-        item.images = item.images.map((img) => {
-          const tempFile = tempFileUrls.find(file => file.fileID === img);
-          return tempFile ? tempFile.tempFileURL : img;
-        });
-        item.videos = item.videos.map((vid) => {
-          const tempFile = tempFileUrls.find(file => file.fileID === vid);
-          return tempFile ? tempFile.tempFileURL : vid;
-        });
-      });
-    }
-    tableData.value = list;
-  } catch (error) {
-    console.error('获取鉴定详情失败:', error);
-    $message.error('获取鉴定列表数据失败');
-  } finally {
-    resultLoading.value = false;
-  }
-});
-
-function handleCheckChange(rowKeys) {
-  checkedRowKeys.value = rowKeys;
-}
-
 function handleTabChange(value) {
   activeTab.value = value;
-  reload();
-}
-
-function handleReset() {
-  Object.assign(searchForm, defaultSearchForm);
-  reload();
-}
-
-function handlePageChange(newPage) {
-  page.value = newPage;
-}
-
-function handlePageSizeChange(newPageSize) {
-  pageSize.value = newPageSize;
-  page.value = 1;
+  proTableRef.value?.reload();
 }
 
 function handleAppraisalSubmit(_data) {
-  refresh();
+  proTableRef.value?.refresh();
 }
 
-function handleBatchAppraisal() {
-  batchAppraisalModalVisible.value = true;
+function handleCheckChange(keys) {
+  checkedRowKeys.value = keys;
 }
 
 async function handleBatchAppraisalSubmit() {
-  refresh();
+  proTableRef.value?.refresh();
   checkedRowKeys.value = [];
 }
 
@@ -443,7 +363,7 @@ async function handleCategoryChange(value, row) {
 
     await fetchAppraisalUpdate(updateData);
     $message.success('分类更新成功');
-    refresh();
+    proTableRef.value?.refresh();
   } catch (error) {
     console.error('分类更新失败:', error);
     $message.error('分类更新失败');
