@@ -21,7 +21,7 @@
           </slot>
 
           <div class="mr-12 h-16 w-4 rounded-l-2 bg-primary" />
-          <h2 class="font-normal">
+          <h2 class="cursor-pointer font-normal transition-all-300 hover:text-primary" @click="scrollToTop">
             {{ title ?? route.meta?.title }}
           </h2>
           <slot name="title-suffix" />
@@ -29,7 +29,7 @@
         <slot name="action" />
       </template>
     </AppCard>
-    <div class="cus-scroll h-0 flex-1 p-10">
+    <div ref="contentContainer" class="cus-scroll h-0 flex-1 p-10">
       <slot />
     </div>
 
@@ -62,4 +62,15 @@ defineProps({
 });
 const route = useRoute();
 const router = useRouter();
+
+const contentContainer = ref();
+
+function scrollToTop() {
+  if (contentContainer.value) {
+    contentContainer.value.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  }
+}
 </script>
