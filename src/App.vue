@@ -6,20 +6,22 @@
     :theme="appStore.isDark ? darkTheme : undefined"
     :theme-overrides="appStore.naiveThemeOverrides"
   >
-    <router-view v-if="Layout" v-slot="{ Component, route: curRoute }">
-      <component :is="Layout">
-        <transition name="fade-slide" mode="out-in" appear>
-          <KeepAlive :include="keepAliveNames">
-            <component
-              :is="Component || PageMissing"
-              v-if="!tabStore.reloading"
-              :key="curRoute.fullPath"
-              :component-path="curRoute.meta?.component || curRoute.path"
-            />
-          </KeepAlive>
-        </transition>
-      </component>
-    </router-view>
+    <n-dialog-provider>
+      <router-view v-if="Layout" v-slot="{ Component, route: curRoute }">
+        <component :is="Layout">
+          <transition name="fade-slide" mode="out-in" appear>
+            <KeepAlive :include="keepAliveNames">
+              <component
+                :is="Component || PageMissing"
+                v-if="!tabStore.reloading"
+                :key="curRoute.fullPath"
+                :component-path="curRoute.meta?.component || curRoute.path"
+              />
+            </KeepAlive>
+          </transition>
+        </component>
+      </router-view>
+    </n-dialog-provider>
   </n-config-provider>
 </template>
 

@@ -1,6 +1,5 @@
 import * as NaiveUI from 'naive-ui';
 import { useAppStore } from '@/stores';
-import { isNullOrUndef } from '@/utils';
 
 export function setupMessage(NMessage) {
   class Message {
@@ -77,23 +76,6 @@ export function setupMessage(NMessage) {
   return new Message();
 }
 
-export function setupDialog(NDialog) {
-  NDialog.confirm = function (option = {}) {
-    const showIcon = !isNullOrUndef(option.title);
-    return NDialog[option.type || 'warning']({
-      showIcon,
-      positiveText: '确定',
-      negativeText: '取消',
-      onPositiveClick: option.confirm,
-      onNegativeClick: option.cancel,
-      onMaskClick: option.cancel,
-      ...option,
-    });
-  };
-
-  return NDialog;
-}
-
 export function setupNaiveDiscreteApi() {
   const appStore = useAppStore();
   const configProviderProps = computed(() => ({
@@ -108,5 +90,5 @@ export function setupNaiveDiscreteApi() {
   window.$loadingBar = loadingBar;
   window.$notification = notification;
   window.$message = setupMessage(message);
-  window.$dialog = setupDialog(dialog);
+  window.$dialog = dialog;
 }

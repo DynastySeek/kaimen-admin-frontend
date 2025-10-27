@@ -11,6 +11,7 @@
 </template>
 
 <script setup>
+import { useDialog } from 'naive-ui';
 import DefaultAvatar from '@/assets/images/default_avatar.png';
 import { RoleLabelMap } from '@/constants';
 import { fetchLogout } from '@/services';
@@ -19,6 +20,7 @@ import { useAuthStore, useUserStore } from '@/stores';
 const router = useRouter();
 const userStore = useUserStore();
 const authStore = useAuthStore();
+const dialog = useDialog();
 
 const options = reactive([
   {
@@ -47,11 +49,12 @@ function handleSelect(key) {
       router.push('/system-info');
       break;
     case 'logout':
-      $dialog.confirm({
+      dialog.info({
         title: '提示',
-        type: 'info',
         content: '确认退出？',
-        async confirm() {
+        positiveText: '确定',
+        negativeText: '取消',
+        async onPositiveClick() {
           try {
             await fetchLogout();
           } catch (error) {
