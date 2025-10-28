@@ -2,6 +2,7 @@ export const VITE_APP_TITLE = import.meta.env.VITE_APP_TITLE;
 export const VITE_STORAGE_PREFIX_KEY = import.meta.env.VITE_STORAGE_PREFIX_KEY;
 export const VITE_BASE_REQUEST_API = import.meta.env.VITE_BASE_REQUEST_API;
 export const VITE_PUBLIC_PATH = import.meta.env.VITE_PUBLIC_PATH || '/';
+export const VITE_PUBLIC_RESOURCE_PATH = import.meta.env.VITE_PUBLIC_RESOURCE_PATH || '';
 
 export const isDev = import.meta.env.VITE_NODE_ENV === 'dev';
 export const isProd = import.meta.env.VITE_NODE_ENV === 'prod';

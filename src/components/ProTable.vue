@@ -151,7 +151,7 @@ watch(
 function initSearchForm() {
   props.searchFormItems.forEach((item) => {
     if (!(item.prop in searchForm)) {
-      searchForm[item.prop] = '';
+      searchForm[item.prop] = null;
     }
   });
 }

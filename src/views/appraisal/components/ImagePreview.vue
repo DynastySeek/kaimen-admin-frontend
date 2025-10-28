@@ -1,8 +1,8 @@
 <template>
   <div class="inline-block" :style="containerStyle">
     <template v-if="!images || images.length === 0">
-      <div class="p-2 text-xs text-gray-400">
-        无图片
+      <div>
+        -
       </div>
     </template>
     <template v-else>
@@ -18,10 +18,10 @@
                         maxHeight: `${height}px` }"
               :width="width"
               :height="height"
-              :src="image"
-              :fallback-src="fallbackSrc"
+              :src="$resourceUrl(image)"
+              :fallback-src="$resourceUrl(fallbackSrc)"
               object-fit="cover"
-              :preview-src="image"
+              :preview-src="$resourceUrl(image)"
               class="overflow-hidden rounded-md"
             />
             <n-badge
