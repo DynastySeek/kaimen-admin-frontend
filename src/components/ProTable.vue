@@ -180,7 +180,7 @@ function handleSearch() {
 
 function handleReset() {
   Object.keys(searchForm).forEach((key) => {
-    searchForm[key] = '';
+    searchForm[key] = null;
   });
   handleSearch();
 }

@@ -1,15 +1,16 @@
 <template>
   <n-select
-    v-model:value="valueModel"
+    :value="modelValue"
     :placeholder="placeholder"
     :options="options"
     :clearable="clearable"
     :style="{ width }"
+    @update:value="handleUpdateValue"
   />
 </template>
 
 <script setup>
-import { computed, defineModel } from 'vue';
+import { computed } from 'vue';
 import {
   AppraisalClass,
   AppraisalClassLabelMap,
@@ -49,17 +50,17 @@ const props = defineProps({
     type: String,
     default: '100%',
   },
+  modelValue: {
+    type: [String, Number, Boolean],
+    default: undefined,
+  },
   clearable: {
     type: Boolean,
     default: true,
   },
 });
 
-// v-model:value 绑定的值
-const valueModel = defineModel('value', {
-  type: [String, Number, Boolean],
-  default: undefined,
-});
+const emit = defineEmits(['update:modelValue']);
 
 const EnumMap = {
   Gender: [Gender, GenderLabelMap],
@@ -72,6 +73,14 @@ const EnumMap = {
   PubStatus: [PubStatus, PubStatusLabelMap],
   PriceRange: [PriceRange, PriceRangeLabelMap],
 };
+
+/**
+ * 处理选择值更新事件
+ * @param {string | number | boolean} value - 更新后的值
+ */
+function handleUpdateValue(value) {
+  emit('update:modelValue', value);
+}
 
 /**
  * 转换值类型
