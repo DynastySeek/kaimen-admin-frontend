@@ -3,7 +3,7 @@
     <div id="user-dropdown" class="flex cursor-pointer items-center">
       <n-avatar round :size="36" :src="userStore.avatar || DefaultAvatar" />
       <div v-if="userStore.userInfo" class="ml-12 flex-col flex-shrink-0 items-center">
-        <span class="text-14">{{ userStore.userInfo?.nickname ?? userStore.userInfo?.username }}</span>
+        <span class="text-16">{{ userStore.userInfo?.nickname ?? userStore.userInfo?.username }}</span>
         <span class="text-12 opacity-50">[{{ RoleLabelMap[userStore.userInfo?.role] }}]</span>
       </div>
     </div>
@@ -26,17 +26,17 @@ const options = reactive([
   {
     label: '个人资料',
     key: 'profile',
-    icon: () => h('i', { class: 'i-material-symbols:person-outline text-14' }),
+    icon: () => h('i', { class: 'i-material-symbols:person-outline text-16' }),
   },
   {
     label: '系统信息',
     key: 'systemInfo',
-    icon: () => h('i', { class: 'i-material-symbols:info-outline text-14' }),
+    icon: () => h('i', { class: 'i-material-symbols:info-outline text-16' }),
   },
   {
     label: '退出登录',
     key: 'logout',
-    icon: () => h('i', { class: 'i-mdi:exit-to-app text-14' }),
+    icon: () => h('i', { class: 'i-mdi:exit-to-app text-16' }),
   },
 ]);
 

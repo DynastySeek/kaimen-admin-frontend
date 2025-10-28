@@ -62,7 +62,6 @@ export default antfu({
       Message: 'readonly',
       $loadingBar: 'readonly',
       $message: 'readonly',
-      $dialog: 'readonly',
       $notification: 'readonly',
       $modal: 'readonly',
     },
