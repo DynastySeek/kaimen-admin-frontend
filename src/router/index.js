@@ -6,8 +6,9 @@ import { basicRoutes } from './modules/basic';
 import { createPageLoadingGuard } from './page-loading';
 import { createPermissionGuard } from './permission';
 import { createTabGuard } from './tab';
+import { daily } from './modules/daily';
 
-export const authRoutes = [...appraisalRoutes, ...articleRoutes];
+export const authRoutes = [...appraisalRoutes, ...articleRoutes, ...daily];
 
 export const router = createRouter({
   history: createWebHistory(VITE_PUBLIC_PATH),
