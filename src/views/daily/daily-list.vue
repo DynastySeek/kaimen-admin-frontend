@@ -1,15 +1,16 @@
 <template>
   <CommonPage>
-    <template #action>
+    <!-- <template #action>
       <n-radio-group v-model:value="activeTab" name="appraisal-status" @update:value="handleTabChange">
         <n-radio-button
           v-for="tab in tabs"
-          :key="tab.value"
-          :value="tab.value"
-          :label="tab.label"
-        />
+          :key="tab.id"
+          :value="tab.id"
+        >
+          {{ `${tab.label}` }}
+        </n-radio-button>
       </n-radio-group>
-    </template>
+    </template> -->
     <n-card class="mb-4">
       <n-space vertical :size="12">
         <div class="text-7xl font-bold" style="font-weight: 700;">每日精品评选</div>
@@ -47,7 +48,6 @@
 
     <!-- 视频播放弹窗 -->
     <VideoModal v-model:show="videoModalVisible" :src="currentVideoSrc" :title="currentVideoTitle" />
-
     <!-- 批量鉴定弹窗 -->
     <BatchUpdateDrawer
       v-model:show="batchAppraisalModalVisible"
@@ -72,15 +72,9 @@ import { formatDateTime } from '@/utils';
 import AppraisalAction from '../appraisal/components/AppraisalAction.vue';
 import BatchUpdateDrawer from './BatchUpdateDrawer.vue';
 import ImagePreview from '../appraisal/components/ImagePreview.vue';
+import dayjs from 'dayjs';
 
-const tabs = [
-  { label: '银元:', value: { appraisalStatus: AppraisalStatus.PendingAppraisal } },
-  { label: '古钱:', value: { appraisalStatus: AppraisalStatus.PendingCompletion } },
-  { label: '杂项:', value: { appraisalStatus: AppraisalStatus.Completed, appraisalResult: AppraisalStatus.PendingAppraisal } },
-  { label: '纸币:', value: { appraisalStatus: AppraisalStatus.Completed, appraisalResult: AppraisalStatus.InProgress } },
-];
-
-const activeTab = ref(null);
+const activeTab = ref('');
 const userStore = useUserStore();
 const proTableRef = ref();
 
@@ -88,8 +82,12 @@ const batchAppraisalModalVisible = ref(false);
 const videoModalVisible = ref(false);
 const currentVideoSrc = ref('');
 const currentVideoTitle = ref('');
+const STORAGE_KEY = 'daily-batch-selection';
 const checkedRowKeys = ref([]);
 const tableData = ref([]); // 存储表格数据
+const forceShowSelection = ref(false);
+const checkedRows = ref([]);
+
 
 /**
  * 搜索参数格式化函数
@@ -97,14 +95,19 @@ const tableData = ref([]); // 存储表格数据
  * @returns {object} 格式化后的参数
  */
 function formatSearchParams(params) {
+  const selectedDate = params.selectedDate ? dayjs(params.selectedDate) : null;
+  const startOfRange = selectedDate
+    ? selectedDate.subtract(1, 'day').hour(21).minute(0).second(0)
+    : null;
+  const endOfRange = selectedDate
+    ? selectedDate.hour(21).minute(0).second(0)
+    : null;
+
   return omit({
     ...params,
-    ...(activeTab.value || {}),
-    createStartTime: params.createTimeRange?.[0] ? formatDateTime(params.createTimeRange?.[0]) : null,
-    createEndTime: params.createTimeRange?.[1] ? formatDateTime(params.createTimeRange?.[1]) : null,
-    updateStartTime: params.updateTimeRange?.[0] ? formatDateTime(params.updateTimeRange?.[0]) : null,
-    updateEndTime: params.updateTimeRange?.[1] ? formatDateTime(params.updateTimeRange?.[1]) : null,
-  }, ['createTimeRange', 'updateTimeRange']);
+    createStartTime: startOfRange ? startOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
+    createEndTime: endOfRange ? endOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
+  }, ['selectedDate']);
 }
 
 /**
@@ -147,42 +150,68 @@ const searchFormItems = computed(() => [
     label: '评选日期',
     type: 'date',
     placeholder: '请选择评选日期',
-    span: 6,
-    value: new Date().getTime(), // 设置默认值为今天
+    span: 4,
+    value: dayjs().format('YYYY-MM-DD'), // 设置默认值为今天
+    rules: [
+    { required: true, message: '请选择评选日期', trigger: ['blur', 'change'] },
+  ],
   },
+  {
+  prop: 'first_class',
+  label: '类目',
+  type: 'select',
+  placeholder: '请选择类目',
+  span: 4,
+  props: {
+    options: [
+      { label: '银元', value: '1' },
+      { label: '古钱', value: '2' },
+      { label: '杂项', value: '4' },
+      { label: '纸币', value: '5' },
+    ],
+  },
+  value:'1',
+  rules: [
+    { required: true, message: '请选择类目', trigger: ['blur', 'change'] },
+  ],
+},
   {
     prop: 'appraisalId',
     label: '鉴定ID',
     type: 'input',
     placeholder: '请输入鉴定ID',
-    span: 6,
+    span: 4,
   },
   {
-    prop: 'title',
+    prop: 'description',
     label: '描述',
     type: 'input',
     placeholder: '请输入描述',
-    span: 6,
+    span: 4,
   },
  
 ].filter(item => !item.hidden));
 
 // 计算选中的完整行数据
-const checkedRows = computed(() => {
-  return tableData.value.filter(row => checkedRowKeys.value.includes(row.appraisal_id));
-});
-
-console.log('checkedRows', checkedRows)
 const columns = computed(() => [
   {
     type: 'selection',
     fixed: 'left',
+
   },
   {
     title: '鉴定ID',
     key: 'appraisal_id',
     width: 300,
 
+  },
+  {
+    title: '评选状态',
+    key: 'fine_class',
+    width: 300,
+    render: (row) =>{
+      return [row.fine_class === 1 ? '已评选' : '未评选']
+    }
   },
   {
     title: '图片',
@@ -199,14 +228,14 @@ const columns = computed(() => [
   },
   {
     title: '描述',
-    key: 'user_phone',
+    key: 'description',
     width: 300,
   },
  
 ].filter(column => !column.hidden));
 
 function handleTabChange(value) {
-  activeTab.value = value;
+  activeTab.value = activeTab.value === value ? null : value;
   proTableRef.value?.reload();
 }
 
@@ -214,50 +243,39 @@ function handleTabChange(value) {
  * 处理选中行变化，限制最多选5个
  */
 function handleCheckedRowKeysChange(keys) {
+  checkedrows.value = tableData.value.filter(row => checkedRowKeys.value.includes(row.appraisal_id));
+  batchAppraisalModalVisible.value = !batchAppraisalModalVisible.value || keys.length>0
   if (keys.length > 5) {
     $message.warning('最多只能选择5个项目');
     return;
   }
   checkedRowKeys.value = keys;
+   
 }
 function handleBatchUpdate() {
-  const count = checkedRowKeys.value.length;
-  if (count > 0 && count <= 5) {
-    batchAppraisalModalVisible.value = true;
-  } else if (count === 0) {
-    $message.warning('请先选择项目');
+  const cache = localStorage.getItem("STORAGE_KEY");
+  if (cache) {
+    checkedRows.value = JSON.parse(cache);
   }
-}
-function handleAppraisalSubmit(_data) {
-  proTableRef.value?.refresh();
-}
-
-async function handleBatchAppraisalSubmit() {
-  proTableRef.value?.refresh();
-  checkedRowKeys.value = [];
+  forceShowSelection.value = true;
+  batchAppraisalModalVisible.value = true
 }
 
-function handleVideoPlay(row, videoIndex = 0) {
-  if (row.videos && row.videos.length > 0) {
-    currentVideoSrc.value = row.videos[videoIndex];
-    currentVideoTitle.value = `${row.title} - 视频${videoIndex + 1}`;
-    videoModalVisible.value = true;
-  }
-}
-
-async function handleCategoryChange(value, row) {
+async function handleBatchAppraisalSubmit(submitData) {
   try {
-    const updateData = [{
-      id: row.appraisal_id,
-      appraisal_class: String(value),
-    }];
-
-    await fetchAppraisalUpdate(updateData);
-    $message.success('分类更新成功');
+    const updateData = (submitData || []).map(item => ({
+      id: item,
+      fine_class: 1
+    }));
+   await fetchAppraisalUpdate(updateData);
+    // TODO: 调用实际批量更新接口
+    $message.success('更新成功');
     proTableRef.value?.refresh();
+    checkedRowKeys.value = [];
   } catch (error) {
-    console.error('分类更新失败:', error);
-    $message.error('分类更新失败');
+    console.error('更新失败:', error);
+    $message.error('更新失败');
   }
 }
+
 </script>

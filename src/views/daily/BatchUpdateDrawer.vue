@@ -14,12 +14,13 @@
             :columns="columns"
             :data="checkedRows"
             :row-key="row => row.appraisal_id"
-      
             :scroll-x="600"
           />
         </n-card>
       </n-space>
-
+      <n-gradient-text type="error" style="display: block; margin: 20px 0;">
+      {{ "请确认信息后点击提交，提交后将短信通知用户，尽量不要修改" }}
+      </n-gradient-text>
       <template #footer>
         <n-space>
           <n-button @click="handleCancel">
@@ -165,20 +166,12 @@ function handleCancel() {
  */
 async function handleSubmit() {
   isSubmitting.value = true;
-
   try {
-    const submitData = {
-      ids: props.checkedRowKeys,
-      actionType: formData.actionType,
-      comment: formData.comment,
-    };
-
     // TODO: 这里调用实际的批量更新 API
     // await fetchBatchUpdate(submitData);
-
-    emit('submit', submitData);
+    localStorage.setItem("STORAGE_KEY",JSON.stringify(props.checkedRows));
+    emit('submit', props.checkedRowKeys);
     $message.success(`已成功对 ${props.checkedRowKeys.length} 条数据执行批量操作`);
-
     // 重置表单并关闭弹窗
     resetForm();
     visible.value = false;

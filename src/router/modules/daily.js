@@ -1,31 +1,19 @@
 
 /**
- * 每日精选
- * @description 每日精选的路由配置
+ * 每日精品评选
+ * @description 每日精品评选
  */
 export const daily = [
   {
-    name: 'Daily',
-    redirect: '/daily/list',
+    name: 'daily',
+    path: '/daily/list',
     meta: {
-      title: '每日精品管理',
-      icon: 'i-fe:book-open',
+      title: '每日精品评选',
+      icon: 'i-fe:like',
       show: true,
       enable: true,
-      order: 3,
+      order: 4,
     },
-    children: [
-      {
-        name: 'DailyList',
-        path: '/daily/list',
-        component: () => import('@/views/daily/daily-list.vue'),
-        meta: {
-          title: '每日精品评论',
-          keepAlive: true,
-          show: true,
-          enable: true,
-        },
-      },
-    ],
+    component: () => import('@/views/daily/daily-list.vue'),
   },
 ];
