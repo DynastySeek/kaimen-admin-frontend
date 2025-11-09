@@ -5,3 +5,4 @@ export * from './modules/article';
 export * from './modules/auth';
 export * from './modules/upload';
 export * from './modules/user';
+export * from './modules/chat';

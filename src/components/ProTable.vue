@@ -150,8 +150,13 @@ watch(
 
 function initSearchForm() {
   props.searchFormItems.forEach((item) => {
+    const defaultValue = Object.prototype.hasOwnProperty.call(item, 'value') ? item.value : null;
     if (!(item.prop in searchForm)) {
-      searchForm[item.prop] = null;
+      searchForm[item.prop] = defaultValue;
+      return;
+    }
+    if (Object.prototype.hasOwnProperty.call(item, 'value') && searchForm[item.prop] === null) {
+      searchForm[item.prop] = defaultValue;
     }
   });
 }
@@ -179,8 +184,9 @@ function handleSearch() {
 }
 
 function handleReset() {
-  Object.keys(searchForm).forEach((key) => {
-    searchForm[key] = null;
+  props.searchFormItems.forEach((item) => {
+    const defaultValue = Object.prototype.hasOwnProperty.call(item, 'value') ? item.value : null;
+    searchForm[item.prop] = defaultValue;
   });
   handleSearch();
 }
