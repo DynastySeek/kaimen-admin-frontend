@@ -88,6 +88,9 @@ const tableData = ref([]); // 存储表格数据
 const forceShowSelection = ref(false);
 const checkedRows = ref([]);
 
+// 默认值常量
+const DEFAULT_DATE = dayjs().format('YYYY-MM-DD');
+const DEFAULT_CATEGORY = '1';
 
 /**
  * 搜索参数格式化函数
@@ -151,10 +154,7 @@ const searchFormItems = computed(() => [
     type: 'date',
     placeholder: '请选择评选日期',
     span: 4,
-    value: dayjs().format('YYYY-MM-DD'), // 设置默认值为今天
-    rules: [
-    { required: true, message: '请选择评选日期', trigger: ['blur', 'change'] },
-  ],
+    value: DEFAULT_DATE, // 设置默认值为今天
   },
   {
   prop: 'first_class',
@@ -171,9 +171,7 @@ const searchFormItems = computed(() => [
     ],
   },
   value:'1',
-  rules: [
-    { required: true, message: '请选择类目', trigger: ['blur', 'change'] },
-  ],
+
 },
   {
     prop: 'appraisalId',
