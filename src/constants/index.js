@@ -121,6 +121,7 @@ export const AppraisalClass = {
   GuQian: 2,
   ZaXiang: 4,
   ZhiBi: 5,
+  QuWu: 6,
 };
 
 export const AppraisalClassLabelMap = {
@@ -128,6 +129,7 @@ export const AppraisalClassLabelMap = {
   [AppraisalClass.GuQian]: '古钱',
   [AppraisalClass.ZaXiang]: '杂项',
   [AppraisalClass.ZhiBi]: '纸币',
+  [AppraisalClass.QuWu]: '趣物',
 };
 
 export const AppraisalResult = {
