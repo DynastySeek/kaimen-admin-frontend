@@ -194,6 +194,7 @@ padding:20px;
   flex-direction: column;
   gap: 16px;
   padding:40px;
+  overflow-y: auto;
 }
 
 .chat-entry {

@@ -17,31 +17,28 @@
       :columns="columns"
       :checked-row-keys="checkedRowKeys"
       :search-form-items="searchFormItems"
-      :fetch-data="fetchAppraisalList"
+      :fetch-data="fetchAppraisalFineList"
       :format-search-params="formatSearchParams"
       :format-response-list="formatResponseList"
+      @update:total-data="handleTotalDataChange"
       :row-key="item => item.appraisal_id"
       @update:checked-row-keys="handleCheckedRowKeysChange"
     >
       <template #header>
         <NSpace>
           <NButton
-            v-if="activeTab === 0"
+            v-if="totalData>0"
             type="primary"
             @click="handleBatchUpdate"
-          >
-            修改
+          >{{ 
+           batchAppraisalModalTitle
+          }}
           </NButton>
     
-      <n-radio-group v-model:value="activeTab" name="appraisal-status" @update:value="handleTabChange">
-        <n-radio-button
-          v-for="tab in tabs"
-          :key="tab.id"
-          :value="tab.id"
-        >
-          {{ `${tab.label}` }}
-        </n-radio-button>
-      </n-radio-group>
+          <NButton
+          >
+          {{ totalData>0?"已评选":"未评选"  }}
+          </NButton>
         </NSpace>
       </template>
     </ProTable>
@@ -65,31 +62,24 @@ import { NButton, NIcon, NSpace, NTag } from 'naive-ui';
 import { computed, ref, watch } from 'vue';
 import { getTempFileUrls } from '@/cloud';
 import { CommonPage, ProTable, VideoModal } from '@/components';;
-import { fetchAppraisalList, fetchAppraisalUpdate } from '@/services';
+import { fetchAppraisalFineList, fetchAppraisalUpdate } from '@/services';
 import BatchUpdateDrawer from './BatchUpdateDrawer.vue';
 import ImagePreview from './ImagePreview.vue';
 import dayjs from 'dayjs';
-
-const tabs = [
-  { label: '已评选', id: 1,value: 1 },
-  { label: '未评选', id: 0,value: 0 },
-];
-const activeTab = ref(1);
 const proTableRef = ref();
-
+const batchAppraisalModalTitle = ref('修改');
 const batchAppraisalModalVisible = ref(false);
 const videoModalVisible = ref(false);
 const currentVideoSrc = ref('');
 const currentVideoTitle = ref('');
-
+const isEditing = ref(false);
 const checkedRowKeys = ref([]);
 const tableData = ref([]); // 存储表格数据
-const forceShowSelection = ref(false);
+const originData = ref([]);
+const totalData = ref(0);
 const checkedRows = ref([]);
-
 // 默认值常量
 const DEFAULT_DATE = dayjs().format('YYYY-MM-DD');
-const DEFAULT_CATEGORY = '1';
 
 /**
  * 搜索参数格式化函数
@@ -107,7 +97,7 @@ function formatSearchParams(params) {
 
   return omit({
     ...params,
-    fine_class: activeTab.value,
+    // fineClass: activeTab.value,
     createStartTime: startOfRange ? startOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
     createEndTime: endOfRange ? endOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
   }, ['selectedDate']);
@@ -118,7 +108,13 @@ function formatSearchParams(params) {
  * @param {Array} list - 原始数据列表
  * @returns {Array} 格式化后的数据列表
 //  */
+onMounted(() => {
+console.log('tableData.value', tableData.value)
+})
 async function formatResponseList(list) {
+  if(isEditing.value){
+    return list;
+  }
   try {
     const clonedList = cloneDeep(list);
     const allCloudImages = clonedList?.reduce((acc, d) => acc.concat(d.images || []), []).filter(v => v.startsWith('cloud://'));
@@ -126,6 +122,7 @@ async function formatResponseList(list) {
     const allCloudUrl = [...allCloudImages, ...allCloudVideos];
     if (allCloudUrl.length > 0) {
       const tempFileUrls = await getTempFileUrls(allCloudUrl);
+      // console.log('1111', tempFileUrls)
       clonedList.forEach((item) => {
         item.images = item.images.map((img) => {
           const tempFile = tempFileUrls.find(file => file.fileID === img);
@@ -137,12 +134,18 @@ async function formatResponseList(list) {
         });
       });
     }
+    const temp =  list.filter(item=>{
+      if(item.fine_class === 1){
+        return {
+          ...item,
+        }
+      }
+    })
+    originData.value = temp;
     // 保存表格数据供后续使用
-    tableData.value = clonedList;
-    return clonedList;
+    tableData.value =  clonedList;
+    return  totalData.value>0&&!isEditing.value?  originData.value :  clonedList;
   } catch (error) {
-    console.error('获取鉴定详情失败:', error);
-    $message.error('获取鉴定列表数据失败');
     return list;
   }
 }
@@ -158,7 +161,7 @@ const searchFormItems = computed(() => [
     value: DEFAULT_DATE, // 设置默认值为今天
   },
   {
-  prop: 'first_class',
+  prop: 'firstClass',
   label: '类目',
   type: 'select',
   placeholder: '请选择类目',
@@ -168,7 +171,7 @@ const searchFormItems = computed(() => [
       { label: '银元', value: '1' },
       { label: '古钱', value: '2' },
       { label: '杂项', value: '4' },
-      { label: '纸币', value: '5' },
+      { label: '趣物', value: '5' },
     ],
   },
   value:'1',
@@ -184,7 +187,7 @@ const searchFormItems = computed(() => [
     width: 500,
   },
   {
-    prop: 'description',
+    prop: 'desc',
     label: '描述',
     type: 'input',
     placeholder: '请输入描述',
@@ -199,14 +202,12 @@ const columns = computed(() => [
   {
     type: 'selection',
     fixed: 'left',
-    hidden: activeTab.value === 1,
-
+    hidden:! (batchAppraisalModalVisible.value || totalData.value<=0)
   },
   {
     title: '鉴定ID',
     key: 'appraisal_id',
     width: 300,
-
   },
   {
     title: '图片',
@@ -229,17 +230,23 @@ const columns = computed(() => [
  
 ].filter(column => !column.hidden));
 
-function handleTabChange(value) {
-  activeTab.value = value;
-  proTableRef.value?.reload();
-}
+watch(batchAppraisalModalVisible, (visible) => {
+  if (!visible) {
+    checkedRowKeys.value = [];
+    isEditing.value = false;
+    batchAppraisalModalTitle.value = '修改';
+  }
+});
 /**
+ * 
  * 处理选中行变化，限制最多选5个
  */
 watch([checkedRowKeys, tableData], () => {
   checkedRows.value = tableData.value.filter(row => checkedRowKeys.value.includes(row.appraisal_id));
 });
-
+function handleTotalDataChange(payload) {
+  totalData.value = payload?.done ?? 0;
+}
 function handleCheckedRowKeysChange(keys) {
   batchAppraisalModalVisible.value = !batchAppraisalModalVisible.value || keys.length>0
   if (keys.length > 5) {
@@ -249,13 +256,17 @@ function handleCheckedRowKeysChange(keys) {
   checkedRowKeys.value = keys;
 }
 function handleBatchUpdate() {
-  const cache = localStorage.getItem("STORAGE_KEY");
-  if (cache) {
-    checkedRows.value = JSON.parse(cache);
-  }
-
-  forceShowSelection.value = true;
-  batchAppraisalModalVisible.value = true
+  proTableRef.value?.reload(); 
+  checkedRowKeys.value = tableData.value.map(item => {
+    if(item.fine_class === 1){
+      return item.appraisal_id
+    }})
+    isEditing.value = !isEditing.value;
+    batchAppraisalModalTitle.value = isEditing.value ? '取消修改' : '修改';
+    batchAppraisalModalVisible.value = isEditing.value;
+    batchAppraisalModalVisible.value = batchAppraisalModalTitle.value ==='取消修改'?true:false
+    formatResponseList(tableData.value)
+    
 }
 
 async function handleBatchAppraisalSubmit(submitData) {
@@ -265,7 +276,6 @@ async function handleBatchAppraisalSubmit(submitData) {
       fine_class: 1
     }));
    await fetchAppraisalUpdate(updateData);
-   activeTab.value = 1
     // TODO: 调用实际批量更新接口
     $message.success('更新成功');
     proTableRef.value?.refresh();

@@ -102,10 +102,11 @@
      type: Function,
      default: item => item.id,
    },
+   // 原始数据的双向绑定（如需在父组件中使用）
   
   });
   
-  const emit = defineEmits(['update:checked-row-keys']);
+  const emit = defineEmits(['update:checked-row-keys', 'update:total-data']);
   
   const searchForm = reactive({});
   const tableData = ref([]);
@@ -138,7 +139,7 @@
    },
    { deep: true },
   );
-  
+
   const {
    loading,
    total,
@@ -155,6 +156,7 @@
        ...(props.formatSearchParams ? props.formatSearchParams(searchForm) : searchForm),
      }),
    {
+  
      total: response => response.data.total,
      data: response => response.data.list || [],
      initialPage: 1,
@@ -162,12 +164,14 @@
    },
   );
   
-  handleSuccess(async ({ data }) => {
-   let tableList = data?.data?.list || [];
-   if (props.formatResponseList) {
-     tableList = await props.formatResponseList(tableList);
-   }
-   tableData.value = tableList;
+  handleSuccess(async ({ data}) => {
+    const rawData = data?.data ?? null;
+    emit('update:total-data', data.data);
+    let tableList = rawData?.list || [];
+    if (props.formatResponseList) {
+      tableList = await props.formatResponseList(tableList);
+    }
+    tableData.value = tableList;
   });
   
   function handlePageChange(newPage) {
