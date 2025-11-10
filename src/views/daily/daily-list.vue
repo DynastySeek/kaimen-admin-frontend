@@ -100,6 +100,7 @@ function formatSearchParams(params) {
     // fineClass: activeTab.value,
     createStartTime: startOfRange ? startOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
     createEndTime: endOfRange ? endOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
+    appraisalResult:1,
   }, ['selectedDate']);
 }
 
