@@ -153,7 +153,8 @@ const searchFormItems = computed(() => [
     label: '评选日期',
     type: 'date',
     placeholder: '请选择评选日期',
-    span: 8,
+    span: 10,
+    width:500,
     value: DEFAULT_DATE, // 设置默认值为今天
   },
   {
@@ -171,6 +172,7 @@ const searchFormItems = computed(() => [
     ],
   },
   value:'1',
+  width: 500,
 
 },
   {
@@ -178,7 +180,8 @@ const searchFormItems = computed(() => [
     label: '鉴定ID',
     type: 'input',
     placeholder: '请输入鉴定ID',
-    span: 8,
+    span: 10,
+    width: 500,
   },
   {
     prop: 'description',
@@ -186,6 +189,7 @@ const searchFormItems = computed(() => [
     type: 'input',
     placeholder: '请输入描述',
     span: 8,
+    width: 500,
   },
  
 ].filter(item => !item.hidden));
