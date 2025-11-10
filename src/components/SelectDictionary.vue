@@ -12,6 +12,8 @@
 <script setup>
 import { computed } from 'vue';
 import {
+  AppraisalBusinessType,
+  AppraisalBusinessTypeLabelMap,
   AppraisalClass,
   AppraisalClassLabelMap,
   AppraisalResult,
@@ -69,6 +71,7 @@ const EnumMap = {
   CategoryStatus: [CategoryStatus, CategoryStatusLabelMap],
   ProductStatus: [ProductStatus, ProductStatusLabelMap],
   AppraisalClass: [AppraisalClass, AppraisalClassLabelMap],
+  AppraisalBusinessType: [AppraisalBusinessType, AppraisalBusinessTypeLabelMap],
   AppraisalResult: [AppraisalResult, AppraisalResultLabelMap],
   PubStatus: [PubStatus, PubStatusLabelMap],
   PriceRange: [PriceRange, PriceRangeLabelMap],
