@@ -108,13 +108,11 @@ function formatSearchParams(params) {
  * @param {Array} list - 原始数据列表
  * @returns {Array} 格式化后的数据列表
 //  */
-onMounted(() => {
-console.log('tableData.value', tableData.value)
-})
 async function formatResponseList(list) {
   if(isEditing.value){
     return list;
   }
+  checkedRowKeys.value = []
   try {
     const clonedList = cloneDeep(list);
     const allCloudImages = clonedList?.reduce((acc, d) => acc.concat(d.images || []), []).filter(v => v.startsWith('cloud://'));
