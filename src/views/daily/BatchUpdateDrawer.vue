@@ -42,12 +42,10 @@
 </template>
 
 <script setup>
-import ImagePreview from '../appraisal/components/ImagePreview.vue';
+import ImagePreview from './ImagePreview.vue';
 import { h } from 'vue';
 import { computed, reactive, ref } from 'vue';
-import { NImage } from 'naive-ui';
-import { AppraisalResult, AppraisalResultLabelMap, AppraisalStatus } from '@/constants';
-import { fetchAppraisalResultAdd, fetchAppraisalUpdate } from '@/services';
+
 
 const props = defineProps({
   /**

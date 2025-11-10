@@ -31,18 +31,6 @@ function toTransformConfig(config) {
   }, {});
 }
 
-const createProxyConfig = (target, rewrite) => ({
-  target,
-  changeOrigin: true,
-  secure: false,
-  rewrite,
-  configure: (proxy, options) => {
-    proxy.on('proxyRes', (proxyRes, req) => {
-      proxyRes.headers['x-real-url'] = new URL(req.url || '', options.target)?.href || '';
-    });
-  },
-});
-
 export default defineConfig(({ mode }) => {
   const viteEnv = loadEnv(mode, process.cwd());
   const { VITE_PUBLIC_PATH, VITE_PROXY_BASE_REQUEST_API, VITE_PORT, VITE_SOURCE_MAP, VITE_GZIP, VITE_REPORT } = toTransformConfig(viteEnv);
@@ -92,16 +80,42 @@ export default defineConfig(({ mode }) => {
       open: false,
       proxy: {
         '/api': {
-          ...createProxyConfig(VITE_PROXY_BASE_REQUEST_API, path => path.replace(/^\/api/, '')),
+          // target: 'http://localhost:8000',
+          target: VITE_PROXY_BASE_REQUEST_API,
+          changeOrigin: true,
+          // rewrite: path => path.replace(/^\/api/, ''),
+          secure: false,
+          configure: (proxy, options) => {
+            // 配置此项可在响应头中看到请求的真实地址
+            proxy.on('proxyRes', (proxyRes, req) => {
+              proxyRes.headers['x-real-url'] = new URL(req.url || '', options.target)?.href || '';
+            });
+          },
         },
-        '/aichat': createProxyConfig(
-          'https://agent.kaimen.site',
-          path => path.replace(/^\/aichat/, ''),
-        ),
-        '/aiuser': createProxyConfig(
-          'https://kaimen-d-app-server-164046-6-1360990667.sh.run.tcloudbase.com',
-          path => path.replace(/^\/aiuser/, ''),
-        ),
+        '/aichat': {
+          // target: 'http://localhost:8000',
+          target: 'https://agent.kaimen.site',
+          changeOrigin: true,
+          rewrite: path => path.replace(/^\/aichat/, ''),
+          secure: false,configure: (proxy, options) => {
+            // 配置此项可在响应头中看到请求的真实地址
+            proxy.on('proxyRes', (proxyRes, req) => {
+              proxyRes.headers['x-real-url'] = new URL(req.url || '', options.target)?.href || '';
+            });
+          },
+        },
+        '/aiuser': {
+          // target: 'http://localhost:8000',
+          target: 'https://kaimen-d-app-server-164046-6-1360990667.sh.run.tcloudbase.com',
+          changeOrigin: true,
+          rewrite: path => path.replace(/^\/aiuser/, ''),
+          secure: false,configure: (proxy, options) => {
+            // 配置此项可在响应头中看到请求的真实地址
+            proxy.on('proxyRes', (proxyRes, req) => {
+              proxyRes.headers['x-real-url'] = new URL(req.url || '', options.target)?.href || '';
+            });
+          },
+        },
       },
     },
     build: {
