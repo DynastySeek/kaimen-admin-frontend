@@ -169,7 +169,6 @@ async function handleSubmit() {
     // await fetchBatchUpdate(submitData);
     localStorage.setItem("STORAGE_KEY",JSON.stringify(props.checkedRows));
     emit('submit', props.checkedRowKeys);
-    $message.success(`已成功对 ${props.checkedRowKeys.length} 条数据执行批量操作`);
     // 重置表单并关闭弹窗
     resetForm();
     visible.value = false;
