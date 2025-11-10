@@ -275,7 +275,6 @@ async function handleBatchAppraisalSubmit(submitData) {
 ]);
   try {
     const updateData =Array.from(data) ?.map(item => {
-      console.log('1111',item)
       if(item) {
      
         return {
