@@ -141,11 +141,27 @@ function handleReset() {
   handleSearch();
 }
 async function handleSearch() {
-  const res = await fetchChatList({  ...searchForm.value });
-  chatListData.value = res.data;
-  const  { user } = searchForm.value
-  const userInfo = await fetchUserinfoList({id:user} )
-  staticChatList.value=[{...userInfo.data}] 
+  const { user } = searchForm.value;
+  staticChatList.value = [];
+  try {
+    const res = await fetchChatList({ ...searchForm.value });
+    chatListData.value = res?.data ?? [];
+  } catch (error) {
+    chatListData.value = [];
+    console.error('获取聊天记录失败', error);
+  }
+  try {
+    if (user) {
+      const userInfo = await fetchUserinfoList({ id: user });
+      if (userInfo?.data) {
+        staticChatList.value = [{ ...userInfo.data }];
+      }
+    }
+  } catch (error) {
+    console.warn('获取用户信息失败', error);
+  }
+
+ 
 }
 
 
