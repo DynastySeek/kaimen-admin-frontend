@@ -57,7 +57,7 @@
 </template>
 
 <script setup>
-import { cloneDeep, omit } from 'lodash-es';
+import { cloneDeep, omit, filter } from 'lodash-es';
 import { NButton, NIcon, NSpace, NTag } from 'naive-ui';
 import { computed, ref, watch } from 'vue';
 import { getTempFileUrls } from '@/cloud';
@@ -269,11 +269,21 @@ function handleBatchUpdate() {
 }
 
 async function handleBatchAppraisalSubmit(submitData) {
+  const data = new Set([
+  ...submitData.filter(item => item != null),  // 过滤 null 和 undefined
+  ...checkedRowKeys.value.filter(item => item != null)  // 过滤 null 和 undefined
+]);
   try {
-    const updateData = (submitData || []).map(item => ({
-      id: item,
-      fine_class: 1
-    }));
+    const updateData =Array.from(data) ?.map(item => {
+      console.log('1111',item)
+      if(item) {
+     
+        return {
+        id: item,
+        fine_class: 1
+        }
+      }
+    });
    await fetchAppraisalUpdate(updateData);
     // TODO: 调用实际批量更新接口
     $message.success('更新成功');
@@ -281,7 +291,6 @@ async function handleBatchAppraisalSubmit(submitData) {
     checkedRowKeys.value = [];
   } catch (error) {
     console.error('更新失败:', error);
-    $message.error('更新失败');
   }
 }
 
