@@ -35,7 +35,7 @@ export const appraisalRoutes = [
         path: '/appraisal/consignment',
         component: () => import('@/views/appraisal/consignment-list.vue'),
         meta: {
-          title: '传递单列表',
+          title: '我要兜底列表',
           keepAlive: true,
           code: Permission.AppraisalConsignment,
           show: true,
