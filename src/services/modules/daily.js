@@ -1,3 +1,3 @@
 import alovaInstance from '../alovaInstance';
 
-export const fetchAppraisalList = params => alovaInstance.Get('/appraisal/list', { params });
+export const fetchAppraisalFineList = params => alovaInstance.Get('/appraisal/list', { params });
