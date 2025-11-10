@@ -21,9 +21,10 @@
       </FormBuilder>
     </n-card>
     <n-space vertical>
+    <n-spin :show="loading" size="large">
     <n-layout>
-    <n-layout has-sider>
-    <n-layout-sider
+      <n-layout has-sider>
+        <n-layout-sider
         bordered
         show-trigger
         collapse-mode="width"
@@ -33,6 +34,7 @@
         :inverted="inverted"
         style="max-height: 320px"
         >
+        <n-spin :show="loading" size="small">
         <n-list class="chat-list">
           <n-list-item
             v-for="item in staticChatList"
@@ -55,8 +57,10 @@
             </n-thing>
           </n-list-item>
         </n-list>
-        </n-layout-sider>
-        <n-layout style="min-height: 320px">
+        </n-spin>
+      </n-layout-sider>
+      <n-layout style="min-height: 320px">
+        <n-spin :show="loading" size="small">
           <n-scrollbar class="chat-scroll">
             <div class="chat-container">
               <div
@@ -95,24 +99,24 @@
               </div>
             </div>
           </n-scrollbar>
+          </n-spin>
         </n-layout>
       </n-layout>
     </n-layout>
+    </n-spin>
   </n-space>
  </CommonPage>
 </template>
 <script setup>
-import { computed, onMounted, ref } from 'vue';
-import { useRequest } from 'alova/client';
+import { onMounted, ref } from 'vue';
 import { fetchChatList, fetchUserinfoList} from '@/services';
 import { CommonPage, FormBuilder } from '@/components';
 import dayjs from 'dayjs';
 const labelWidth = '120px';
 const chatListData = ref([]);
 const staticChatList = ref([]);
-// user: 'C6GGSF1R5A',
-//   conversation_id: '7adc30ae-71e7-4512-8be6-24c16f4ecff8',
-//   userPhone : '',
+const loading = ref(true);
+const loadingChatList = ref(false);
 const searchForm = ref({
   user: 'C6GGSF1R5A',
   conversation_id: '7adc30ae-71e7-4512-8be6-24c16f4ecff8',
@@ -145,7 +149,10 @@ async function handleSearch() {
   staticChatList.value = [];
   try {
     const res = await fetchChatList({ ...searchForm.value });
-    chatListData.value = res?.data ?? [];
+    if (chatListData.value) {
+      chatListData.value = res?.data ?? [];
+      loadingChatList.value = false
+    }
   } catch (error) {
     chatListData.value = [];
     console.error('获取聊天记录失败', error);
@@ -155,6 +162,7 @@ async function handleSearch() {
       const userInfo = await fetchUserinfoList({ id: user });
       if (userInfo?.data) {
         staticChatList.value = [{ ...userInfo.data }];
+        loading.value = false;
       }
     }
   } catch (error) {
