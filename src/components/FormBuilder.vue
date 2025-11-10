@@ -10,7 +10,14 @@
       <n-grid-item v-for="item in filterFormItems" :key="item.prop" :span="item.span || 24">
         <n-form-item :label="item.label" :path="item.prop">
           <slot :name="item.prop">
-            <component :is="getComponent(item)" v-bind="getProps(item)" v-model:value="modelValue[item.prop]" />
+            <component :is="getComponent(item)" v-bind="getProps(item)" v-model:value="modelValue[item.prop]"
+            :style="item.width
+                ? {
+                    width: typeof item.width === 'number'
+                      ? `${item.width}px`
+                      : item.width,
+                  }
+                : undefined"/>
           </slot>
         </n-form-item>
       </n-grid-item>
