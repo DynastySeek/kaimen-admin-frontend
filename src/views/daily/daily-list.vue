@@ -1,16 +1,5 @@
 <template>
   <CommonPage>
-    <!-- <template #action>
-      <n-radio-group v-model:value="activeTab" name="appraisal-status" @update:value="handleTabChange">
-        <n-radio-button
-          v-for="tab in tabs"
-          :key="tab.id"
-          :value="tab.id"
-        >
-          {{ `${tab.label}` }}
-        </n-radio-button>
-      </n-radio-group>
-    </template> -->
     <n-card class="mb-4">
       <n-space vertical :size="12">
         <div class="text-7xl font-bold" style="font-weight: 700;">每日精品评选</div>
@@ -37,11 +26,22 @@
       <template #header>
         <NSpace>
           <NButton
+            v-if="activeTab === 0"
             type="primary"
             @click="handleBatchUpdate"
           >
             修改
           </NButton>
+    
+      <n-radio-group v-model:value="activeTab" name="appraisal-status" @update:value="handleTabChange">
+        <n-radio-button
+          v-for="tab in tabs"
+          :key="tab.id"
+          :value="tab.id"
+        >
+          {{ `${tab.label}` }}
+        </n-radio-button>
+      </n-radio-group>
         </NSpace>
       </template>
     </ProTable>
@@ -62,27 +62,26 @@
 <script setup>
 import { cloneDeep, omit } from 'lodash-es';
 import { NButton, NIcon, NSpace, NTag } from 'naive-ui';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { getTempFileUrls } from '@/cloud';
-import { CommonPage, ProTable, SelectDictionary, VideoModal } from '@/components';
-import { AppraisalStatus, AppraisalStatusLabelMap } from '@/constants';
+import { CommonPage, ProTable, VideoModal } from '@/components';;
 import { fetchAppraisalList, fetchAppraisalUpdate } from '@/services';
-import { useUserStore } from '@/stores';
-import { formatDateTime } from '@/utils';
-import AppraisalAction from '../appraisal/components/AppraisalAction.vue';
 import BatchUpdateDrawer from './BatchUpdateDrawer.vue';
-import ImagePreview from '../appraisal/components/ImagePreview.vue';
+import ImagePreview from './ImagePreview.vue';
 import dayjs from 'dayjs';
 
-const activeTab = ref('');
-const userStore = useUserStore();
+const tabs = [
+  { label: '已评选', id: 1,value: 1 },
+  { label: '未评选', id: 0,value: 0 },
+];
+const activeTab = ref(1);
 const proTableRef = ref();
 
 const batchAppraisalModalVisible = ref(false);
 const videoModalVisible = ref(false);
 const currentVideoSrc = ref('');
 const currentVideoTitle = ref('');
-const STORAGE_KEY = 'daily-batch-selection';
+
 const checkedRowKeys = ref([]);
 const tableData = ref([]); // 存储表格数据
 const forceShowSelection = ref(false);
@@ -108,6 +107,7 @@ function formatSearchParams(params) {
 
   return omit({
     ...params,
+    fine_class: activeTab.value,
     createStartTime: startOfRange ? startOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
     createEndTime: endOfRange ? endOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
   }, ['selectedDate']);
@@ -117,12 +117,12 @@ function formatSearchParams(params) {
  * 响应数据格式化函数
  * @param {Array} list - 原始数据列表
  * @returns {Array} 格式化后的数据列表
- */
+//  */
 async function formatResponseList(list) {
   try {
     const clonedList = cloneDeep(list);
-    const allCloudImages = clonedList.reduce((acc, d) => acc.concat(d.images || []), []).filter(v => v.startsWith('cloud://'));
-    const allCloudVideos = clonedList.reduce((acc, d) => acc.concat(d.videos || []), []).filter(v => v.startsWith('cloud://'));
+    const allCloudImages = clonedList?.reduce((acc, d) => acc.concat(d.images || []), []).filter(v => v.startsWith('cloud://'));
+    const allCloudVideos = clonedList?.reduce((acc, d) => acc.concat(d.videos || []), []).filter(v => v.startsWith('cloud://'));
     const allCloudUrl = [...allCloudImages, ...allCloudVideos];
     if (allCloudUrl.length > 0) {
       const tempFileUrls = await getTempFileUrls(allCloudUrl);
@@ -153,7 +153,7 @@ const searchFormItems = computed(() => [
     label: '评选日期',
     type: 'date',
     placeholder: '请选择评选日期',
-    span: 4,
+    span: 8,
     value: DEFAULT_DATE, // 设置默认值为今天
   },
   {
@@ -161,7 +161,7 @@ const searchFormItems = computed(() => [
   label: '类目',
   type: 'select',
   placeholder: '请选择类目',
-  span: 4,
+  span: 8,
   props: {
     options: [
       { label: '银元', value: '1' },
@@ -178,14 +178,14 @@ const searchFormItems = computed(() => [
     label: '鉴定ID',
     type: 'input',
     placeholder: '请输入鉴定ID',
-    span: 4,
+    span: 8,
   },
   {
     prop: 'description',
     label: '描述',
     type: 'input',
     placeholder: '请输入描述',
-    span: 4,
+    span: 8,
   },
  
 ].filter(item => !item.hidden));
@@ -195,6 +195,7 @@ const columns = computed(() => [
   {
     type: 'selection',
     fixed: 'left',
+    hidden: activeTab.value === 1,
 
   },
   {
@@ -204,20 +205,12 @@ const columns = computed(() => [
 
   },
   {
-    title: '评选状态',
-    key: 'fine_class',
-    width: 300,
-    render: (row) =>{
-      return [row.fine_class === 1 ? '已评选' : '未评选']
-    }
-  },
-  {
     title: '图片',
     key: 'images',
     width: 320,
     render: (row) => {
       return h(ImagePreview, {
-        images: row.images,
+        images: row.images || [],
         width: 110,
         height: 68,
         maxDisplay: 4,
@@ -233,28 +226,30 @@ const columns = computed(() => [
 ].filter(column => !column.hidden));
 
 function handleTabChange(value) {
-  activeTab.value = activeTab.value === value ? null : value;
+  activeTab.value = value;
   proTableRef.value?.reload();
 }
-
 /**
  * 处理选中行变化，限制最多选5个
  */
+watch([checkedRowKeys, tableData], () => {
+  checkedRows.value = tableData.value.filter(row => checkedRowKeys.value.includes(row.appraisal_id));
+});
+
 function handleCheckedRowKeysChange(keys) {
-  checkedrows.value = tableData.value.filter(row => checkedRowKeys.value.includes(row.appraisal_id));
   batchAppraisalModalVisible.value = !batchAppraisalModalVisible.value || keys.length>0
   if (keys.length > 5) {
     $message.warning('最多只能选择5个项目');
     return;
   }
   checkedRowKeys.value = keys;
-   
 }
 function handleBatchUpdate() {
   const cache = localStorage.getItem("STORAGE_KEY");
   if (cache) {
     checkedRows.value = JSON.parse(cache);
   }
+
   forceShowSelection.value = true;
   batchAppraisalModalVisible.value = true
 }
@@ -266,6 +261,7 @@ async function handleBatchAppraisalSubmit(submitData) {
       fine_class: 1
     }));
    await fetchAppraisalUpdate(updateData);
+   activeTab.value = 1
     // TODO: 调用实际批量更新接口
     $message.success('更新成功');
     proTableRef.value?.refresh();
