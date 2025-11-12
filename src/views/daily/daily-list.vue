@@ -243,12 +243,16 @@ watch(batchAppraisalModalVisible, (visible) => {
  * 处理选中行变化，限制最多选5个
  */
 watch([checkedRowKeys, tableData], () => {
-  checkedRows.value = tableData.value.filter(row => checkedRowKeys.value.includes(row.appraisal_id));
+  if(checkedRowKeys.value.length > 0){
+  const temp = tableData.value.filter(row => checkedRowKeys.value.includes(row.appraisal_id));
+  checkedRows.value = temp.filter(item => item != null);
+  }
 });
 function handleTotalDataChange(payload) {
   totalData.value = payload?.done ?? 0;
 }
-function handleCheckedRowKeysChange(keys) {
+function handleCheckedRowKeysChange(temp) {
+  const keys = temp.filter(item => item != null);
   batchAppraisalModalVisible.value = !batchAppraisalModalVisible.value || keys.length>0
   if (keys.length > 5) {
     $message.warning('最多只能选择5个项目');
