@@ -117,7 +117,7 @@
              </div>
              <div class="message-input-container">
                <n-input 
-                 v-model="message" 
+                 v-model:value="message" 
                  type="textarea" 
                  :rows="3"
                  placeholder="输入消息内容... (Enter 发送，Shift+Enter 换行)"
@@ -125,9 +125,15 @@
                />
                <n-space class="mt-2" justify="end">
                  <n-button 
+                   v-if="currentConversationId"
+                   type="error" 
+                   @click="closeConversation"
+                 >
+                   关闭会话
+                 </n-button>
+                 <n-button 
                    type="primary" 
                    @click="sendMessage"
-          
                  >
                    发送
                  </n-button>
@@ -156,7 +162,7 @@ const userStore = useUserStore();
  const staticChatList = ref([]);
 const loading = ref(false);
  const loadingChatList = ref(false);
-const message = ref('');
+const message = ref('哈哈哈哈');
 const socket = ref(null);
 const isConnected = ref(false);
 const currentConversationId = ref('7adc30ae-71e7-4512-8be6-24c16f4ecff8');
@@ -257,6 +263,7 @@ const connectSocket = () => {
   console.log('[HumanService] 准备连接到客服端 Socket.IO...');
   
   socket.value = io(SERVER_URL + NAMESPACE, {
+    path: '/socket.io',
     transports: ['websocket', 'polling'],
     reconnection: true,
     reconnectionDelay: 1000,
@@ -313,6 +320,7 @@ const connectSocket = () => {
   socket.value.on('human_online_ack', (data) => {
     console.log('✅ [Human] Online acknowledged:', data);
     const ackData = data?.data || data || {};
+    console.log(`上线成功，等待队列: ${ackData.waiting_count || 0} 个`);
     
     // 如果有等待的会话且已选择会话ID，自动接受
     const waitingQueue = ackData.waiting_queue || [];
@@ -320,32 +328,49 @@ const connectSocket = () => {
       const conv = waitingQueue.find(c => c.conversation_id === searchForm.value.conversation_id);
       if (conv) {
         console.log('[HumanService] 自动接受会话:', conv.conversation_id);
-        acceptConversation(conv.conversation_id);
+        setTimeout(() => {
+          acceptConversation(conv.conversation_id);
+        }, 500);
       }
     }
   });
 
-  // 新会话
   socket.value.on('new_conversation', (data) => {
     console.log('🔔 [Human] New conversation waiting:', data);
     const convData = data?.data || {};
     console.log(`新用户等待接入: ${convData.user_id}, 会话ID: ${convData.conversation_id}`);
+    console.log(`新用户等待接入: ${convData.user_id || '未知用户'}`);
   });
-
-  // 接受会话确认
-  socket.value.on('accept_conversation_ack', (data) => {
+    // 接受会话确认
+    socket.value.on('accept_conversation_ack', (data) => {
     console.log('✅ [Human] Conversation accepted:', data);
     const ackData = data?.data || data || {};
     if (ackData.conversation_id) {
       currentConversationId.value = ackData.conversation_id;
+      console.log('会话已接受');
     }
   });
 
+  socket.value.on('user_message', (data) => {
+    og('humanLog', `💬 用户消息: ${data}`, 'info');
+  });
+  socket.value.on('human_message', (data) => {
+    log('humanLog', `💬 用户消息: ${data}`, 'info');
+  });  
+  // 新会话
+  socket.value.on('conversation_closed', (data) => {
+    console.log('🔔 [Human] Conversation closed:', data);
+    const closeData = data?.data || data || {};
+    if (closeData.conversation_id === currentConversationId.value) {
+      currentConversationId.value = '';
+      // 可以显示提示信息
+     console.log(`会话已关闭: ${closeData.close_reason || '未知原因'}`);
+    }
+  });
   // 接收用户消息
   socket.value.on('user_message', (data) => {
     console.log('💬 [Human] Received message from user:', data);
     const msgData = data?.data || data || {};
-    
     // 如果是当前会话的消息，添加到聊天列表
     if (msgData.conversation_id === currentConversationId.value) {
       addMessageToChatList({
@@ -359,13 +384,15 @@ const connectSocket = () => {
   });
 
   // 发送消息确认
-  socket.value.on('human_message', (data) => {
-    console.log('✅ [Human] Message sent confirmation:', data);
-  });
+
+
+  // 会话关闭事件
+  
 
   // 错误处理
   socket.value.on('error', (data) => {
     console.error('❌ [Human] Error:', data);
+    console.log(`错误: ${JSON.stringify(data)}`);
   });
 
   // 断开连接
@@ -385,11 +412,13 @@ const connectSocket = () => {
 function acceptConversation(conversationId) {
   if (!socket.value?.connected || !isConnected.value) {
     console.warn('无法接受会话：WebSocket 未连接');
+   console.log('WebSocket 未连接，请先连接');
     return;
   }
 
   if (!conversationId) {
     console.warn('无法接受会话：会话ID为空');
+   console.log('会话ID为空');
     return;
   }
 
@@ -403,14 +432,15 @@ function acceptConversation(conversationId) {
       timestamp: Math.floor(Date.now() / 1000)
     }
   });
+  
+  console.log('正在接受会话...');
 }
 
 // 发送消息
 function sendMessage() {
-  if (!message.value.trim()) {
-    console.log('请输入消息内容');
-    return;
-  }
+  console.log('sendMessage 被调用');
+  console.log('message.value:', message.value);
+  console.log('message.value 类型:', typeof message.value);
 
   if (!currentConversationId.value) {
     // 尝试使用搜索表单中的会话ID
@@ -420,18 +450,29 @@ function sendMessage() {
         acceptConversation(currentConversationId.value);
       }
     } else {
-      console.log('请先选择或输入会话ID');
+     console.log('请先选择或输入会话ID');
       return;
     }
   }
 
   if (!socket.value?.connected || !isConnected.value) {
-    console.log('WebSocket 未连接，请先连接');
+   console.log('WebSocket 未连接，请先连接');
     connectSocket();
     return;
   }
 
-  const messageToSend = message.value.trim();
+  // 确保 message.value 是字符串，并去除首尾空格
+  const messageValue = message.value || '';
+  const messageToSend ="测试测试"
+  //  typeof messageValue === 'string' ? messageValue.trim() : String(messageValue).trim();
+  
+  console.log('messageToSend:', messageToSend);
+  console.log('messageToSend 长度:', messageToSend.length);
+  
+  if (!messageToSend) {
+   console.log('消息内容不能为空');
+    return;
+  }
   
   // 先添加到聊天列表（乐观更新）
   addMessageToChatList({
@@ -505,6 +546,34 @@ function addMessageToChatList(messageData) {
   connectSocket();
 });
 
+// 关闭会话
+function closeConversation() {
+  if (!socket.value?.connected || !isConnected.value) {
+   console.log('WebSocket 未连接');
+    return;
+  }
+
+  if (!currentConversationId.value) {
+   console.log('没有活跃的会话');
+    return;
+  }
+
+  console.log('[HumanService] 关闭会话:', currentConversationId.value);
+  
+  socket.value.emit('close_conversation', {
+    type: 'close_conversation',
+    data: {
+      conversation_id: currentConversationId.value,
+      close_reason: '客服主动关闭',
+      timestamp: Math.floor(Date.now() / 1000)
+    }
+  });
+
+  // 清空当前会话ID
+  currentConversationId.value = '';
+  console.log('会话已关闭');
+}
+
 // 断开 WebSocket 连接
 function disconnectSocket() {
   if (!socket.value) {
@@ -514,6 +583,17 @@ function disconnectSocket() {
 
   try {
     console.log('[HumanService] 正在断开连接...');
+    
+    // 如果已连接，先发送客服下线通知
+    if (socket.value.connected && isConnected.value) {
+      socket.value.emit('human_offline', {
+        type: 'human_offline',
+        data: {
+          timestamp: Math.floor(Date.now() / 1000)
+        }
+      });
+    }
+    
     socket.value.disconnect();
     console.log('[HumanService] 已断开连接');
   } catch (e) {

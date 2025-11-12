@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人工客服 WebSocket 测试</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .panel {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        h3 {
+            color: #555;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .user-panel h2 { border-color: #2196F3; }
+        .human-panel h2 { border-color: #FF9800; }
+        .config {
+            margin-bottom: 15px;
+        }
+        .config label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+            font-size: 13px;
+        }
+        .config input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 13px;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 5px 5px 5px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .connect-btn {
+            background: #4CAF50;
+            color: white;
+        }
+        .disconnect-btn {
+            background: #f44336;
+            color: white;
+        }
+        .send-btn {
+            background: #2196F3;
+            color: white;
+        }
+        .accept-btn {
+            background: #FF9800;
+            color: white;
+        }
+        .close-btn {
+            background: #9C27B0;
+            color: white;
+        }
+        .refresh-btn {
+            background: #00BCD4;
+            color: white;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        button:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+        .log {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+        }
+        .log-entry {
+            margin: 3px 0;
+            padding: 4px;
+            border-radius: 3px;
+            line-height: 1.4;
+        }
+        .log-info { color: #2196F3; }
+        .log-success { color: #4CAF50; }
+        .log-error { color: #f44336; background: #ffebee; }
+        .log-warning { color: #FF9800; }
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        .status-disconnected { background: #ffebee; color: #f44336; }
+        .status-connected { background: #e8f5e9; color: #4CAF50; }
+        .message-input {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .message-input input {
+            flex: 1;
+        }
+        .queue-list {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .queue-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+        .queue-item:last-child {
+            margin-bottom: 0;
+        }
+        .queue-item-header {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        .queue-item-info {
+            color: #666;
+            font-size: 11px;
+            margin: 3px 0;
+        }
+        .queue-item-actions {
+            margin-top: 8px;
+        }
+        .queue-item-actions button {
+            padding: 5px 12px;
+            font-size: 12px;
+            margin: 2px 5px 2px 0;
+        }
+        .stats-box {
+            background: #e3f2fd;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+        .stats-item {
+            margin: 5px 0;
+            color: #1976D2;
+        }
+        .stats-item strong {
+            color: #0D47A1;
+        }
+        .empty-queue {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+            font-size: 13px;
+        }
+        .conversation-info {
+            background: #fff3e0;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        .conversation-info-item {
+            margin: 5px 0;
+            color: #E65100;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔌 人工客服 WebSocket 测试工具</h1>
+    
+    <div class="container">
+        <!-- 用户端面板 -->
+        <div class="panel user-panel">
+            <h2>👤 用户端 (Mini Program)</h2>
+            
+            <div class="config">
+                <label>服务器地址:</label>
+                <input type="text" id="userServerUrl" value="https://agent.kaimen.site">
+            </div>
+            
+            <div class="config">
+                <label>用户ID:</label>
+                <input type="text" id="userId" value="test_user_456">
+            </div>
+            
+            <div class="config">
+                <label>会话ID (可选，留空则自动生成):</label>
+                <input type="text" id="userConversationId" placeholder="留空则自动生成会话ID">
+            </div>
+            
+            <div class="status status-disconnected" id="userStatus">未连接</div>
+            
+            <div>
+                <button class="connect-btn" id="userConnectBtn" onclick="connectUser()">连接</button>
+                <button class="disconnect-btn" id="userDisconnectBtn" onclick="disconnectUser()" disabled>断开</button>
+            </div>
+            
+            <div class="message-input">
+                <input type="text" id="userMessage" placeholder="输入消息..." disabled>
+                <button class="send-btn" id="userSendBtn" onclick="sendUserMessage()" disabled>发送</button>
+            </div>
+            
+            <h3>📋 日志</h3>
+            <div class="log" id="userLog"></div>
+        </div>
+        
+        <!-- 客服端面板 -->
+        <div class="panel human-panel">
+            <h2>👨‍💼 客服端 (Management Backend)</h2>
+            
+            <div class="config">
+                <label>服务器地址:</label>
+                <input type="text" id="humanServerUrl" value="https://agent.kaimen.site">
+            </div>
+            
+            <div class="config">
+                <label>App API Token:</label>
+                <input type="text" id="appApiToken" value="app-s8l0tNc5oPbHVJBeoLCXoPMg">
+            </div>
+            
+            <div class="config">
+                <label>客服ID (UUID格式):</label>
+                <input type="text" id="humanId" value="550e8400-e29b-41d4-a716-446655440001">
+            </div>
+            
+            <div class="config">
+                <label>客服名称:</label>
+                <input type="text" id="humanName" value="李四客服">
+            </div>
+            
+            <div class="status status-disconnected" id="humanStatus">未连接</div>
+            
+            <div>
+                <button class="connect-btn" id="humanConnectBtn" onclick="connectHuman()">连接</button>
+                <button class="disconnect-btn" id="humanDisconnectBtn" onclick="disconnectHuman()" disabled>断开</button>
+                <button class="refresh-btn" id="refreshQueueBtn" onclick="refreshQueue()" disabled>刷新队列</button>
+                <button class="refresh-btn" id="refreshStatsBtn" onclick="refreshStats()" disabled>刷新统计</button>
+            </div>
+            
+            <!-- 统计信息 -->
+            <h3>📊 实时统计</h3>
+            <div class="stats-box" id="statsBox">
+                <div class="stats-item">在线用户: <strong id="onlineUsers">0</strong></div>
+                <div class="stats-item">在线客服: <strong id="onlineHumans">0</strong></div>
+                <div class="stats-item">等待队列: <strong id="waitingQueue">0</strong></div>
+                <div class="stats-item">活跃会话: <strong id="activeConversations">0</strong></div>
+            </div>
+            
+            <!-- 等待队列 -->
+            <h3>📋 等待队列</h3>
+            <div class="queue-list" id="queueList">
+                <div class="empty-queue">暂无等待中的会话</div>
+            </div>
+            
+            <!-- 活跃会话列表 -->
+            <h3>💬 活跃会话</h3>
+            <div class="queue-list" id="activeConversationsList">
+                <div class="empty-queue">暂无活跃会话</div>
+            </div>
+            <div style="margin-top: 10px;">
+                <button class="refresh-btn" id="refreshActiveBtn" onclick="refreshActiveConversations()" disabled>刷新活跃会话</button>
+            </div>
+            
+            <!-- 当前会话信息 -->
+            <div id="currentConversationBox" style="display:none;">
+                <h3>💬 当前会话</h3>
+                <div class="conversation-info" id="conversationInfo">
+                    <div class="conversation-info-item">会话ID: <strong id="currentConvId">-</strong></div>
+                    <div class="conversation-info-item">用户ID: <strong id="currentUserId">-</strong></div>
+                    <div class="conversation-info-item">状态: <strong id="currentConvStatus">-</strong></div>
+                </div>
+                <div class="message-input">
+                    <input type="text" id="humanMessage" placeholder="输入消息..." disabled>
+                    <button class="send-btn" id="humanSendBtn" onclick="sendHumanMessage()" disabled>发送</button>
+                    <button class="close-btn" id="closeConvBtn" onclick="closeConversation()" disabled>关闭会话</button>
+                </div>
+            </div>
+            
+            <h3>📋 日志</h3>
+            <div class="log" id="humanLog"></div>
+        </div>
+    </div>
+
+    <script>
+        let userSocket = null;
+        let humanSocket = null;
+        let userConversationId = null;
+        let humanConversationId = null;
+        let autoRefreshInterval = null;
+
+        // 日志函数
+        function log(element, message, type = 'info') {
+            const logDiv = document.getElementById(element);
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        // REST API 调用函数
+        async function callApi(endpoint, method = 'GET', body = null) {
+            const serverUrl = document.getElementById('humanServerUrl').value;
+            const token = document.getElementById('appApiToken').value;
+            
+            const options = {
+                method: method,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            };
+            
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+            
+            try {
+                const response = await fetch(`${serverUrl}${endpoint}`, options);
+                const data = await response.json();
+                return { success: response.ok, data: data, status: response.status };
+            } catch (error) {
+                log('humanLog', `API调用失败: ${error.message}`, 'error');
+                return { success: false, error: error.message };
+            }
+        }
+
+        // 刷新统计信息
+        async function refreshStats() {
+            const result = await callApi('/console/api/human-service/stats');
+            if (result.success) {
+                document.getElementById('onlineUsers').textContent = result.data.online_users || 0;
+                document.getElementById('onlineHumans').textContent = result.data.online_humans || 0;
+                document.getElementById('waitingQueue').textContent = result.data.waiting_queue_length || 0;
+                document.getElementById('activeConversations').textContent = result.data.active_conversations || 0;
+                log('humanLog', '✅ 统计信息已更新', 'success');
+            } else {
+                log('humanLog', `❌ 获取统计信息失败: ${result.status}`, 'error');
+            }
+        }
+
+        // 刷新等待队列
+        async function refreshQueue() {
+            const result = await callApi('/console/api/human-service/queue');
+            if (result.success) {
+                const queueList = document.getElementById('queueList');
+                const queue = result.data.queue || [];
+                
+                if (queue.length === 0) {
+                    queueList.innerHTML = '<div class="empty-queue">暂无等待中的会话</div>';
+                } else {
+                    let html = '';
+                    queue.forEach(item => {
+                        html += `
+                            <div class="queue-item">
+                                <div class="queue-item-header">排队位置 #${item.queue_position}</div>
+                                <div class="queue-item-info">会话ID: ${item.conversation_id}</div>
+                                <div class="queue-item-info">用户ID: ${item.user_id}</div>
+                                <div class="queue-item-info">等待时间: ${item.wait_time}秒</div>
+                                <div class="queue-item-info">首条消息: ${item.first_message || '无'}</div>
+                                <div class="queue-item-actions">
+                                    <button class="accept-btn" onclick="acceptConversationFromQueue('${item.conversation_id}', '${item.user_id}')">接受</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    queueList.innerHTML = html;
+                }
+                log('humanLog', `✅ 队列已更新 (${queue.length}个等待)`, 'success');
+            } else {
+                log('humanLog', `❌ 获取队列失败: ${result.status}`, 'error');
+            }
+        }
+
+        // 刷新活跃会话列表
+        async function refreshActiveConversations() {
+            const result = await callApi('/console/api/human-service/conversations?status=connected');
+            log('humanLog', `🔍 API返回: ${JSON.stringify(result)}`, 'info');
+            
+            if (result.success) {
+                const activeList = document.getElementById('activeConversationsList');
+                const conversations = result.data.conversations || [];
+                
+                log('humanLog', `📊 解析到 ${conversations.length} 个活跃会话`, 'info');
+                
+                if (conversations.length === 0) {
+                    activeList.innerHTML = '<div class="empty-queue">暂无活跃会话</div>';
+                    log('humanLog', '⚠️ 活跃会话列表为空', 'warning');
+                } else {
+                    let html = '';
+                    conversations.forEach((conv, index) => {
+                        log('humanLog', `📝 会话 ${index + 1}: ${JSON.stringify(conv)}`, 'info');
+                        
+                        const connectedAt = conv.connected_at ? new Date(conv.connected_at * 1000).toLocaleTimeString() : '-';
+                        const humanName = conv.human_name || '未分配';
+                        const isCurrentConv = conv.conversation_id === humanConversationId;
+                        const highlightStyle = isCurrentConv ? 'background: #fff3e0; border: 2px solid #FF9800;' : '';
+                        
+                        html += `
+                            <div class="queue-item" style="${highlightStyle}">
+                                <div class="queue-item-header">
+                                    ${isCurrentConv ? '⭐ 当前会话' : '💬 活跃会话'}
+                                    ${isCurrentConv ? '<span style="color: #FF9800; font-size: 10px;">(正在处理)</span>' : ''}
+                                </div>
+                                <div class="queue-item-info">会话ID: ${conv.conversation_id}</div>
+                                <div class="queue-item-info">用户ID: ${conv.user_id}</div>
+                                <div class="queue-item-info">处理客服: ${humanName}</div>
+                                <div class="queue-item-info">连接时间: ${connectedAt}</div>
+                                <div class="queue-item-info">首条消息: ${conv.first_message || '无'}</div>
+                                <div class="queue-item-actions">
+                                    ${!isCurrentConv ? `<button class="accept-btn" onclick="switchToConversation('${conv.conversation_id}', '${conv.user_id}')">切换到该会话</button>` : ''}
+                                    <button class="close-btn" onclick="closeConversationById('${conv.conversation_id}')">关闭会话</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    activeList.innerHTML = html;
+                }
+                log('humanLog', `✅ 活跃会话已更新 (${conversations.length}个)`, 'success');
+            } else {
+                log('humanLog', `❌ 获取活跃会话失败: ${result.status} - ${JSON.stringify(result.data)}`, 'error');
+            }
+        }
+
+        // 从队列接受会话
+        function acceptConversationFromQueue(conversationId, userId) {
+            if (!humanSocket || !humanSocket.connected) {
+                log('humanLog', '❌ 请先连接WebSocket', 'error');
+                return;
+            }
+            
+            log('humanLog', `接受会话: ${conversationId}`, 'info');
+            humanSocket.emit('accept_conversation', {
+                type: 'accept_conversation',
+                data: {
+                    conversation_id: conversationId,
+                    timestamp: Math.floor(Date.now() / 1000)
+                }
+            });
+            
+            humanConversationId = conversationId;
+            showCurrentConversation(conversationId, userId, 'connected');
+        }
+
+        // 切换到指定会话（从活跃会话列表）
+        function switchToConversation(conversationId, userId) {
+            if (!humanSocket || !humanSocket.connected) {
+                log('humanLog', '❌ 请先连接WebSocket', 'error');
+                return;
+            }
+            
+            // 如果会话还未被接受，先接受它
+            log('humanLog', `切换到会话: ${conversationId}`, 'info');
+            humanSocket.emit('accept_conversation', {
+                type: 'accept_conversation',
+                data: {
+                    conversation_id: conversationId,
+                    timestamp: Math.floor(Date.now() / 1000)
+                }
+            });
+            
+            humanConversationId = conversationId;
+            showCurrentConversation(conversationId, userId, 'connected');
+            
+            // 刷新活跃会话列表以更新高亮
+            setTimeout(() => refreshActiveConversations(), 500);
+        }
+
+        // 关闭指定会话（不一定是当前会话）
+        function closeConversationById(conversationId) {
+            if (!humanSocket || !humanSocket.connected) {
+                log('humanLog', '❌ 请先连接WebSocket', 'error');
+                return;
+            }
+            
+            if (!confirm(`确定要关闭会话 ${conversationId} 吗？`)) {
+                return;
+            }
+            
+            log('humanLog', `关闭会话: ${conversationId}`, 'info');
+            humanSocket.emit('close_conversation', {
+                type: 'close_conversation',
+                data: {
+                    conversation_id: conversationId,
+                    close_reason: '客服主动关闭',
+                    timestamp: Math.floor(Date.now() / 1000)
+                }
+            });
+            
+            // 如果关闭的是当前会话，隐藏当前会话信息
+            if (conversationId === humanConversationId) {
+                hideCurrentConversation();
+            }
+            
+            // 刷新列表
+            setTimeout(() => {
+                refreshActiveConversations();
+                refreshQueue();
+                refreshStats();
+            }, 500);
+        }
+
+        // 显示当前会话信息
+        function showCurrentConversation(conversationId, userId, status) {
+            document.getElementById('currentConversationBox').style.display = 'block';
+            document.getElementById('currentConvId').textContent = conversationId;
+            document.getElementById('currentUserId').textContent = userId;
+            document.getElementById('currentConvStatus').textContent = status;
+            document.getElementById('humanMessage').disabled = false;
+            document.getElementById('humanSendBtn').disabled = false;
+            document.getElementById('closeConvBtn').disabled = false;
+        }
+
+        // 隐藏当前会话信息
+        function hideCurrentConversation() {
+            document.getElementById('currentConversationBox').style.display = 'none';
+            document.getElementById('humanMessage').disabled = true;
+            document.getElementById('humanSendBtn').disabled = true;
+            document.getElementById('closeConvBtn').disabled = true;
+            humanConversationId = null;
+        }
+
+        // 关闭会话
+        function closeConversation() {
+            if (!humanConversationId) {
+                log('humanLog', '❌ 没有活跃的会话', 'error');
+                return;
+            }
+            
+            log('humanLog', `关闭会话: ${humanConversationId}`, 'info');
+            humanSocket.emit('close_conversation', {
+                type: 'close_conversation',
+                data: {
+                    conversation_id: humanConversationId,
+                    close_reason: '客服主动关闭',
+                    timestamp: Math.floor(Date.now() / 1000)
+                }
+            });
+        }
+
+        // 用户端连接
+        function connectUser() {
+            const serverUrl = document.getElementById('userServerUrl').value;
+            const userId = document.getElementById('userId').value;
+            const conversationIdInput = document.getElementById('userConversationId').value.trim();
+            const conversationId = conversationIdInput || null; // 如果为空则使用 null
+            
+            log('userLog', `正在连接到 ${serverUrl}...`, 'info');
+            if (conversationId) {
+                log('userLog', `使用自定义会话ID: ${conversationId}`, 'info');
+            } else {
+                log('userLog', '将自动生成会话ID', 'info');
+            }
+            
+            userSocket = io(serverUrl + '/v1/chat/human-service/user', {
+                path: '/socket.io',
+                transports: ['websocket', 'polling']
+            });
+            
+            userSocket.on('connect', () => {
+                log('userLog', '✅ 连接成功', 'success');
+                document.getElementById('userStatus').textContent = '已连接';
+                document.getElementById('userStatus').className = 'status status-connected';
+                document.getElementById('userConnectBtn').disabled = true;
+                document.getElementById('userDisconnectBtn').disabled = false;
+                
+                // 发送连接初始化
+                log('userLog', '发送 connection_init...', 'info');
+                userSocket.emit('connection_init', {
+                    type: 'connection_init',
+                    data: {
+                        user_id: userId,
+                        conversation_id: conversationId,
+                        client_type: 'mini_program',
+                        timestamp: Math.floor(Date.now() / 1000)
+                    }
+                });
+            });
+            
+            userSocket.on('connection_ack', (data) => {
+                const receivedConvId = data.data.conversation_id;
+                userConversationId = receivedConvId;
+                
+                if (conversationId && receivedConvId === conversationId) {
+                    log('userLog', `✅ 连接确认: 使用自定义会话ID ${receivedConvId}`, 'success');
+                } else if (conversationId && receivedConvId !== conversationId) {
+                    log('userLog', `⚠️ 连接确认: 自定义会话ID ${conversationId} 已存在，使用现有会话 ${receivedConvId}`, 'warning');
+                } else {
+                    log('userLog', `✅ 连接确认: 自动生成会话ID ${receivedConvId}`, 'success');
+                }
+                
+                document.getElementById('userMessage').disabled = false;
+                document.getElementById('userSendBtn').disabled = false;
+            });
+            
+            userSocket.on('conversation_connected', (data) => {
+                log('userLog', `🔔 已连接到客服: ${data.data.human_name}`, 'success');
+            });
+            
+            userSocket.on('human_message', (data) => {
+                log('userLog', `💬 客服消息: ${data.data.content}`, 'info');
+            });
+            
+            userSocket.on('conversation_closed', (data) => {
+                log('userLog', `🔔 会话已关闭: ${data.data.close_reason}`, 'warning');
+            });
+            
+            userSocket.on('error', (data) => {
+                log('userLog', `❌ 错误: ${JSON.stringify(data)}`, 'error');
+            });
+            
+            userSocket.on('disconnect', () => {
+                log('userLog', '❌ 连接断开', 'error');
+                document.getElementById('userStatus').textContent = '未连接';
+                document.getElementById('userStatus').className = 'status status-disconnected';
+                document.getElementById('userConnectBtn').disabled = false;
+                document.getElementById('userDisconnectBtn').disabled = true;
+                document.getElementById('userMessage').disabled = true;
+                document.getElementById('userSendBtn').disabled = true;
+            });
+            
+            userSocket.on('connect_error', (error) => {
+                log('userLog', `❌ 连接错误: ${error}`, 'error');
+            });
+        }
+
+        // 用户端断开
+        function disconnectUser() {
+            if (userSocket) {
+                userSocket.disconnect();
+                userSocket = null;
+            }
+        }
+
+        // 用户发送消息
+        function sendUserMessage() {
+            const message = document.getElementById('userMessage').value;
+            if (!message || !userConversationId) return;
+            
+            log('userLog', `📤 发送消息: ${message}`, 'info');
+            userSocket.emit('user_message', {
+                type: 'user_message',
+                data: {
+                    conversation_id: userConversationId,
+                    message_content: message,
+                    message_type: 'text',
+                    timestamp: Math.floor(Date.now() / 1000)
+                }
+            });
+            
+            document.getElementById('userMessage').value = '';
+        }
+
+        // 客服端连接
+        function connectHuman() {
+            const serverUrl = document.getElementById('humanServerUrl').value;
+            const humanId = document.getElementById('humanId').value;
+            const humanName = document.getElementById('humanName').value;
+            
+            log('humanLog', `正在连接到 ${serverUrl}...`, 'info');
+            
+            humanSocket = io(serverUrl + '/v1/chat/human-service/human', {
+                path: '/socket.io',
+                transports: ['websocket', 'polling']
+            });
+            
+            humanSocket.on('connect', () => {
+                log('humanLog', '✅ 连接成功', 'success');
+                document.getElementById('humanStatus').textContent = '已连接';
+                document.getElementById('humanStatus').className = 'status status-connected';
+                document.getElementById('humanConnectBtn').disabled = true;
+                document.getElementById('humanDisconnectBtn').disabled = false;
+                document.getElementById('refreshQueueBtn').disabled = false;
+                document.getElementById('refreshStatsBtn').disabled = false;
+                document.getElementById('refreshActiveBtn').disabled = false;
+                
+                // 发送客服上线
+                log('humanLog', '发送 human_online...', 'info');
+                humanSocket.emit('human_online', {
+                    type: 'human_online',
+                    data: {
+                        human_id: humanId,
+                        human_name: humanName,
+                        timestamp: Math.floor(Date.now() / 1000)
+                    }
+                });
+                
+                // 开始自动刷新统计和队列
+                startAutoRefresh();
+            });
+            
+            humanSocket.on('human_online_ack', (data) => {
+                log('humanLog', `✅ 上线确认: 等待队列 ${data.data.waiting_count} 个`, 'success');
+                // 自动刷新队列、统计和活跃会话
+                refreshQueue();
+                refreshStats();
+                refreshActiveConversations();
+            });
+            
+            humanSocket.on('new_conversation', (data) => {
+                log('humanLog', `🔔 新会话通知: ${data.data.conversation_id}`, 'warning');
+                // 刷新队列显示新会话
+                refreshQueue();
+                refreshStats();
+            });
+            
+            humanSocket.on('accept_conversation_ack', (data) => {
+                log('humanLog', '✅ 会话已接受', 'success');
+                const convData = data.data;
+                showCurrentConversation(convData.conversation_id, convData.user_id || 'unknown', 'connected');
+                // 刷新队列（移除已接受的会话）和活跃会话列表
+                refreshQueue();
+                refreshStats();
+                refreshActiveConversations();
+            });
+            
+            humanSocket.on('user_message', (data) => {
+                log('humanLog', `💬 用户消息: ${data.data.content}`, 'info');
+            });
+            
+            humanSocket.on('human_message', (data) => {
+                log('humanLog', `✅ 消息已发送`, 'success');
+            });
+            
+            humanSocket.on('conversation_closed', (data) => {
+                log('humanLog', `🔔 会话已关闭: ${data.data.close_reason}`, 'warning');
+                hideCurrentConversation();
+                refreshQueue();
+                refreshStats();
+                refreshActiveConversations();
+            });
+            
+            humanSocket.on('error', (data) => {
+                log('humanLog', `❌ 错误: ${JSON.stringify(data)}`, 'error');
+            });
+            
+            humanSocket.on('disconnect', () => {
+                log('humanLog', '❌ 连接断开', 'error');
+                document.getElementById('humanStatus').textContent = '未连接';
+                document.getElementById('humanStatus').className = 'status status-disconnected';
+                document.getElementById('humanConnectBtn').disabled = false;
+                document.getElementById('humanDisconnectBtn').disabled = true;
+                document.getElementById('refreshQueueBtn').disabled = true;
+                document.getElementById('refreshStatsBtn').disabled = true;
+                document.getElementById('refreshActiveBtn').disabled = true;
+                hideCurrentConversation();
+                stopAutoRefresh();
+            });
+            
+            humanSocket.on('connect_error', (error) => {
+                log('humanLog', `❌ 连接错误: ${error}`, 'error');
+            });
+        }
+
+        // 客服端断开
+        function disconnectHuman() {
+            if (humanSocket) {
+                // 发送客服下线
+                humanSocket.emit('human_offline', {
+                    type: 'human_offline',
+                    data: {
+                        timestamp: Math.floor(Date.now() / 1000)
+                    }
+                });
+                humanSocket.disconnect();
+                humanSocket = null;
+            }
+            stopAutoRefresh();
+        }
+
+        // 客服发送消息
+        function sendHumanMessage() {
+            const message = document.getElementById('humanMessage').value;
+            if (!message) {
+                log('humanLog', '❌ 消息不能为空', 'error');
+                return;
+            }
+            if (!humanConversationId) {
+                log('humanLog', '❌ 没有活跃的会话ID', 'error');
+                return;
+            }
+            
+            log('humanLog', `📤 发送消息: ${message} (会话ID: ${humanConversationId})`, 'info');
+            humanSocket.emit('human_message', {
+                type: 'human_message',
+                data: {
+                    conversation_id: humanConversationId,
+                    message_content: message,
+                    message_type: 'text',
+                    timestamp: Math.floor(Date.now() / 1000)
+                }
+            });
+            
+            document.getElementById('humanMessage').value = '';
+        }
+
+        // 自动刷新
+        function startAutoRefresh() {
+            if (autoRefreshInterval) return;
+            
+            autoRefreshInterval = setInterval(() => {
+                if (humanSocket && humanSocket.connected) {
+                    refreshStats();
+                    refreshQueue();
+                    refreshActiveConversations();
+                }
+            }, 5000); // 每5秒刷新一次
+            
+            log('humanLog', '🔄 已启动自动刷新 (5秒/次)', 'info');
+        }
+
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                log('humanLog', '⏸ 已停止自动刷新', 'info');
+            }
+        }
+
+        // 回车发送消息
+        document.getElementById('userMessage').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendUserMessage();
+        });
+        
+        document.getElementById('humanMessage').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendHumanMessage();
+        });
+    </script>
+</body>
+</html>
+
