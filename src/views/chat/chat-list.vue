@@ -299,12 +299,22 @@
 
             <!-- 聊天消息区域 -->
             <n-scrollbar class="chat-scroll" style="flex: 1;">
-             <div class="chat-container">
-               <div
-                 v-for="(message, index) in chatListData"
-                 :key="message.id || index"
-                 class="chat-entry"
-               >
+              <n-spin :show="loadingClosed && isHistoryView" size="large">
+                <template #description>
+                  正在加载历史聊天记录...
+                </template>
+                <div class="chat-container">
+                  <!-- 空状态提示 -->
+                  <div v-if="chatListData.length === 0 && !loadingClosed" class="empty-state">
+                    <n-empty description="暂无聊天记录" />
+                  </div>
+                  
+                  <!-- 聊天消息列表 -->
+                  <div
+                    v-for="(message, index) in chatListData"
+                    :key="message.id || index"
+                    class="chat-entry"
+                  >
                    <div v-if="message.query" class="chat-message user">
                    <div class="chat-meta">
                       <n-avatar round size="medium" class="avatar-user">
@@ -333,8 +343,9 @@
                      </p>
                    </div>
                  </div>
-               </div>
-             </div>
+                  </div>
+                </div>
+              </n-spin>
             </n-scrollbar>
 
             <!-- 消息输入区域 -->
@@ -372,8 +383,8 @@ import { onMounted, onUnmounted, ref, nextTick } from 'vue';
 import { CommonPage } from '@/components';
 import { useUserStore } from '@/stores';
 import { io } from 'socket.io-client';
- import dayjs from 'dayjs';
-import { fetchUserinfoList } from "@/services";
+import dayjs from 'dayjs';
+import { fetchUserinfoList,fetchChatList } from "@/services";
 // import { useMessage } from 'naive-ui';
 
 const userStore = useUserStore();
@@ -418,8 +429,6 @@ let autoRefreshInterval = null;
 // 配置
 const SERVER_URL = 'https://agent.kaimen.site';
 const APP_API_TOKEN = 'app-s8l0tNc5oPbHVJBeoLCXoPMg';
-const HUMAN_ID = '263db1d7-8fd1-4e4c-a57b-5755a3bf8399';
-const HUMAN_NAME = '老虎';
 
 // REST API 调用函数
 async function callApi(endpoint, method = 'GET', body = null) {
@@ -518,23 +527,45 @@ async function refreshAll() {
   // $message.success('已刷新所有数据');
 }
 
-// 查看历史聊天记录
-function viewConversationHistory(conversationId) {
-  // 如果本地有缓存的聊天记录，直接使用
+// 查看历史聊天记录（从API获取）
+async function viewConversationHistory(conversationId) {
+  // 查找会话信息
+  const conv = closedConversations.value.find(c => c.conversation_id === conversationId);
+  const userId = conv?.user_id || 'unknown';
+  
+  // 设置当前会话信息
+  currentConversationId.value = conversationId;
+  currentUserId.value = userId;
+  isHistoryView.value = true; // 标记为历史查看模式
+  
+  // 先检查内存缓存
   if (conversationHistories.value[conversationId]) {
     chatListData.value = [...conversationHistories.value[conversationId]];
-    currentConversationId.value = conversationId;
-    // 查找用户ID
-    const conv = closedConversations.value.find(c => c.conversation_id === conversationId);
-    currentUserId.value = conv?.user_id || 'unknown';
-    isHistoryView.value = true; // 标记为历史查看模式
     console.log('从缓存加载历史记录:', conversationId);
-  } else {
-    // 否则可以从API获取（如果后端支持）
-    console.log('暂无缓存的历史记录:', conversationId);
+    return;
+  }
+  
+  // 从API获取历史聊天记录
+  try {
+    console.log('从API获取历史记录:', conversationId, userId);
+    loadingClosed.value = true;
+    
+    const result = await fetchChatList({ 
+      conversation_id: conversationId,
+    });
+    
+    console.log('111',result)
+  
+      chatListData.value = result.messages;
+      // 保存到缓存
+      conversationHistories.value[conversationId] = [...result.messages];
+      console.log('222',conversationHistories.value[conversationId])
+  
+  } catch (error) {
+    console.error('❌ 获取历史记录失败:', error);
     chatListData.value = [];
-    currentConversationId.value = conversationId;
-    isHistoryView.value = true;
+  } finally {
+    loadingClosed.value = false;
   }
 }
 
