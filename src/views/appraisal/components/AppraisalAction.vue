@@ -144,7 +144,7 @@
 import { Edit } from '@vicons/carbon';
 import { isEmpty } from 'lodash-es';
 import { computed, reactive, ref, watch } from 'vue';
-import { AppraisalClass, AppraisalResult, AppraisalResultLabelMap, AppraisalStatus, QuWuInterestLabelMap } from '@/constants';
+import { AppraisalClass, AppraisalResult, AppraisalResultLabelMap, AppraisalStatus, QuWuInterest, QuWuInterestLabelMap } from '@/constants';
 import { fetchAppraisalResultAdd, fetchAppraisalUpdate } from '@/services';
 
 const props = defineProps({
@@ -192,10 +192,10 @@ const resultLabelMap = computed(() => (isQuWu.value ? QuWuInterestLabelMap : App
 const resultOptions = computed(() => {
   if (isQuWu.value) {
     return [
-      { label: QuWuInterestLabelMap[AppraisalResult.Authentic], value: AppraisalResult.Authentic, color: '#21D476' },
-      { label: QuWuInterestLabelMap[AppraisalResult.Fake], value: AppraisalResult.Fake, color: '#FD4648' },
-      { label: AppraisalResultLabelMap[AppraisalResult.Doubt], value: AppraisalResult.Doubt, color: '#FD9E28' },
-      { label: AppraisalResultLabelMap[AppraisalResult.Rejected], value: AppraisalResult.Rejected, color: '#555555' },
+      { label: QuWuInterestLabelMap[QuWuInterest.Interesting], value: QuWuInterest.Interesting, color: '#21D476' },
+      { label: QuWuInterestLabelMap[QuWuInterest.Boring], value: QuWuInterest.Boring, color: '#FD4648' },
+      { label: QuWuInterestLabelMap[QuWuInterest.Doubt], value: QuWuInterest.Doubt, color: '#FD9E28' },
+      { label: QuWuInterestLabelMap[QuWuInterest.Rejected], value: QuWuInterest.Rejected, color: '#555555' },
     ];
   }
   return [

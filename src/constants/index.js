@@ -150,11 +150,15 @@ export const AppraisalResultLabelMap = {
 export const QuWuInterest = {
   Interesting: '1',
   Boring: '2',
+  Doubt: '3',
+  Rejected: '4',
 };
 
 export const QuWuInterestLabelMap = {
   [QuWuInterest.Interesting]: '有趣',
   [QuWuInterest.Boring]: '无聊',
+  [QuWuInterest.Doubt]: '存疑',
+  [QuWuInterest.Rejected]: '驳回',
 };
 
 export const PubStatus = {
