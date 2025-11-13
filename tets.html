@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>人工客服 WebSocket 测试</title>
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -590,12 +590,13 @@
             } else {
                 log('userLog', '将自动生成会话ID', 'info');
             }
-            
+            console.log(io)
             userSocket = io(serverUrl + '/v1/chat/human-service/user', {
                 path: '/socket.io',
                 transports: ['websocket', 'polling']
             });
             
+            console.log('userSocket',userSocket)
             userSocket.on('connect', () => {
                 log('userLog', '✅ 连接成功', 'success');
                 document.getElementById('userStatus').textContent = '已连接';
