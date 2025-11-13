@@ -384,7 +384,7 @@ import { CommonPage } from '@/components';
 import { useUserStore } from '@/stores';
 import { io } from 'socket.io-client';
 import dayjs from 'dayjs';
-import { fetchUserinfoList,fetchChatList } from "@/services";
+import { fetchUserinfoList,fetchChatList, fetchAIChatList } from "@/services";
 // import { useMessage } from 'naive-ui';
 
 const userStore = useUserStore();
@@ -530,6 +530,9 @@ async function refreshAll() {
 // 查看历史聊天记录（从API获取）
 async function viewConversationHistory(conversationId) {
   // 查找会话信息
+  /**
+   * 
+   */
   const conv = closedConversations.value.find(c => c.conversation_id === conversationId);
   const userId = conv?.user_id || 'unknown';
   
@@ -539,24 +542,25 @@ async function viewConversationHistory(conversationId) {
   isHistoryView.value = true; // 标记为历史查看模式
   
   // 先检查内存缓存
-  if (conversationHistories.value[conversationId]) {
-    chatListData.value = [...conversationHistories.value[conversationId]];
-    console.log('从缓存加载历史记录:', conversationId);
-    return;
-  }
+  // if (conversationHistories.value[conversationId]) {
+  //   chatListData.value = [...conversationHistories.value[conversationId]];
+  //   console.log('从缓存加载历史记录:', conversationId);
+  //   return;
+  // }
   
   // 从API获取历史聊天记录
   try {
     console.log('从API获取历史记录:', conversationId, userId);
     loadingClosed.value = true;
-    
+    const aichat = await fetchAIChatList({conversation_id: conversationId,user:userId})
+    console.log(aichat)
     const result = await fetchChatList({ 
       conversation_id: conversationId,
     });
     
     console.log('111',result)
   
-      chatListData.value = result.messages;
+      chatListData.value = aichat.data || result.messages;
       // 保存到缓存
       conversationHistories.value[conversationId] = [...result.messages];
       console.log('222',conversationHistories.value[conversationId])

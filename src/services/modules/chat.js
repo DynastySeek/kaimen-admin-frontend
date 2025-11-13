@@ -4,4 +4,4 @@ import aiuserInstance from '../aiuser';
 export const fetchChatList = params => alovaInstance.Get(`/console/api/human-service/conversations/${params.conversation_id}/messages?limit=50`);
 export const fetchUserinfoList = params => aiuserInstance.Get('/user/userinfo', { params });
 
-
+export const fetchAIChatList = params => alovaInstance.Get(`/v1/messages`,{ params });
