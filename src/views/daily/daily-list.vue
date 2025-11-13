@@ -12,6 +12,7 @@
       </n-space>
     </n-card>
     <ProTable
+      class="table"
       ref="proTableRef"
       label-width="120px"
       :columns="columns"
@@ -35,10 +36,12 @@
           }}
           </NButton>
     
-          <NButton
+          <span
+          class="text-[#316C72] cursor-pointer"
+          style="height: 34px;line-height: 34px;"
           >
           {{ totalData>0?"已评选":"未评选"  }}
-          </NButton>
+          </span>
         </NSpace>
       </template>
     </ProTable>
@@ -155,8 +158,8 @@ const searchFormItems = computed(() => [
     label: '评选日期',
     type: 'date',
     placeholder: '请选择评选日期',
-    span: 10,
-    width:500,
+    span: 6,
+    width:300,
     value: DEFAULT_DATE, // 设置默认值为今天
   },
   {
@@ -164,7 +167,7 @@ const searchFormItems = computed(() => [
   label: '类目',
   type: 'select',
   placeholder: '请选择类目',
-  span: 8,
+  span: 18,
   props: {
     options: [
       { label: '银元', value: '1' },
@@ -174,7 +177,7 @@ const searchFormItems = computed(() => [
     ],
   },
   value:'1',
-  width: 500,
+  width: 300,
 
 },
   {
@@ -182,8 +185,8 @@ const searchFormItems = computed(() => [
     label: '鉴定ID',
     type: 'input',
     placeholder: '请输入鉴定ID',
-    span: 10,
-    width: 500,
+    span: 6,
+    width: 300,
   },
   {
     prop: 'desc',
@@ -191,7 +194,7 @@ const searchFormItems = computed(() => [
     type: 'input',
     placeholder: '请输入描述',
     span: 8,
-    width: 500,
+    width: 300,
   },
  
 ].filter(item => !item.hidden));
@@ -206,12 +209,12 @@ const columns = computed(() => [
   {
     title: '鉴定ID',
     key: 'appraisal_id',
-    width: 300,
+    width: 200,
   },
   {
     title: '图片',
     key: 'images',
-    width: 320,
+    width: 400,
     render: (row) => {
       return h(ImagePreview, {
         images: row.images || [],
@@ -224,7 +227,6 @@ const columns = computed(() => [
   {
     title: '描述',
     key: 'description',
-    width: 300,
   },
  
 ].filter(column => !column.hidden));
@@ -241,12 +243,16 @@ watch(batchAppraisalModalVisible, (visible) => {
  * 处理选中行变化，限制最多选5个
  */
 watch([checkedRowKeys, tableData], () => {
-  checkedRows.value = tableData.value.filter(row => checkedRowKeys.value.includes(row.appraisal_id));
+  if(checkedRowKeys.value.length > 0){
+  const temp = tableData.value.filter(row => checkedRowKeys.value.includes(row.appraisal_id));
+  checkedRows.value = temp.filter(item => item != null);
+  }
 });
 function handleTotalDataChange(payload) {
   totalData.value = payload?.done ?? 0;
 }
-function handleCheckedRowKeysChange(keys) {
+function handleCheckedRowKeysChange(temp) {
+  const keys = temp.filter(item => item != null);
   batchAppraisalModalVisible.value = !batchAppraisalModalVisible.value || keys.length>0
   if (keys.length > 5) {
     $message.warning('最多只能选择5个项目');
@@ -294,3 +300,20 @@ async function handleBatchAppraisalSubmit(submitData) {
 }
 
 </script>
+<style>
+.table {
+ .search{
+  .n-space {
+    justify-content: flex-start !important;
+  }
+}
+.n-data-table .n-data-table-thead  {
+  .n-checkbox{
+    display: none;
+  }
+
+}
+
+}
+
+</style>

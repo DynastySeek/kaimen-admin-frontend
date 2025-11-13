@@ -33,7 +33,7 @@ export const PermissionLabelMap = {
   [Permission.AddUser]: '添加用户',
   [Permission.AppraisalMgt]: '鉴定管理',
   [Permission.AppraisalList]: '鉴定列表',
-  [Permission.AppraisalConsignment]: '传递单列表',
+  [Permission.AppraisalConsignment]: '我要卖快捷版列表',
   [Permission.AppraisalBuy]: '求购单列表',
   [Permission.ArticleMgt]: '文章管理',
   [Permission.ArticleList]: '文章列表',
@@ -121,6 +121,7 @@ export const AppraisalClass = {
   GuQian: 2,
   ZaXiang: 4,
   ZhiBi: 5,
+  QuWu: 6,
 };
 
 export const AppraisalClassLabelMap = {
@@ -128,6 +129,7 @@ export const AppraisalClassLabelMap = {
   [AppraisalClass.GuQian]: '古钱',
   [AppraisalClass.ZaXiang]: '杂项',
   [AppraisalClass.ZhiBi]: '纸币',
+  [AppraisalClass.QuWu]: '趣物',
 };
 
 export const AppraisalResult = {
@@ -181,4 +183,15 @@ export const PriceRangeValueMap = {
   [PriceRange.Range10000To50000]: [10000, 50000],
   [PriceRange.Range50000To100000]: [50000, 100000],
   [PriceRange.Above100000]: [100000, null],
+};
+
+// 鉴定类型枚举
+export const AppraisalBusinessType = {
+  NORMAL: '1',
+  SELL: '4',
+};
+
+export const AppraisalBusinessTypeLabelMap = {
+  [AppraisalBusinessType.NORMAL]: '仅鉴定',
+  [AppraisalBusinessType.SELL]: '我要卖',
 };

@@ -13,7 +13,7 @@
 
     <ProTable
       ref="proTableRef"
-      label-width="120px"
+      label-width="140px"
       :columns="columns"
       :checked-row-keys="checkedRowKeys"
       :search-form-items="searchFormItems"
@@ -53,7 +53,7 @@ import { NButton, NIcon, NSpace, NTag } from 'naive-ui';
 import { computed, ref } from 'vue';
 import { getTempFileUrls } from '@/cloud';
 import { CommonPage, ProTable, SelectDictionary, VideoModal } from '@/components';
-import { AppraisalStatus, AppraisalStatusLabelMap } from '@/constants';
+import { AppraisalStatus, AppraisalStatusLabelMap, AppraisalBusinessTypeLabelMap } from '@/constants';
 import { fetchAppraisalList, fetchAppraisalUpdate } from '@/services';
 import { useUserStore } from '@/stores';
 import { formatDateTime } from '@/utils';
@@ -138,6 +138,14 @@ const searchFormItems = computed(() => [
     span: 6,
   },
   {
+    prop: 'appraisalBusinessType',
+    label: '鉴定类型',
+    type: 'selectDictionary',
+    name: 'AppraisalBusinessType',
+    placeholder: '请选择鉴定类型',
+    span: 6,
+  },
+  {
     prop: 'firstClass',
     label: '类目',
     type: 'selectDictionary',
@@ -147,17 +155,17 @@ const searchFormItems = computed(() => [
   },
   {
     prop: 'userPhone',
-    label: '用户手机号',
+    label: '登录授权手机号',
     type: 'input',
-    placeholder: '请输入用户手机号',
+    placeholder: '请输入登录授权手机号',
     span: 6,
     hidden: !userStore.isAdmin,
   },
   {
-    prop: 'title',
-    label: '标题',
+    prop: 'desc',
+    label: '描述',
     type: 'input',
-    placeholder: '请输入标题',
+    placeholder: '请输入描述',
     span: 6,
   },
   {
@@ -182,6 +190,22 @@ const searchFormItems = computed(() => [
     placeholder: '请选择鉴定师',
     span: 6,
   },
+  {
+    prop: 'phone',
+    label: '联系方式（手机号）',
+    type: 'input',
+    placeholder: '请输入手机号',
+    span: 6,
+    hidden: !userStore.isAdmin,
+  },
+  {
+    prop: 'wechatId',
+    label: '联系方式（微信号）',
+    type: 'input',
+    placeholder: '请输入微信号',
+    span: 6,
+    hidden: !userStore.isAdmin,
+  },
 ].filter(item => !item.hidden));
 
 const columns = computed(() => [
@@ -198,7 +222,7 @@ const columns = computed(() => [
   {
     title: '图片',
     key: 'images',
-    width: 320,
+    width: 420,
     render: (row) => {
       return h(ImagePreview, {
         images: row.images,
@@ -208,43 +232,43 @@ const columns = computed(() => [
       });
     },
   },
-  {
-    title: '视频',
-    key: 'videos',
-    width: 200,
-    render: (row) => {
-      if (row.videos && row.videos.length > 0) {
-        return h(
-          'div',
-          { style: 'max-width: 180px; overflow-x: auto;' },
-          [
-            h(
-              NSpace,
-              { size: 4, wrap: false },
-              row.videos.map((video, index) =>
-                h(
-                  NButton,
-                  {
-                    strong: true,
-                    secondary: true,
-                    size: 'medium',
-                    style: 'width: 110px; height: 68px;',
-                    onClick: () => handleVideoPlay(row, index),
-                  },
-                  {
-                    icon: () => h(NIcon, null, {
-                      default: () => h('i', { class: 'i-fe:play-circle' }),
-                    }),
-                  },
-                ),
-              ),
-            ),
-          ],
-        );
-      }
-      return '-';
-    },
-  },
+  // {
+  //   title: '视频',
+  //   key: 'videos',
+  //   width: 200,
+  //   render: (row) => {
+  //     if (row.videos && row.videos.length > 0) {
+  //       return h(
+  //         'div',
+  //         { style: 'max-width: 180px; overflow-x: auto;' },
+  //         [
+  //           h(
+  //             NSpace,
+  //             { size: 4, wrap: false },
+  //             row.videos.map((video, index) =>
+  //               h(
+  //                 NButton,
+  //                 {
+  //                   strong: true,
+  //                   secondary: true,
+  //                   size: 'medium',
+  //                   style: 'width: 110px; height: 68px;',
+  //                   onClick: () => handleVideoPlay(row, index),
+  //                 },
+  //                 {
+  //                   icon: () => h(NIcon, null, {
+  //                     default: () => h('i', { class: 'i-fe:play-circle' }),
+  //                   }),
+  //                 },
+  //               ),
+  //             ),
+  //           ),
+  //         ],
+  //       );
+  //     }
+  //     return '-';
+  //   },
+  // },
   {
     title: '类目',
     key: 'first_class',
@@ -259,20 +283,38 @@ const columns = computed(() => [
     },
   },
   {
-    title: '标题和描述',
-    key: 'title',
+    title: '描述',
+    key: 'desc',
     width: 200,
     render: (row) => {
+      const text = row.desc ?? row.description ?? '-';
       return h('div', [
-        h('div', { style: 'font-weight: bold; margin-bottom: 4px;' }, row.title),
-        h('div', { style: 'color: #666; font-size: 12px;' }, row.description),
+        h('div', { style: 'color: #666; font-size: 12px;' }, text),
       ]);
     },
   },
   {
-    title: '用户手机号',
-    key: 'user_phone',
+    title: '类型',
+    key: 'appraisalBusinessType',
     width: 120,
+    render: (row) => AppraisalBusinessTypeLabelMap[row.appraisalBusinessType] || '-',
+  },
+  {
+    title: '联系方式',
+    key: 'contact',
+    width: 200,
+    hidden: !userStore.isAdmin,
+    render: (row) => {
+      return h('div', null, [
+        h('div', null, `手机号：${row.phone || '-'}`),
+        h('div', null, `微信号：${row.wechatId || '-'}`),
+      ]);
+    },
+  },
+  {
+    title: '授权登录手机号',
+    key: 'user_phone',
+    width: 140,
     hidden: !userStore.isAdmin,
   },
   {

@@ -2,114 +2,55 @@
   <CommonPage>
     <ProTable
       ref="proTableRef"
-      label-width="100px"
+      label-width="140px"
       :search-form-items="searchFormItems"
       :fetch-data="fetchAppraisalConsignmentList"
       :columns="columns"
       :format-search-params="formatSearchParams"
-      :format-response-list="handleConsignmentListSuccess"
     />
-
-    <!-- 视频播放弹窗 -->
-    <VideoModal v-model:show="videoModalVisible" :src="currentVideoSrc" :title="currentVideoTitle" />
   </CommonPage>
 </template>
 
 <script setup>
-import { cloneDeep, omit } from 'lodash-es';
-import { NButton, NIcon, NSpace } from 'naive-ui';
 import { computed, h, ref } from 'vue';
-import { getTempFileUrls } from '@/cloud';
-import { CommonPage, ProTable, VideoModal } from '@/components';
-import { AppraisalClassLabelMap, PriceRangeValueMap } from '@/constants';
+import { CommonPage, ProTable } from '@/components';
 import { fetchAppraisalConsignmentList } from '@/services';
 import { useUserStore } from '@/stores';
 import { formatDateTime } from '@/utils';
-import ImagePreview from './components/ImagePreview.vue';
 
 
 const proTableRef = ref();
 const userStore = useUserStore();
 
-// 视频播放相关状态
-const videoModalVisible = ref(false);
-const currentVideoSrc = ref('');
-const currentVideoTitle = ref('');
+// 已移除视频相关状态与组件
 
-// 表格列定义
+// 表格列定义（调整为：id, 描述，联系方式，授权登录手机号，创建时间）
 const columns = computed(() => [
   { title: 'ID', key: 'id', width: 80 },
-
-  {
-    title: '图片',
-    key: 'images',
-    width: 320,
-    render: (row) => {
-      return h(ImagePreview, {
-        images: row.images || [],
-        width: 110,
-        height: 68,
-        maxDisplay: 4,
-      });
-    },
-  },
-  {
-    title: '视频',
-    key: 'videos',
-    width: 200,
-    render: (row) => {
-      if (row.videos && row.videos.length > 0) {
-        return h(
-          'div',
-          { style: 'max-width: 180px; overflow-x: auto;' },
-          [
-            h(
-              NSpace,
-              { size: 4, wrap: false },
-              row.videos.map((video, index) =>
-                h(
-                  NButton,
-                  {
-                    strong: true,
-                    secondary: true,
-                    size: 'medium',
-                    style: 'width: 110px; height: 68px;',
-                    onClick: () => handleVideoPlay(row, index),
-                  },
-                  {
-                    icon: () => h(NIcon, null, {
-                      default: () => h('i', { class: 'i-fe:play-circle' }),
-                    }),
-                  },
-                ),
-              ),
-            ),
-          ],
-        );
-      }
-      return '-';
-    },
-  },
-  { title: '宝贝类型', key: 'type', width: 100, render: row => AppraisalClassLabelMap[row.type] || '-' },
   { title: '描述', key: 'desc', width: 200, ellipsis: { tooltip: true } },
-  { title: '授权手机号', key: 'user_phone', width: 120, render: row => row.user_phone || '-', hidden: !userStore.isAdmin },
-  { title: '联系方式', key: 'phone', width: 120, render: row => row.phone || '-', hidden: !userStore.isAdmin },
-  { title: '心理价位', key: 'expected_price', width: 120 },
   {
-    title: '创建时间',
-    key: 'created_at',
-    width: 180,
-    render: row => formatDateTime(row.created_at),
+    title: '联系方式',
+    key: 'contact',
+    width: 200,
+    hidden: !userStore.isAdmin,
+    render: (row) => {
+      const phone = row.phone || '';
+      const wechat = row.wechatId || row.wechat_id || '';
+      return h(
+        'div',
+        null,
+        [
+          h('div', null, `手机号：${phone || '-'}`),
+          h('div', null, `微信号：${wechat || '-'}`),
+        ],
+      );
+    },
   },
-  {
-    title: '更新时间',
-    key: 'updated_at',
-    width: 180,
-    render: row => formatDateTime(row.updated_at),
-  },
+  { title: '授权登录手机号', key: 'user_phone', width: 140, render: row => row.user_phone || '-', hidden: !userStore.isAdmin },
+  { title: '创建时间', key: 'created_at', width: 180, render: row => formatDateTime(row.created_at) },
 ].filter(column => !column.hidden));
 
-// 搜索表单项配置
+// 搜索表单项配置（调整为：id，phone（手机号），wechatId（微信号），描述；两个联系方式仅管理员可见）
 const searchFormItems = [
   {
     prop: 'id',
@@ -119,12 +60,20 @@ const searchFormItems = [
     span: 6,
   },
   {
-    prop: 'type',
-    label: '类目',
-    type: 'selectDictionary',
-    name: 'AppraisalClass',
-    placeholder: '请选择类目',
+    prop: 'phone',
+    label: '联系方式（手机号）',
+    type: 'input',
+    placeholder: '请输入手机号',
     span: 6,
+    hidden: !userStore.isAdmin,
+  },
+  {
+    prop: 'wechatId',
+    label: '联系方式（微信号）',
+    type: 'input',
+    placeholder: '请输入微信号',
+    span: 6,
+    hidden: !userStore.isAdmin,
   },
   {
     prop: 'desc',
@@ -133,100 +82,19 @@ const searchFormItems = [
     placeholder: '请输入描述',
     span: 6,
   },
-  {
-    prop: 'expectedPrice',
-    label: '心理价位',
-    type: 'selectDictionary',
-    name: 'PriceRange',
-    placeholder: '请选择价格区间',
-    span: 6,
-  },
-  {
-    prop: 'userPhone',
-    label: '授权手机号',
-    type: 'input',
-    placeholder: '请输入授权手机号',
-    span: 6,
-    hidden: !userStore.isAdmin,
-  },
-  {
-    prop: 'phone',
-    label: '联系方式',
-    type: 'input',
-    placeholder: '请输入联系方式',
-    span: 6,
-    hidden: !userStore.isAdmin,
-  },
-  {
-    prop: 'createTimeRange',
-    label: '创建时间',
-    type: 'datetimerange',
-    placeholder: '请选择创建时间范围',
-    span: 6,
-  },
 ];
 
-// 搜索参数格式化函数
+/**
+ * 格式化搜索参数
+ * @param {Object} params - 原始搜索参数
+ * @returns {Object} 格式化后的参数对象
+ */
 function formatSearchParams(params) {
-  const [minExpectedPrice, maxExpectedPrice] = PriceRangeValueMap[params.expectedPrice] || [null, null];
-  return omit({
-    ...params,
-    minExpectedPrice,
-    maxExpectedPrice,
-    userPhone: params.userPhone,
-    createStartTime: params.createTimeRange?.[0] ? formatDateTime(params.createTimeRange?.[0]) : null,
-    createEndTime: params.createTimeRange?.[1] ? formatDateTime(params.createTimeRange?.[1]) : null,
-  }, ['expectedPrice', 'createTimeRange']);
-}
-
-/**
- * 处理视频播放
- * @param {object} row - 行数据
- * @param {number} videoIndex - 视频索引，默认为0
- */
-function handleVideoPlay(row, videoIndex = 0) {
-  if (row.videos && row.videos.length > 0) {
-    currentVideoSrc.value = row.videos[videoIndex];
-    currentVideoTitle.value = `${row.desc || '视频'} - 视频${videoIndex + 1}`;
-    videoModalVisible.value = true;
-  }
-}
-
-/**
- * 处理委托列表数据成功回调，转换云存储文件URL
- * @param {object} response - 响应数据
- */
-async function handleConsignmentListSuccess(list) {
-  if (!list) {
-    return [];
-  }
-  try {
-    const cloneList = cloneDeep(list);
-    const allCloudImages = cloneList.reduce((acc, d) => acc.concat(d.images || []), []).filter(v => v.startsWith('cloud://'));
-    const allCloudVideos = cloneList.reduce((acc, d) => acc.concat(d.videos || []), []).filter(v => v.startsWith('cloud://'));
-    const allCloudUrl = [...allCloudImages, ...allCloudVideos];
-
-    if (allCloudUrl.length > 0) {
-      const tempFileUrls = await getTempFileUrls(allCloudUrl);
-      cloneList.forEach((item) => {
-        if (item.images) {
-          item.images = item.images.map((img) => {
-            const tempFile = tempFileUrls.find(file => file.fileID === img);
-            return tempFile ? tempFile.tempFileURL : img;
-          });
-        }
-        if (item.videos) {
-          item.videos = item.videos.map((vid) => {
-            const tempFile = tempFileUrls.find(file => file.fileID === vid);
-            return tempFile ? tempFile.tempFileURL : vid;
-          });
-        }
-      });
-    }
-    return cloneList;
-  } catch (error) {
-    console.error('处理委托列表数据失败:', error);
-    return [];
-  }
+  return {
+    id: params.id,
+    phone: params.phone,
+    wechatId: params.wechatId,
+    desc: params.desc,
+  };
 }
 </script>

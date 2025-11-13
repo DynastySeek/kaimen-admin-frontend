@@ -21,7 +21,7 @@
           </slot>
         </n-form-item>
       </n-grid-item>
-      <n-grid-item v-if="$slots.actions" :span="actionsSpan">
+      <n-grid-item class="search" v-if="$slots.actions" :span="actionsSpan">
         <n-form-item>
           <slot name="actions" />
         </n-form-item>

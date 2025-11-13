@@ -1,34 +1,66 @@
 <template>
   <n-drawer
     v-model:show="visible"
-    :width="800"
+    :width="500"
     :block-scroll="true"
     :show-mask="false"
     :mask-closable="false"
   >
-    <n-drawer-content :title="`批量修改 - 已选中 ${checkedRows.length} 项`" closable>
-      <n-space vertical :size="16">
-        <!-- 选中项列表 -->
-        <n-card title="选中的评选项" size="small">
-          <n-data-table
-            :columns="columns"
-            :data="checkedRows"
-            :row-key="row => row.appraisal_id"
-            :scroll-x="600"
-          />
-        </n-card>
-      </n-space>
-      <n-gradient-text type="error" style="display: block; margin: 20px 0;">
-      {{ "请确认信息后点击提交，提交后将短信通知用户，尽量不要修改" }}
-      </n-gradient-text>
+    <n-drawer-content :title="`已选中${checkedRows.length}${totalCount > 0 ? `/${totalCount}` : ''}项`" closable>
+      <!-- 可滚动列表 -->
+      <div class="drawer-content-scroll">
+        <div
+          v-for="(row, index) in checkedRows"
+          :key="row.appraisal_id"
+          class="appraisal-item"
+        >
+        <div class="appraisal-item-content">
+          <!-- 鉴定ID -->
+          <div class="appraisal-item1">
+            <label style="width:60px">鉴定ID</label>
+            <div style="width: 240px;">{{ row.appraisal_id }}</div> 
+          </div>
+          <div class="appraisal-item1">
+            <label style="width:60px">图片</label>
+            <ImagePreview
+            :images="row.images || []"
+            :width="80"
+            :height="80"
+            :max-display="3"
+            />
+          </div>
+          <div class="appraisal-item1">
+            <label style="width:60px"> 描述</label>
+            <div style="width: 240px;">{{ row.description }}</div> 
+          </div>
+          </div>
+          <div class="appraisal-actions">
+              <n-button
+                text
+                type="error"
+                @click="handleDelete(row)"
+              >
+                删除
+              </n-button>
+            </div>
+        </div>
+      </div>
+      
+      <!-- 底部警告文字 -->
+      <div class="drawer-warning">
+        <n-gradient-text type="error">
+          请确认信息后点击提交,提交后将短信通知用户,尽量不要修改
+        </n-gradient-text>
+      </div>
+      
       <template #footer>
-        <n-space>
+        <n-space justify="end">
           <n-button @click="handleCancel">
             取消
           </n-button>
           <n-button
-            type="primary"
-            :disabled="!checkedRows?.length>0"
+            type="success"
+            :disabled="checkedRows.length === 0"
             :loading="isSubmitting"
             @click="handleSubmit"
           >
@@ -38,14 +70,11 @@
       </template>
     </n-drawer-content>
   </n-drawer>
-  
 </template>
 
 <script setup>
 import ImagePreview from './ImagePreview.vue';
-import { h } from 'vue';
-import { computed, reactive, ref } from 'vue';
-
+import { computed, reactive, ref, watch } from 'vue';
 
 const props = defineProps({
   /**
@@ -69,6 +98,13 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  /**
+   * 总数量（用于显示 已选中X/总数项）
+   */
+  totalCount: {
+    type: Number,
+    default: 0,
+  },
 });
 
 const emit = defineEmits(['update:show', 'submit', 'update:checked-row-keys']);
@@ -79,64 +115,32 @@ const visible = computed({
   set: value => emit('update:show', value),
 });
 
-// 操作类型选项
-const actionTypeOptions = [
-  { label: '设为精品', value: 'featured' },
-  { label: '取消精品', value: 'unfeatured' },
-  { label: '推荐', value: 'recommend' },
-  { label: '取消推荐', value: 'unrecommend' },
-];
-
-// 表格列配置
-const columns = [
-  {
-    title: '鉴定ID',
-    key: 'appraisal_id',
-    width: 100,
-  },
-  {
-    title: '图片',
-    key: 'images',
-    width: 120,
-    render: (row) => {
-      return h(ImagePreview, {
-        images: row.images,
-        width: 110,
-        height: 68,
-        maxDisplay: 4,
-      });
-    },
-
-  },
-  {
-    title: '操作',
-    key: 'actions',
-    width: 100,
-    render: (row) => {
-      return h('span', {
-        style: 'color: red; cursor: pointer;',
-        onClick: () => handleDelete(row),
-      }, '删除');
-    },
-  },
-];
-
-// 表单数据
-const formData = reactive({
-  actionType: null,
-  comment: '',
-});
+// 每个项的描述输入框值
+const itemDescriptions = reactive({});
 
 // 提交状态
 const isSubmitting = ref(false);
 
-/**
- * 重置表单
- */
-function resetForm() {
-  formData.actionType = null;
-  formData.comment = '';
-}
+// 监听 checkedRows 变化，初始化描述值
+watch(
+  () => props.checkedRows,
+  (newRows) => {
+    // 初始化新项的描述为空
+    newRows.forEach((row) => {
+      if (!(row.appraisal_id in itemDescriptions)) {
+        itemDescriptions[row.appraisal_id] = row.description || '';
+      }
+    });
+    // 清理已删除项的描述
+    const currentIds = newRows.map((row) => row.appraisal_id);
+    Object.keys(itemDescriptions).forEach((id) => {
+      if (!currentIds.includes(id)) {
+        delete itemDescriptions[id];
+      }
+    });
+  },
+  { immediate: true }
+);
 
 /**
  * 处理删除单个项目
@@ -148,6 +152,8 @@ function handleDelete(row) {
     const newKeys = [...props.checkedRowKeys];
     newKeys.splice(index, 1);
     emit('update:checked-row-keys', newKeys);
+    // 删除对应的描述
+    delete itemDescriptions[row.appraisal_id];
   }
 }
 
@@ -155,7 +161,6 @@ function handleDelete(row) {
  * 处理取消操作
  */
 function handleCancel() {
-  resetForm();
   visible.value = false;
 }
 
@@ -165,12 +170,18 @@ function handleCancel() {
 async function handleSubmit() {
   isSubmitting.value = true;
   try {
+    // 准备提交数据，包含描述信息
+    const submitData = props.checkedRows.map((row) => ({
+      ...row,
+      description: itemDescriptions[row.appraisal_id] || '',
+    }));
+    
     // TODO: 这里调用实际的批量更新 API
     // await fetchBatchUpdate(submitData);
-    localStorage.setItem("STORAGE_KEY",JSON.stringify(props.checkedRows));
+    localStorage.setItem("STORAGE_KEY", JSON.stringify(submitData));
     emit('submit', props.checkedRowKeys);
-    // 重置表单并关闭弹窗
-    resetForm();
+    
+    // 关闭弹窗
     visible.value = false;
   } catch (error) {
     $message.error('批量操作失败');
@@ -180,3 +191,105 @@ async function handleSubmit() {
   }
 }
 </script>
+
+<style scoped>
+/* 可滚动内容区域 */
+.drawer-content-scroll {
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  padding: 16px 0;
+  min-height: 200px;
+  position: relative;
+}
+
+/* 每个鉴定项 */
+.appraisal-item {
+  display: flex;
+  /* flex-direction: column; */
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.appraisal-item-content {
+  display: flex;
+  flex-direction: column;
+}
+.appraisal-item1 {
+  width: 300px;
+  display: flex;
+  align-items: center;
+  div{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  padding: 10px;
+}
+
+.appraisal-item:last-child {
+  border-bottom: none;
+}
+
+/* 鉴定ID */
+.appraisal-id {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+/* 内容区域（图片、描述、操作） */
+.appraisal-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+/* 图片区域 */
+.appraisal-images {
+  flex-shrink: 0;
+}
+
+/* 描述输入框 */
+.appraisal-description {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 操作按钮区域 */
+.appraisal-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* 底部警告文字 */
+.drawer-warning {
+  position: absolute;
+  bottom: 70px;
+  left: 0;
+  right: 0;
+
+  padding: 12px;
+  background-color: #fff7e6;
+  border-radius: 4px;
+}
+
+/* 滚动条样式 */
+.drawer-content-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.drawer-content-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.drawer-content-scroll::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.drawer-content-scroll::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+</style>
