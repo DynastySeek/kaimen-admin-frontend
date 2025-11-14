@@ -275,17 +275,13 @@ function handleBatchUpdate() {
 }
 
 async function handleBatchAppraisalSubmit(submitData) {
-  const data = new Set([
-  ...submitData.filter(item => item != null),  // 过滤 null 和 undefined
-  ...checkedRowKeys.value.filter(item => item != null)  // 过滤 null 和 undefined
-]);
   try {
-    const updateData =Array.from(data) ?.map(item => {
+    const updateData =Array.from(submitData) ?.map(item => {
       if(item) {
-     
         return {
-        id: item,
-        fine_class: 1
+        id: item.appraisal_id,
+        fine_class: 1,
+        fine_tips: item.fine_tips
         }
       }
     });

@@ -17,11 +17,11 @@
         <div class="appraisal-item-content">
           <!-- 鉴定ID -->
           <div class="appraisal-item1">
-            <label style="width:60px">鉴定ID</label>
-            <div style="width: 240px;">{{ row.appraisal_id }}</div> 
+            <label>鉴定ID</label>
+            <div>{{ row.appraisal_id }}</div> 
           </div>
           <div class="appraisal-item1">
-            <label style="width:60px">图片</label>
+            <label>图片</label>
             <ImagePreview
             :images="row.images || []"
             :width="80"
@@ -30,9 +30,27 @@
             />
           </div>
           <div class="appraisal-item1">
-            <label style="width:60px"> 描述</label>
-            <div style="width: 240px;">{{ row.description }}</div> 
+            <label> 描述</label>
+            <div>{{ row.description }}</div> 
           </div>
+          <div class="appraisal-item1">
+    <label class="required">奖励</label>
+    <div class="input-wrapper">
+      <n-input 
+        v-model:value="row.fine_tips" 
+        type="number"
+        placeholder="请输入0-500的整数"
+        :min="0"
+        :max="500"
+        :step="1"
+        :status="getFineTipsStatus(row.appraisal_id)"
+        @blur="validateFineTips(row)"
+      />
+      <div v-if="getFineTipsError(row.appraisal_id)" class="error-tip">
+        {{ getFineTipsError(row.appraisal_id) }}
+      </div>
+    </div>
+  </div>
           </div>
           <div class="appraisal-actions">
               <n-button
@@ -106,6 +124,54 @@ const props = defineProps({
     default: 0,
   },
 });
+const fineTipsValidation = reactive({})
+
+
+// 校验单个奖励输入
+const validateFineTips = (row) => {
+  const value = row.fine_tips
+  const id = row.appraisal_id
+  
+  if (value === '' || value === null || value === undefined) {
+    fineTipsValidation[id] = { status: 'error', message: '奖励不能为空' }
+    return false
+  }
+  
+  const numValue = Number(value)
+  if (!Number.isInteger(numValue)) {
+    fineTipsValidation[id] = { status: 'error', message: '必须为整数' }
+    return false
+  }
+  
+  if (numValue < 0 || numValue > 500) {
+    fineTipsValidation[id] = { status: 'error', message: '必须在0-500之间' }
+    return false
+  }
+  
+  fineTipsValidation[id] = { status: 'success', message: '' }
+  return true
+}
+
+// 获取校验状态
+const getFineTipsStatus = (id) => {
+  return fineTipsValidation[id]?.status || ''
+}
+
+// 获取错误信息
+const getFineTipsError = (id) => {
+  return fineTipsValidation[id]?.message || ''
+}
+
+// 暴露批量校验方法
+const validateAllFineTips = (rows) => {
+  let isValid = true
+  rows.forEach(row => {
+    if (!validateFineTips(row)) {
+      isValid = false
+    }
+  })
+  return isValid
+}
 
 const emit = defineEmits(['update:show', 'submit', 'update:checked-row-keys']);
 
@@ -168,6 +234,9 @@ function handleCancel() {
  * 处理表单提交
  */
 async function handleSubmit() {
+  if (!validateAllFineTips(props.checkedRows)) {
+    return
+  }
   isSubmitting.value = true;
   try {
     // 准备提交数据，包含描述信息
@@ -179,7 +248,7 @@ async function handleSubmit() {
     // TODO: 这里调用实际的批量更新 API
     // await fetchBatchUpdate(submitData);
     localStorage.setItem("STORAGE_KEY", JSON.stringify(submitData));
-    emit('submit', props.checkedRowKeys);
+    emit('submit', props.checkedRows);
     
     // 关闭弹窗
     visible.value = false;
@@ -217,7 +286,11 @@ async function handleSubmit() {
   width: 300px;
   display: flex;
   align-items: center;
+  label{
+    width: 60px;
+  }
   div{
+    width: 300;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -291,5 +364,24 @@ async function handleSubmit() {
 
 .drawer-content-scroll::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+.required::before {
+  content: "*";
+  color: #d03050;
+  margin-right: 4px;
+}
+
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.error-tip {
+  position: absolute;
+  bottom: -18px;
+  left: 0;
+  font-size: 12px;
+  color: #d03050;
+  white-space: nowrap;
 }
 </style>

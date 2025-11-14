@@ -552,15 +552,15 @@ async function viewConversationHistory(conversationId) {
   try {
     console.log('从API获取历史记录:', conversationId, userId);
     loadingClosed.value = true;
-    const aichat = await fetchAIChatList({conversation_id: conversationId,user:userId})
-    console.log(aichat)
+    // const aichat = await fetchAIChatList({conversation_id: conversationId,user:userId})
+    // console.log(aichat)
     const result = await fetchChatList({ 
       conversation_id: conversationId,
     });
     
     console.log('111',result)
   
-      chatListData.value = aichat.data || result.messages;
+      chatListData.value = result.messages;
       // 保存到缓存
       conversationHistories.value[conversationId] = [...result.messages];
       console.log('222',conversationHistories.value[conversationId])
