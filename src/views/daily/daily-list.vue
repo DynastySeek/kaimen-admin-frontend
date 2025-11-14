@@ -260,12 +260,11 @@ function handleCheckedRowKeysChange(temp) {
   }
   checkedRowKeys.value = keys;
 }
+let originFineclass = []
 function handleBatchUpdate() {
   proTableRef.value?.reload(); 
-  checkedRowKeys.value = tableData.value.map(item => {
-    if(item.fine_class === 1){
-      return item.appraisal_id
-    }})
+  originFineclass = tableData.value.filter(item => item.fine_class === 1)
+    checkedRowKeys.value=  originFineclass.map(item=>item?.appraisal_id)
     isEditing.value = !isEditing.value;
     batchAppraisalModalTitle.value = isEditing.value ? '取消修改' : '修改';
     batchAppraisalModalVisible.value = isEditing.value;
@@ -275,17 +274,20 @@ function handleBatchUpdate() {
 }
 
 async function handleBatchAppraisalSubmit(submitData) {
-  const data = new Set([
-  ...submitData.filter(item => item != null),  // 过滤 null 和 undefined
-  ...checkedRowKeys.value.filter(item => item != null)  // 过滤 null 和 undefined
-]);
+  // 精品有200个 需要比较 如果原来有 则将fine_class 设置为1 如果原来没有 则添加到精品中
+  const result = [
+  ...submitData,
+  ...originFineclass
+    .filter(originItem => !submitData.some(submitItem => submitItem.appraisal_id === originItem.appraisal_id))
+    .map(item => ({ ...item, fine_class: -1 }))
+];
   try {
-    const updateData =Array.from(data) ?.map(item => {
+    const updateData =Array.from(result) ?.map(item => {
       if(item) {
-     
         return {
-        id: item,
-        fine_class: 1
+        id: item.appraisal_id,
+        fine_class:item.fine_class=== -1? 0: 1,
+        fine_tips: item.fine_tips
         }
       }
     });
