@@ -104,7 +104,6 @@ function formatSearchParams(params) {
     createStartTime: startOfRange ? startOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
     createEndTime: endOfRange ? endOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
     appraisalResult:1,
-    pageSize:10000,
   }, ['selectedDate']);
 }
 /**
@@ -124,7 +123,6 @@ async function formatResponseList(list) {
     const allCloudUrl = [...allCloudImages, ...allCloudVideos];
     if (allCloudUrl.length > 0) {
       const tempFileUrls = await getTempFileUrls(allCloudUrl);
-      // console.log('1111', tempFileUrls)
       clonedList.forEach((item) => {
         item.images = item.images.map((img) => {
           const tempFile = tempFileUrls.find(file => file.fileID === img);
@@ -252,8 +250,10 @@ function handleTotalDataChange(payload) {
 }
 function handleCheckedRowKeysChange(temp,rows, meta) {
   const keys = temp.filter(item => item != null);
-  batchAppraisalModalVisible.value = !batchAppraisalModalVisible.value || keys.length>0
+  batchAppraisalModalVisible.value = !batchAppraisalModalVisible.value || keys.length>0 
+
   if (keys.length > 5) {
+    // 想增加时候提示
     $message.warning('最多只能选择5个项目');
     return;
   }
