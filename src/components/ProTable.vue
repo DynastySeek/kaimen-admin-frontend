@@ -196,8 +196,8 @@
    handleSearch();
   }
   
-  function handleCheckedRowKeysChange(keys) {
-   emit('update:checked-row-keys', keys);
+  function handleCheckedRowKeysChange(keys,rows, meta) {
+   emit('update:checked-row-keys', keys,rows, meta);
   }
   
   defineExpose({
