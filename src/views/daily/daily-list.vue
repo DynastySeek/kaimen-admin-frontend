@@ -250,7 +250,6 @@ function handleTotalDataChange(payload) {
 }
 function handleCheckedRowKeysChange(temp,rows, meta) {
   const keys = temp.filter(item => item != null);
-  console.log(meta)
   batchAppraisalModalVisible.value = !batchAppraisalModalVisible.value || keys.length>0 
 
   if (keys.length > 5) {
