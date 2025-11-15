@@ -78,7 +78,6 @@
           </n-button>
           <n-button
             type="success"
-            :disabled="checkedRows.length === 0"
             :loading="isSubmitting"
             @click="handleSubmit"
           >
@@ -191,6 +190,7 @@ const isSubmitting = ref(false);
 watch(
   () => props.checkedRows,
   (newRows) => {
+    console.log('props.checkedRows', props.checkedRows)
     // 初始化新项的描述为空
     newRows.forEach((row) => {
       if (!(row.appraisal_id in itemDescriptions)) {
