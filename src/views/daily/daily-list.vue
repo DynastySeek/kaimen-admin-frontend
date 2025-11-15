@@ -104,9 +104,9 @@ function formatSearchParams(params) {
     createStartTime: startOfRange ? startOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
     createEndTime: endOfRange ? endOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
     appraisalResult:1,
+    pageSize:10000,
   }, ['selectedDate']);
 }
-
 /**
  * 响应数据格式化函数
  * @param {Array} list - 原始数据列表
@@ -178,7 +178,6 @@ const searchFormItems = computed(() => [
   },
   value:'1',
   width: 300,
-
 },
   {
     prop: 'appraisalId',
@@ -251,13 +250,14 @@ watch([checkedRowKeys, tableData], () => {
 function handleTotalDataChange(payload) {
   totalData.value = payload?.done ?? 0;
 }
-function handleCheckedRowKeysChange(temp) {
+function handleCheckedRowKeysChange(temp,rows, meta) {
   const keys = temp.filter(item => item != null);
   batchAppraisalModalVisible.value = !batchAppraisalModalVisible.value || keys.length>0
   if (keys.length > 5) {
     $message.warning('最多只能选择5个项目');
     return;
   }
+  // 如果是最后一个
   checkedRowKeys.value = keys;
 }
 let originFineclass = []
@@ -287,7 +287,7 @@ async function handleBatchAppraisalSubmit(submitData) {
         return {
         id: item.appraisal_id,
         fine_class:item.fine_class=== -1? 0: 1,
-        fine_tips: item.fine_tips
+        fine_tips: item.fine_class=== -1? 0: item.fine_tips
         }
       }
     });
