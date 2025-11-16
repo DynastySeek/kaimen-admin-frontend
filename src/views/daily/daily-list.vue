@@ -24,6 +24,8 @@
       @update:total-data="handleTotalDataChange"
       :row-key="item => item.appraisal_id"
       @update:checked-row-keys="handleCheckedRowKeysChange"
+      :virtual-scroll="true"
+      :max-height="650"
     >
       <template #header>
         <NSpace>
@@ -69,6 +71,7 @@ import { fetchAppraisalFineList, fetchAppraisalUpdate } from '@/services';
 import BatchUpdateDrawer from './BatchUpdateDrawer.vue';
 import ImagePreview from './ImagePreview.vue';
 import dayjs from 'dayjs';
+import { onMounted } from 'vue';
 const proTableRef = ref();
 const batchAppraisalModalTitle = ref('修改');
 const batchAppraisalModalVisible = ref(false);
@@ -104,7 +107,8 @@ function formatSearchParams(params) {
     createStartTime: startOfRange ? startOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
     createEndTime: endOfRange ? endOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
     appraisalResult:1,
-  }, ['selectedDate']);
+    pageSize:10000,
+  }, ['selectedDate',]);
 }
 /**
  * 响应数据格式化函数
@@ -201,7 +205,7 @@ const columns = computed(() => [
   {
     type: 'selection',
     fixed: 'left',
-    hidden:! (batchAppraisalModalVisible.value || totalData.value<=0)
+    hidden:! (isEditing.value || totalData.value<=0)
   },
   {
     title: '鉴定ID',
@@ -230,7 +234,7 @@ const columns = computed(() => [
 
 watch(batchAppraisalModalVisible, (visible) => {
   if (!visible) {
-    checkedRowKeys.value = [];
+    // checkedRowKeys.value = [];
     isEditing.value = false;
     batchAppraisalModalTitle.value = '修改';
   }
@@ -263,13 +267,12 @@ let originFineclass = []
 function handleBatchUpdate() {
   proTableRef.value?.reload(); 
   originFineclass = tableData.value.filter(item => item.fine_class === 1)
-    checkedRowKeys.value=  originFineclass.map(item=>item?.appraisal_id)
     isEditing.value = !isEditing.value;
-    batchAppraisalModalTitle.value = isEditing.value ? '取消修改' : '修改';
-    batchAppraisalModalVisible.value = isEditing.value;
-    batchAppraisalModalVisible.value = batchAppraisalModalTitle.value ==='取消修改'?true:false
+    batchAppraisalModalTitle.value = "重新评选"
+    if(!isEditing.value) {
+      batchAppraisalModalVisible.value = false;
+    }
     formatResponseList(tableData.value)
-    
 }
 
 async function handleBatchAppraisalSubmit(submitData) {
