@@ -5,7 +5,6 @@
       <n-space vertical :size="16">
         <n-space justify="space-between" align="center">
           <n-space>
-
              <n-tag :type="isConnected ? 'success' : 'error'" size="large" @click="isConnected?disconnectSocket():connectSocket()">
               {{ isConnected ? '✅ 已上线,点击下线' : '❌ 未上线，请点击上线' }}
              </n-tag>
@@ -19,20 +18,8 @@
             </n-tag>
           </n-space>
         </n-space>
-        <!-- <n-card title="📊 实时统计" size="small" :bordered="false" style="background: #ecf5ff;">
-          <n-space>
-            <n-statistic label="在线用户" :value="stats.onlineUsers" />
-            <n-divider vertical />
-            <n-statistic label="在线客服" :value="stats.onlineHumans" />
-            <n-divider vertical />
-            <n-statistic label="等待队列" :value="stats.waitingQueue" />
-            <n-divider vertical />
-            <n-statistic label="活跃会话" :value="stats.activeConversations" />
-          </n-space>
-     </n-card> -->
       </n-space>
      </n-card>
-
     <!-- 主体区域 -->
     <n-space vertical :size="16" style="margin-top: 16px;">
        <n-layout has-sider>
@@ -48,7 +35,6 @@
         >
           <n-tabs animated>
             <!-- 等待队列标签 -->
-    
             <n-tab-pane name="queue" tab="新消息">
               <template #tab>
                 <n-badge :value="waitingQueue?.length" :max="99">
@@ -83,7 +69,7 @@
                             </n-tag>
                             <span style="font-size: 12px;">等待 {{ item.wait_time }}s</span>
                           </n-space>
-                        </template>
+                         </template>
                         <n-space vertical :size="8">
                           <n-text depth="3" style="font-size: 12px;">
                             会话ID: {{ item.conversation_id.slice(0, 8) }}...
@@ -114,7 +100,7 @@
                 <n-badge :value="activeConversations?.length" :max="99">
                   <span style="font-size: 12px;padding: 10px;">{{ '处理中' }}</span> 
                 </n-badge>
-              </template>
+               </template>
               <div style="padding: 12px;">
                 <n-space vertical :size="12">
                   <n-button 
@@ -197,7 +183,7 @@
                 <n-badge :value="closedConversations?.length" :max="99">
                   <span style="font-size: 12px;padding: 10px;">{{ '聊天记录' }}</span>        
                 </n-badge>
-              </template>
+               </template>
               <div style="padding: 12px;">
                 <n-space vertical :size="12">
                   <n-button 
@@ -250,14 +236,14 @@
                             type="primary" 
                             size="small"
                             block
-                            @click="viewConversationHistory(conv.conversation_id)"
+                            @click="isHistoryView = true;viewConversationHistory(conv.conversation_id,conv.user_id)"
                           >
                             查看聊天记录
                           </n-button>
                         </n-space>
                       </n-card>
                     </n-space>
-                  </n-spin>
+         </n-spin>
                 </n-space>
               </div>
             </n-tab-pane>
@@ -268,7 +254,6 @@
           <n-card v-if="!currentConversationId" style="height: 100%;">
             <n-empty description="请从左侧选择或接受一个会话" />
           </n-card>
-          
           <div v-else style="height: 100%; display: flex; flex-direction: column;">
             <!-- 当前会话信息 -->
             <n-card size="small" style="margin-bottom: 12px;">
@@ -303,18 +288,18 @@
                 <template #description>
                   正在加载历史聊天记录...
                 </template>
-                <div class="chat-container">
+             <div class="chat-container">
                   <!-- 空状态提示 -->
                   <div v-if="chatListData.length === 0 && !loadingClosed" class="empty-state">
                     <n-empty description="暂无聊天记录" />
                   </div>
                   
                   <!-- 聊天消息列表 -->
-                  <div
-                    v-for="(message, index) in chatListData"
-                    :key="message.id || index"
-                    class="chat-entry"
-                  >
+               <div
+                 v-for="(message, index) in chatListData"
+                 :key="message.id || index"
+                 class="chat-entry"
+               >
                    <div v-if="message.query" class="chat-message user">
                    <div class="chat-meta">
                       <n-avatar round size="medium" class="avatar-user">
@@ -332,9 +317,11 @@
                  <div v-if="message.answer" class="chat-message ai">
                    <div class="chat-meta">
                       <n-avatar round size="medium" class="avatar-ai">
-                        客
+                        {{ 
+                        message.from_source=='api'?'AI':userStore.userInfo.nickname?.slice(0,1)
+                        }}
                      </n-avatar>
-                     <span class="chat-name">客服</span>
+                     <span class="chat-name">{{  message.from_source=='api'?'AI':userStore.userInfo.nickname}}</span>
                       <span class="chat-time">{{ formatTimestamp(message.created_at) }}</span>
                    </div>
                    <div class="chat-bubble ai">
@@ -343,11 +330,10 @@
                      </p>
                    </div>
                  </div>
-                  </div>
-                </div>
+               </div>
+             </div>
               </n-spin>
             </n-scrollbar>
-
             <!-- 消息输入区域 -->
             <div v-if="!isHistoryView" class="message-input-container">
                <n-input 
@@ -383,54 +369,56 @@ import { onMounted, onUnmounted, ref, nextTick } from 'vue';
 import { CommonPage } from '@/components';
 import { useUserStore } from '@/stores';
 import { io } from 'socket.io-client';
-import dayjs from 'dayjs';
-import { fetchUserinfoList,fetchChatList, fetchAIChatList } from "@/services";
-// import { useMessage } from 'naive-ui';
+ import dayjs from 'dayjs';
+import { fetchChatList } from "@/services";
 
 const userStore = useUserStore();
-// const $message = useMessage();
-console.log(userStore)
-// 基础状态
- const chatListData = ref([]);
-const message = ref('');
-const socket = ref(null);
-const isConnected = ref(false);
-const isOnline = ref(false);
-const currentConversationId = ref('');
-const currentUserId = ref('');
-const isHistoryView = ref(false); // 标记是否正在查看历史记录
 
-// 统计数据
+// ==================== 服务配置 ====================
+const SERVER_URL = 'https://agent.kaimen.site'; // WebSocket 服务器地址
+const APP_API_TOKEN = 'app-s8l0tNc5oPbHVJBeoLCXoPMg'; // API 认证 Token
+
+// ==================== WebSocket 连接状态 ====================
+const socket = ref(null); // Socket.IO 实例
+const isConnected = ref(false); // WebSocket 连接状态
+
+// ==================== 当前会话状态 ====================
+const currentConversationId = ref(''); // 当前活跃的会话ID
+const currentUserId = ref(''); // 当前会话的用户ID
+const isHistoryView = ref(false); // 是否正在查看历史记录（只读模式）
+const chatListData = ref([]); // 当前会话的聊天消息列表
+const message = ref(''); // 消息输入框内容
+
+// ==================== 队列和会话列表 ====================
+const waitingQueue = ref([]); // 等待队列列表
+const activeConversations = ref([]); // 活跃会话列表
+const closedConversations = ref([]); // 已结束会话列表
+
+// ==================== 加载状态 ====================
+const loadingQueue = ref(false); // 等待队列加载状态
+const loadingActive = ref(false); // 活跃会话加载状态
+const loadingClosed = ref(false); // 已结束会话加载状态
+
+// ==================== 统计数据 ====================
 const stats = ref({
-  onlineUsers: 0,
-  onlineHumans: 0,
-  waitingQueue: 0,
-  activeConversations: 0
+  onlineUsers: 0, // 在线用户数
+  onlineHumans: 0, // 在线客服数
+  waitingQueue: 0, // 等待队列数量
+  activeConversations: 0 // 活跃会话数量
 });
 
-// 等待队列
-const waitingQueue = ref([]);
-const loadingQueue = ref(false);
+// ==================== 定时器 ====================
+let autoRefreshInterval = null; // 自动刷新定时器
 
-// 活跃会话
-const activeConversations = ref([]);
-const loadingActive = ref(false);
+// ==================== API 调用函数 ====================
 
-// 已结束会话
-const closedConversations = ref([]);
-const loadingClosed = ref(false);
-
-// 会话聊天记录映射 { conversation_id: [...messages] }
-const conversationHistories = ref({});
-
-// 自动刷新定时器
-let autoRefreshInterval = null;
-
-// 配置
-const SERVER_URL = 'https://agent.kaimen.site';
-const APP_API_TOKEN = 'app-s8l0tNc5oPbHVJBeoLCXoPMg';
-
-// REST API 调用函数
+/**
+ * 统一的 REST API 调用函数
+ * @param {string} endpoint - API 端点
+ * @param {string} method - HTTP 方法 (GET/POST/PUT/DELETE)
+ * @param {object} body - 请求体数据
+ * @returns {Promise<{success: boolean, data: any, status: number}>}
+ */
 async function callApi(endpoint, method = 'GET', body = null) {
   const options = {
     method: method,
@@ -450,12 +438,16 @@ async function callApi(endpoint, method = 'GET', body = null) {
     return { success: response.ok, data: data, status: response.status };
    } catch (error) {
     console.error(`API调用失败: ${error.message}`);
-    // $message.error(`API调用失败: ${error.message}`);
     return { success: false, error: error.message };
   }
 }
 
-// 刷新统计信息
+// ==================== 数据刷新函数 ====================
+
+/**
+ * 刷新系统统计信息
+ * 包括：在线用户数、在线客服数、等待队列数、活跃会话数
+ */
 async function refreshStats() {
   const result = await callApi('/console/api/human-service/stats');
   if (result.success) {
@@ -463,60 +455,62 @@ async function refreshStats() {
     stats.value.onlineHumans = result.data.online_humans || 0;
     stats.value.waitingQueue = result.data.waiting_queue_length || 0;
     stats.value.activeConversations = result.data.active_conversations || 0;
-    console.log('✅ 统计信息已更新');
   } else {
     console.error(`❌ 获取统计信息失败: ${result.status}`);
   }
 }
 
-// 刷新等待队列
+/**
+ * 刷新等待队列列表
+ * 获取所有等待接入的用户会话
+ */
 async function refreshQueue() {
   loadingQueue.value = true;
   const result = await callApi('/console/api/human-service/queue');
   if (result.success) {
     waitingQueue.value = result.data.queue || [];
-    console.log(waitingQueue.value)
-    console.log(`✅ 队列已更新 (${waitingQueue.value.length}个等待)`);
   } else {
     console.error(`❌ 获取队列失败: ${result.status}`);
-    // $message.error('获取队列失败');
   }
   loadingQueue.value = false;
-  // 根据会话获取用户
 }
 
-// 刷新活跃会话列表
+/**
+ * 刷新活跃会话列表
+ * 获取所有正在进行中的客服会话
+ */
 async function refreshActiveConversations() {
   loadingActive.value = true;
   const result = await callApi('/console/api/human-service/conversations?status=connected');
   
   if (result.success) {
     activeConversations.value = result.data.conversations || [];
-    console.log(activeConversations.value)
-    console.log(`✅ 活跃会话已更新 (${activeConversations.value.length}个)`);
   } else {
     console.error(`❌ 获取活跃会话失败: ${result.status}`);
-    // $message.error('获取活跃会话失败');
   }
   loadingActive.value = false;
 }
 
-// 刷新已结束会话列表
+/**
+ * 刷新已结束会话列表
+ * 获取所有已关闭的历史会话
+ */
 async function refreshClosedConversations() {
   loadingClosed.value = true;
   const result = await callApi('/console/api/human-service/conversations?status=closed');
   
   if (result.success) {
     closedConversations.value = result.data.conversations || [];
-    console.log(closedConversations.value)
-    console.log(`✅ 已结束会话已更新 (${closedConversations.value.length}个)`);
   } else {
     console.error(`❌ 获取已结束会话失败: ${result.status}`);
   }
   loadingClosed.value = false;
 }
 
-// 刷新所有数据
+/**
+ * 刷新所有数据
+ * 并行刷新统计、队列、活跃会话和已结束会话
+ */
 async function refreshAll() {
   await Promise.all([
     refreshStats(),
@@ -524,48 +518,31 @@ async function refreshAll() {
     refreshActiveConversations(),
     refreshClosedConversations()
   ]);
-  // $message.success('已刷新所有数据');
 }
 
-// 查看历史聊天记录（从API获取）
-async function viewConversationHistory(conversationId) {
-  // 查找会话信息
-  /**
-   * 
-   */
+// ==================== 历史记录查看 ====================
+
+/**
+ * 查看历史聊天记录
+ * 从 API 获取指定会话的历史消息
+ * @param {string} conversationId - 会话ID
+ * @param {string} user - 用户ID
+ */
+async function viewConversationHistory(conversationId, user) {
   const conv = closedConversations.value.find(c => c.conversation_id === conversationId);
   const userId = conv?.user_id || 'unknown';
-  
-  // 设置当前会话信息
   currentConversationId.value = conversationId;
   currentUserId.value = userId;
-  isHistoryView.value = true; // 标记为历史查看模式
-  
-  // 先检查内存缓存
-  // if (conversationHistories.value[conversationId]) {
-  //   chatListData.value = [...conversationHistories.value[conversationId]];
-  //   console.log('从缓存加载历史记录:', conversationId);
-  //   return;
-  // }
-  
   // 从API获取历史聊天记录
   try {
-    console.log('从API获取历史记录:', conversationId, userId);
     loadingClosed.value = true;
-    // const aichat = await fetchAIChatList({conversation_id: conversationId,user:userId})
-    // console.log(aichat)
     const result = await fetchChatList({ 
       conversation_id: conversationId,
+      user_id: user,
     });
-    
-    console.log('111',result)
+    chatListData.value = result?.data||[];
   
-      chatListData.value = result.messages;
-      // 保存到缓存
-      conversationHistories.value[conversationId] = [...result.messages];
-      console.log('222',conversationHistories.value[conversationId])
-  
-  } catch (error) {
+   } catch (error) {
     console.error('❌ 获取历史记录失败:', error);
     chatListData.value = [];
   } finally {
@@ -573,21 +550,36 @@ async function viewConversationHistory(conversationId) {
   }
 }
 
-// 时间格式化
+// ==================== 工具函数 ====================
+
+/**
+ * 格式化时间戳为时分秒
+ * @param {number} timestamp - Unix 时间戳（秒）
+ * @returns {string} 格式化后的时间字符串 (HH:mm:ss)
+ */
 function formatTime(timestamp) {
   if (!timestamp) return '-';
   return dayjs(timestamp * 1000).format('HH:mm:ss');
 }
 
+/**
+ * 格式化时间戳为完整日期时间
+ * @param {number} timestamp - Unix 时间戳（秒）
+ * @returns {string} 格式化后的日期时间字符串 (YYYY-MM-DD HH:mm:ss)
+ */
 function formatTimestamp(timestamp) {
   if (!timestamp) return '';
   return dayjs(timestamp * 1000).format('YYYY-MM-DD HH:mm:ss');
 }
 
-// 初始化 WebSocket 连接（客服端）
+// ==================== WebSocket 连接管理 ====================
+
+/**
+ * 初始化 WebSocket 连接
+ * 连接到客服端 Socket.IO 服务器并设置事件监听
+ */
 function connectSocket() {
   if (socket.value?.connected) {
-    console.log('WebSocket 已连接，跳过重复连接');
     return;
   }
 
@@ -601,7 +593,6 @@ function connectSocket() {
   }
 
   const NAMESPACE = '/v1/chat/human-service/human';
-  console.log('[HumanService] 准备连接到客服端 Socket.IO...');
   
   socket.value = io(SERVER_URL + NAMESPACE, {
     path: '/socket.io',
@@ -614,10 +605,6 @@ function connectSocket() {
 
   // 连接成功
   socket.value.on('connect', () => {
-    console.log('✅ [Human] Connected to server');
-  
-    // $message.success('WebSocket 连接成功');
-    
     // 发送客服上线
     socket.value.emit('human_online', {
       type: 'human_online',
@@ -634,40 +621,23 @@ function connectSocket() {
 
   // 上线确认
   socket.value.on('human_online_ack', (data) => {
-    console.log('✅ [Human] Online acknowledged:', data);
-    const ackData = data?.data || data || {};
     isConnected.value = true;
-    // $message.success(`上线成功，等待队列: ${ackData.waiting_count || 0} 个`);
-    // 立即刷新数据
     refreshAll();
   });
 
   // 新会话通知
   socket.value.on('new_conversation', (data) => {
-    console.log('🔔 [Human] New conversation waiting:', data);
-    const convData = data?.data || {};
-    // $message.info(`新用户等待接入: ${convData.user_id}`);
-    // 刷新队列和统计
     refreshQueue();
     refreshStats();
   });
-
     // 接受会话确认
     socket.value.on('accept_conversation_ack', (data) => {
-    console.log('✅ [Human] Conversation accepted:', data);
     const ackData = data?.data || data || {};
     if (ackData.conversation_id) {
       currentConversationId.value = ackData.conversation_id;
       currentUserId.value = ackData.user_id || 'unknown';
-      isHistoryView.value = false; // 新接受的会话，不是历史查看
-      // $message.success('会话已接受');
-      // 清空聊天记录，准备接收新消息
+      isHistoryView.value = false;
       chatListData.value = [];
-      // 初始化该会话的聊天记录
-      if (!conversationHistories.value[ackData.conversation_id]) {
-        conversationHistories.value[ackData.conversation_id] = [];
-      }
-      // 刷新队列和活跃会话
       refreshQueue();
       refreshStats();
       refreshActiveConversations();
@@ -676,7 +646,6 @@ function connectSocket() {
 
   // 接收用户消息
   socket.value.on('user_message', (data) => {
-    console.log('💬 [Human] Received message from user:', data);
     const msgData = data?.data || data || {};
     // 如果是当前会话的消息，添加到聊天列表
     if (msgData.conversation_id === currentConversationId.value) {
@@ -692,21 +661,6 @@ function connectSocket() {
 
   // 会话关闭事件
   socket.value.on('conversation_closed', (data) => {
-    console.log('🔔 [Human] Conversation closed:', data);
-    const closeData = data?.data || data || {};
-    if (closeData.conversation_id === currentConversationId.value) {
-      // $message.warning(`会话已关闭: ${closeData.close_reason || '未知原因'}`);
-      // 保存当前聊天记录到历史记录
-      if (chatListData.value.length > 0) {
-        conversationHistories.value[closeData.conversation_id] = [...chatListData.value];
-        console.log('已保存聊天记录到历史:', closeData.conversation_id);
-      }
-      // 清空当前会话状态，但不清空 chatListData（保持显示）
-      // currentConversationId.value = '';
-      // currentUserId.value = '';
-      // 如果想切换到已结束标签，可以保持 currentConversationId
-    }
-    // 刷新队列、统计、活跃会话和已结束会话
     refreshQueue();
     refreshStats();
     refreshActiveConversations();
@@ -716,14 +670,11 @@ function connectSocket() {
   // 错误处理
   socket.value.on('error', (data) => {
     console.error('❌ [Human] Error:', data);
-    // $message.error(`错误: ${JSON.stringify(data)}`);
   });
 
   // 断开连接
   socket.value.on('disconnect', (reason) => {
-    console.log('❌ [Human] Disconnected from server, reason:', reason);
     isConnected.value = false;
-    // $message.error('WebSocket 连接断开');
     stopAutoRefresh();
   });
 
@@ -731,18 +682,18 @@ function connectSocket() {
   socket.value.on('connect_error', (error) => {
     console.error('❌ [Human] Connection error:', error);
     isConnected.value = false;
-    // $message.error('WebSocket 连接错误');
   });
 }
 
-// 从队列接受会话
-function acceptConversationFromQueue(conversationId, userId) {
-  if (!socket.value?.connected || !isConnected.value) {
-    // $message.error('请先连接 WebSocket');
-    return;
-  }
+// ==================== 会话操作函数 ====================
 
-  console.log('接受会话:', conversationId);
+/**
+ * 从等待队列接受会话
+ * @param {string} conversationId - 会话ID
+ * @param {string} userId - 用户ID
+ */
+function acceptConversationFromQueue(conversationId, userId) {
+  if (!socket.value?.connected || !isConnected.value) return;
   socket.value.emit('accept_conversation', {
     type: 'accept_conversation',
     data: {
@@ -753,17 +704,16 @@ function acceptConversationFromQueue(conversationId, userId) {
   
   currentConversationId.value = conversationId;
   currentUserId.value = userId;
-  isHistoryView.value = false; // 活跃会话，不是历史查看
+  isHistoryView.value = false;
 }
 
-// 切换到指定会话
+/**
+ * 切换到指定的活跃会话
+ * @param {string} conversationId - 会话ID
+ * @param {string} userId - 用户ID
+ */
 function switchToConversation(conversationId, userId) {
-  if (!socket.value?.connected || !isConnected.value) {
-    // $message.error('请先连接 WebSocket');
-    return;
-  }
-  
-  console.log('切换到会话:', conversationId);
+  if (!socket.value?.connected || !isConnected.value) return;
   socket.value.emit('accept_conversation', {
     type: 'accept_conversation',
     data: {
@@ -772,30 +722,20 @@ function switchToConversation(conversationId, userId) {
     }
   });
   
+  viewConversationHistory(conversationId, userId);
   currentConversationId.value = conversationId;
   currentUserId.value = userId;
   chatListData.value = [];
-  isHistoryView.value = false; // 活跃会话，不是历史查看
-  
-  // 刷新活跃会话列表以更新高亮
+  isHistoryView.value = false;
   setTimeout(() => refreshActiveConversations(), 500);
 }
 
-// 关闭指定会话
+/**
+ * 关闭指定的会话
+ * @param {string} conversationId - 要关闭的会话ID
+ */
 function closeConversationById(conversationId) {
-  if (!socket.value?.connected || !isConnected.value) {
-    // $message.error('请先连接 WebSocket');
-    return;
-  }
-  
-  console.log('关闭会话:', conversationId);
-  
-  // 如果关闭的是当前会话，先保存聊天记录
-  if (conversationId === currentConversationId.value && chatListData.value.length > 0) {
-    conversationHistories.value[conversationId] = [...chatListData.value];
-    console.log('已保存聊天记录到历史:', conversationId);
-  }
-  
+  if (!socket.value?.connected || !isConnected.value) return;
   socket.value.emit('close_conversation', {
     type: 'close_conversation',
     data: {
@@ -805,16 +745,6 @@ function closeConversationById(conversationId) {
     }
   });
   
-  // 如果关闭的是当前会话，不清空 chatListData（保持显示历史记录）
-  // 只标记为已关闭状态
-  if (conversationId === currentConversationId.value) {
-    // 可以选择清空，也可以保持显示
-    // currentConversationId.value = '';
-    // currentUserId.value = '';
-    // chatListData.value = [];
-  }
-  
-  // 刷新列表
   setTimeout(() => {
     refreshActiveConversations();
     refreshQueue();
@@ -823,36 +753,27 @@ function closeConversationById(conversationId) {
   }, 500);
 }
 
-// 关闭当前会话
+/**
+ * 关闭当前正在处理的会话
+ */
 function closeConversation() {
-  if (!currentConversationId.value) {
-    // $message.error('没有活跃的会话');
-      return;
-    }
-  
+  if (!currentConversationId.value) return;
   closeConversationById(currentConversationId.value);
 }
 
-// 发送消息
-function sendMessage() {
-  if (!currentConversationId.value) {
-    // $message.error('请先选择一个会话');
-      return;
-  }
+// ==================== 消息处理函数 ====================
 
-  if (!socket.value?.connected || !isConnected.value) {
-    // $message.error('WebSocket 未连接');
-    return;
-  }
+/**
+ * 发送消息给用户
+ * 通过 WebSocket 发送客服消息并更新本地聊天列表
+ */
+function sendMessage() {
+  if (!currentConversationId.value) return;
+  if (!socket.value?.connected || !isConnected.value) return;
 
   const messageToSend = message.value.trim();
+  if (!messageToSend) return;
   
-  if (!messageToSend) {
-    // $message.error('消息内容不能为空');
-    return;
-  }
-  
-  // 先添加到聊天列表（乐观更新）
   addMessageToChatList({
     query: '',
     answer: messageToSend,
@@ -861,7 +782,6 @@ function sendMessage() {
     isUser: false
   });
 
-  // 发送消息
   socket.value.emit('human_message', {
     type: 'human_message',
     data: {
@@ -872,48 +792,42 @@ function sendMessage() {
     }
   });
 
-  // 清空输入框
   message.value = '';
 }
 
-// 添加消息到聊天列表
+/**
+ * 添加消息到聊天列表
+ * 根据消息类型（用户/客服）更新聊天记录并自动滚动
+ * @param {Object} messageData - 消息数据
+ * @param {string} messageData.query - 用户消息内容
+ * @param {string} messageData.answer - 客服消息内容
+ * @param {number} messageData.created_at - 消息时间戳
+ * @param {string} messageData.id - 消息ID
+ * @param {boolean} messageData.isUser - 是否为用户消息
+ */
 function addMessageToChatList(messageData) {
-  let newMessage;
-  
   if (messageData.isUser) {
-    newMessage = {
+    chatListData.value.push({
       query: messageData.query,
       answer: '',
       created_at: messageData.created_at,
       id: messageData.id
-    };
-    chatListData.value.push(newMessage);
+    });
   } else {
     const lastItem = chatListData.value[chatListData.value.length - 1];
     if (lastItem && lastItem.query && !lastItem.answer) {
       lastItem.answer = messageData.answer;
       lastItem.created_at = messageData.created_at;
-      newMessage = lastItem;
     } else {
-      newMessage = {
+      chatListData.value.push({
         query: '',
         answer: messageData.answer,
         created_at: messageData.created_at,
         id: messageData.id
-      };
-      chatListData.value.push(newMessage);
+      });
     }
   }
   
-  // 同时更新到历史记录
-  if (currentConversationId.value) {
-    if (!conversationHistories.value[currentConversationId.value]) {
-      conversationHistories.value[currentConversationId.value] = [];
-    }
-    conversationHistories.value[currentConversationId.value] = [...chatListData.value];
-  }
-  
-  // 滚动到底部
   nextTick(() => {
     const scrollbar = document.querySelector('.chat-scroll .n-scrollbar-content');
     if (scrollbar) {
@@ -922,7 +836,12 @@ function addMessageToChatList(messageData) {
   });
 }
 
-// 自动刷新
+// ==================== 自动刷新管理 ====================
+
+/**
+ * 启动自动刷新定时器
+ * 每5秒自动刷新统计、队列和活跃会话数据
+ */
 function startAutoRefresh() {
   if (autoRefreshInterval) return;
   
@@ -933,27 +852,26 @@ function startAutoRefresh() {
       refreshActiveConversations();
     }
   }, 5000); // 每5秒刷新一次
-  
-  console.log('🔄 已启动自动刷新 (5秒/次)');
 }
 
+/**
+ * 停止自动刷新定时器
+ */
 function stopAutoRefresh() {
   if (autoRefreshInterval) {
     clearInterval(autoRefreshInterval);
     autoRefreshInterval = null;
-    console.log('⏸ 已停止自动刷新');
   }
 }
 
-// 断开 WebSocket 连接
+/**
+ * 断开 WebSocket 连接
+ * 发送下线通知并清理所有状态
+ */
 function disconnectSocket() {
-  if (!socket.value) {
-    // $message.warning('WebSocket 未连接');
-    return;
-  }
+  if (!socket.value) return;
 
   try {
-    // 如果已连接，先发送客服下线通知
     if (socket.value.connected && isConnected.value) {
       socket.value.emit('human_offline', {
         type: 'human_offline',
@@ -964,7 +882,6 @@ function disconnectSocket() {
     }
     
     socket.value.disconnect();
-    // $message.success('已断开连接');
   } catch (e) {
     console.warn('断开连接失败:', e);
   } finally {
@@ -977,18 +894,21 @@ function disconnectSocket() {
   }
 }
 
-// 组件挂载
+// ==================== 生命周期钩子 ====================
+
+/**
+ * 组件挂载时自动连接 WebSocket
+ */
 onMounted(() => {
-  // 自动连接（可选）
   connectSocket();
 });
 
-// 组件卸载时断开连接
+/**
+ * 组件卸载时断开 WebSocket 连接
+ */
 onUnmounted(() => {
   disconnectSocket();
 });
- 
- 
  </script>
  
  <style scoped>
