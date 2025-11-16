@@ -73,7 +73,7 @@ import ImagePreview from './ImagePreview.vue';
 import dayjs from 'dayjs';
 import { onMounted } from 'vue';
 const proTableRef = ref();
-const batchAppraisalModalTitle = ref('修改');
+const batchAppraisalModalTitle = ref('重新评选');
 const batchAppraisalModalVisible = ref(false);
 const videoModalVisible = ref(false);
 const currentVideoSrc = ref('');
@@ -232,13 +232,6 @@ const columns = computed(() => [
  
 ].filter(column => !column.hidden));
 
-watch(batchAppraisalModalVisible, (visible) => {
-  if (!visible) {
-    // checkedRowKeys.value = [];
-    isEditing.value = false;
-    batchAppraisalModalTitle.value = '修改';
-  }
-});
 /**
  * 
  * 处理选中行变化，限制最多选5个
@@ -247,6 +240,7 @@ watch([checkedRowKeys, tableData], () => {
   // if(checkedRowKeys.value.length > 0){
   const temp = tableData.value.filter(row => checkedRowKeys.value.includes(row.appraisal_id));
   checkedRows.value = temp.filter(item => item != null);
+  console.log(checkedRows.value)
   
 });
 function handleTotalDataChange(payload) {
@@ -268,7 +262,7 @@ function handleBatchUpdate() {
   proTableRef.value?.reload(); 
   originFineclass = tableData.value.filter(item => item.fine_class === 1)
     isEditing.value = !isEditing.value;
-    batchAppraisalModalTitle.value = "重新评选"
+    batchAppraisalModalTitle.value = isEditing.value ? "取消重新评选" : "重新评选"
     if(!isEditing.value) {
       batchAppraisalModalVisible.value = false;
     }
