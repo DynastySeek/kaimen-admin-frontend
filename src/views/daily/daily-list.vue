@@ -24,6 +24,8 @@
       @update:total-data="handleTotalDataChange"
       :row-key="item => item.appraisal_id"
       @update:checked-row-keys="handleCheckedRowKeysChange"
+      :virtual-scroll="true"
+      :max-height="650"
     >
       <template #header>
         <NSpace>
@@ -203,7 +205,7 @@ const columns = computed(() => [
   {
     type: 'selection',
     fixed: 'left',
-    hidden:! (batchAppraisalModalVisible.value || totalData.value<=0)
+    hidden:! (isEditing.value || totalData.value<=0)
   },
   {
     title: '鉴定ID',
@@ -265,14 +267,12 @@ let originFineclass = []
 function handleBatchUpdate() {
   proTableRef.value?.reload(); 
   originFineclass = tableData.value.filter(item => item.fine_class === 1)
-    // checkedRowKeys.value= []
-    // originFineclass.map(item=>item?.appraisal_id)
     isEditing.value = !isEditing.value;
-    batchAppraisalModalTitle.value = isEditing.value ? '取消修改' : '修改';
-    batchAppraisalModalVisible.value = isEditing.value;
-    batchAppraisalModalVisible.value = batchAppraisalModalTitle.value ==='取消修改'?true:false
+    batchAppraisalModalTitle.value = "重新评选"
+    if(!isEditing.value) {
+      batchAppraisalModalVisible.value = false;
+    }
     formatResponseList(tableData.value)
-    
 }
 
 async function handleBatchAppraisalSubmit(submitData) {

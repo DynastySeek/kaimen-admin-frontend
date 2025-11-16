@@ -35,11 +35,14 @@
   :scroll-x="1400"
   :row-key="rowKey"
   :checked-row-keys="checkedRowKeys"
+  :virtual-scroll="virtualScroll"
+  :max-height="virtualScroll ? maxHeight : undefined"
   @update:checked-row-keys="handleCheckedRowKeysChange"
   />
   </div>
   <n-flex class="mt-10" justify="end">
   <NPagination
+  v-if="!virtualScroll"
   :item-count="total"
   :page="page"
   :page-size="pageSize"
@@ -102,8 +105,16 @@
      type: Function,
      default: item => item.id,
    },
-   // 原始数据的双向绑定（如需在父组件中使用）
-  
+   // 是否启用虚拟滚动
+   virtualScroll: {
+     type: Boolean,
+     default: false,
+   },
+   // 表格最大高度（启用虚拟滚动时必须设置）
+   maxHeight: {
+     type: [Number, String],
+     default: 600,
+   },
   });
   
   const emit = defineEmits(['update:checked-row-keys', 'update:total-data']);
