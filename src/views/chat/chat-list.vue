@@ -250,7 +250,7 @@
                             type="primary" 
                             size="small"
                             block
-                            @click="viewConversationHistory(conv.conversation_id)"
+                            @click="viewConversationHistory(conv.conversation_id,conv.user_id)"
                           >
                             查看聊天记录
                           </n-button>
@@ -332,9 +332,11 @@
                  <div v-if="message.answer" class="chat-message ai">
                    <div class="chat-meta">
                       <n-avatar round size="medium" class="avatar-ai">
-                        客
+                        {{ 
+                        message.from_source=='api'?'AI':userStore.userInfo.nickname?.slice(0,1)
+                        }}
                      </n-avatar>
-                     <span class="chat-name">客服</span>
+                     <span class="chat-name">{{  message.from_source=='api'?'AI':userStore.userInfo.nickname}}</span>
                       <span class="chat-time">{{ formatTimestamp(message.created_at) }}</span>
                    </div>
                    <div class="chat-bubble ai">
@@ -528,7 +530,7 @@ async function refreshAll() {
 }
 
 // 查看历史聊天记录（从API获取）
-async function viewConversationHistory(conversationId) {
+async function viewConversationHistory(conversationId,user) {
   // 查找会话信息
   /**
    * 
@@ -541,29 +543,20 @@ async function viewConversationHistory(conversationId) {
   currentUserId.value = userId;
   isHistoryView.value = true; // 标记为历史查看模式
   
-  // 先检查内存缓存
-  // if (conversationHistories.value[conversationId]) {
-  //   chatListData.value = [...conversationHistories.value[conversationId]];
-  //   console.log('从缓存加载历史记录:', conversationId);
-  //   return;
-  // }
-  
   // 从API获取历史聊天记录
   try {
-    console.log('从API获取历史记录:', conversationId, userId);
+    console.log('从API获取历史记录:', conversationId, user);
     loadingClosed.value = true;
-    // const aichat = await fetchAIChatList({conversation_id: conversationId,user:userId})
-    // console.log(aichat)
     const result = await fetchChatList({ 
       conversation_id: conversationId,
+      user_id: user,
     });
     
-    console.log('111',result)
-  
-      chatListData.value = result.messages;
+    closedConversations.value = result?.data||[];
+    chatListData.value = result?.data||[];
       // 保存到缓存
-      conversationHistories.value[conversationId] = [...result.messages];
-      console.log('222',conversationHistories.value[conversationId])
+      // conversationHistories.value[conversationId] = [...result.messages];
+      // console.log('222',conversationHistories.value[conversationId])
   
   } catch (error) {
     console.error('❌ 获取历史记录失败:', error);
