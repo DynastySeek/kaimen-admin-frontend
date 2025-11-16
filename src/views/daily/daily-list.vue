@@ -232,13 +232,6 @@ const columns = computed(() => [
  
 ].filter(column => !column.hidden));
 
-watch(batchAppraisalModalVisible, (visible) => {
-  if (!visible) {
-    // checkedRowKeys.value = [];
-    isEditing.value = false;
-    batchAppraisalModalTitle.value = '修改';
-  }
-});
 /**
  * 
  * 处理选中行变化，限制最多选5个
@@ -247,6 +240,7 @@ watch([checkedRowKeys, tableData], () => {
   // if(checkedRowKeys.value.length > 0){
   const temp = tableData.value.filter(row => checkedRowKeys.value.includes(row.appraisal_id));
   checkedRows.value = temp.filter(item => item != null);
+  console.log(checkedRows.value)
   
 });
 function handleTotalDataChange(payload) {
