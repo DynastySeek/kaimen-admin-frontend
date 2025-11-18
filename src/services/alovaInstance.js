@@ -30,7 +30,8 @@ const alovaInstance = createAlova({
   responded: {
     // 成功响应处理
     onSuccess: async (response) => {
-      const json = await response.json();;
+      const json = await response.json();
+      console.log("json", json)
       if (response.status >= 400 || json.success === false) {
         if (response.status === 401) {
           // 清除 token

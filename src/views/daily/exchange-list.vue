@@ -171,7 +171,7 @@ const formItems = [
   },
 ]
 
-const searchFormItems = computed(() => [
+const searchFormItems =  [
   {
     prop: 'phone',
     label: '登录授权手机号',
@@ -179,7 +179,7 @@ const searchFormItems = computed(() => [
     placeholder: '请输入登录授权手机号',
     span: 6,
   }
-].filter(item => !item.hidden));
+]
 const detailscolumns = [
   {
     title: '时间',
@@ -208,7 +208,7 @@ const detailscolumns = [
   },
 ];
 
-const columns = computed(() => [
+const columns = [
 {
     title: '授权登录手机号',
     key: 'phone',
@@ -252,7 +252,7 @@ const columns = computed(() => [
       });
     },
   },
-].filter(column => !column.hidden));
+];
 async function handledDetails(row) {
   showModal.value = true
   try {
