@@ -192,7 +192,7 @@ const detailscolumns = [
     title: '详情',
     key: 'gold_gram',
     render: (row) => {
-      return h('div',row.type === 1 ? `${row.gold_gram}g` :  `${row.gold_gram}g` );
+      return h('div',row.type === 1 ? `${row.gold_gram}g` :  row.gold_gram );
     },
   },
   {
