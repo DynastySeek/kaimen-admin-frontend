@@ -70,7 +70,7 @@ const formState = reactive({
   price: ''
 })
 const detailsData = ref([]);
-const exchangeModalVisible = ref(true);
+const exchangeModalVisible = ref(false);
 /**
  * 搜索参数格式化函数
  * @param {object} params - 搜索参数
