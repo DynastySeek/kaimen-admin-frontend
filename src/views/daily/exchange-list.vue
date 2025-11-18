@@ -92,7 +92,6 @@ function formatSearchParams(params) {
  * @returns {Array} 格式化后的数据列表
  */
 async function formatResponseList(list) {
-  console.log("list", list)
   try {
     const clonedList = cloneDeep(list);
     const allCloudImages = clonedList.reduce((acc, d) => acc.concat(d.images || []), []).filter(v => v.startsWith('cloud://'));
@@ -111,7 +110,6 @@ async function formatResponseList(list) {
         });
       });
     }
-    console.log("clonedList", clonedList)
     return clonedList;
   } catch (error) {
     console.error('获取鉴定详情失败:', error);
