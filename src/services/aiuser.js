@@ -1,6 +1,7 @@
 import { createAlova } from 'alova';
 import adapterFetch from 'alova/fetch';
 import vueHook from 'alova/vue';
+import {  omit } from 'lodash-es';
 // import { cleanParams,isObject,getToken } from '@/utils';
 import { isLocal  } from '@/config/env';
 
@@ -12,14 +13,13 @@ const alovaInstance = createAlova({
   cacheFor: null,
   timeout: 10000,
   beforeRequest: (method) => {
-    console.log(method)
     const token = getToken();
     if (method.type === 'GET' && method.config.params) {
       method.config.params = cleanParams(method.config.params);
     }
 
     if (method.data && isObject(method.data)) {
-      method.data = cleanParams(method.data);
+      method.data = cleanParams( omit({...method.data,size:method.data.pageSize}, ['pageSize']));
     }
     
     if (token) {

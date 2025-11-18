@@ -71,7 +71,6 @@ const exchangeModalVisible = ref(false);
  * @returns {object} 格式化后的参数
  */
 function formatSearchParams(params) {
-
   return omit({
     ...params,
     size:params?.pageSize,
@@ -120,7 +119,26 @@ const formItems = [
     label: '金额(￥)',
     type: 'input',
     placeholder: '请输入金额',
-    rules: [{ required: true, message: '请输入金额' }],
+    rules: [
+      { required: true, message: '请输入金额' },
+    {
+        validator: (rule, value) => {
+          if (value === '' || value === null || value === undefined) {
+            return Promise.reject('请输入金额');
+          }
+          // 判断数字格式，最多2位小数
+          const reg = /^(0|[1-9]\d*)(\.\d{1,2})?$/;
+          if (!reg.test(value)) {
+            return Promise.reject('请输入合法金额，最多2位小数');
+          }
+          // 判断是否大于当前余额
+          if (parseFloat(value) > formState.remain_tips) {
+            return Promise.reject('金额不能超过当前余额');
+          }
+          return Promise.resolve();
+        }
+      }
+    ],
   
   },
   {
@@ -128,7 +146,20 @@ const formItems = [
     label: '重量(g)',
     type: 'input',
     placeholder: '请输入重量',
-    rules: [{ required: true, message: '请输入重量' }],
+    rules: [
+      { required: true, message: '请输入重量' },
+      {
+        validator: (rule, value) => {
+          if (value === '' || value === null || value === undefined) {
+            return Promise.reject('请输入重量');
+          }
+          if (!/^[1-9]\d*$/.test(value)) {
+            return Promise.reject('重量必须为正整数');
+          }
+          return Promise.resolve();
+        },
+      },
+    ],
   
   },
 ]
@@ -220,17 +251,21 @@ async function handledDetails(row) {
   }
 }
 async function handledSubmit(_data) {
+  const valid = await formRef.value?.validate();
+    if (!valid) {
+      return;
+    }
   await goldXchange({userinfoid:formState._id, gold:formState.gold,price:formState.price});
   exchangeModalVisible.value = false
   proTableRef.value?.refresh();
 }
 
 async function searchList() {
-  await fetchUserGoldList({page:1,size:20});
+  // await fetchUserGoldList({page:1,size:20});
 }
 
 onMounted(()=>{
-  searchList()
+  // searchList()
 })
 
 </script>
