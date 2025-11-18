@@ -178,7 +178,7 @@
   handleSuccess(async ({ data}) => {
     const rawData = data?.data ?? null;
     emit('update:total-data', data.data);
-    let tableList = rawData?.list || [];
+    let tableList = rawData?.list || rawData || [];
     if (props.formatResponseList) {
       tableList = await props.formatResponseList(tableList);
     }
