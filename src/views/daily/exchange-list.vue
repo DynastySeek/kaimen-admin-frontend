@@ -37,13 +37,14 @@
         :form-items="formItems"
         label-width="100px"
       />
+     
       <template #footer>
-        <n-flex justify="end">
-          <n-button @click="exchangeModalVisible = false">
-            取消
-          </n-button>
+      
+        <n-flex justify="end" align="center">
+          <n-gradient-text type="error">请确认信息后点击提交，提交后不可修改
+          </n-gradient-text>
           <n-button type="primary" @click="handledSubmit">
-            确定
+            确定提交
           </n-button>
         </n-flex>
       </template>
@@ -72,7 +73,7 @@ const formState = reactive({
   price: ''
 })
 const detailsData = ref([]);
-const exchangeModalVisible = ref(false);
+const exchangeModalVisible = ref(true);
 /**
  * 搜索参数格式化函数
  * @param {object} params - 搜索参数
