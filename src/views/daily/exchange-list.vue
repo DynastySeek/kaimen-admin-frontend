@@ -57,6 +57,7 @@ import { CommonPage, ProTable, FormBuilder, VideoModal } from '@/components';
 import { NButton, NSpace, NModal, NTable } from 'naive-ui';
 import {goldXchangelist,  goldXchange,  fetchUserinfoList,fetchUserGoldList,fetchAppraisalFineList} from '@/services';
 import dayjs from 'dayjs';
+import { render } from 'less';
 
 const proTableRef = ref();
 const formRef = ref();
@@ -69,7 +70,7 @@ const formState = reactive({
   price: ''
 })
 const detailsData = ref([]);
-const exchangeModalVisible = ref(false);
+const exchangeModalVisible = ref(true);
 /**
  * 搜索参数格式化函数
  * @param {object} params - 搜索参数
@@ -119,6 +120,8 @@ const formItems = [
   {
     prop: 'remain_tips',
     label: '当前余额',
+    type: 'input',
+    disabled: true,
   },
   {
     
@@ -127,7 +130,6 @@ const formItems = [
     type: 'input',
     placeholder: '请输入金额',
     rules: [
-      { required: true, message: '请输入金额' },
     {
         validator: (rule, value) => {
           if (value === '' || value === null || value === undefined) {
@@ -154,7 +156,6 @@ const formItems = [
     type: 'input',
     placeholder: '请输入重量',
     rules: [
-      { required: true, message: '请输入重量' },
       {
         validator: (rule, value) => {
           if (value === '' || value === null || value === undefined) {
@@ -268,7 +269,7 @@ async function handledSubmit(_data) {
     if (!valid) {
       return;
     }
-    await goldXchange({userinfoid:formState._id, gold:formState.gold,price:formState.price});
+    await goldXchange({userinfoid:formState._id, gold:Number(formState.gold),price:Number(formState.price)});
     exchangeModalVisible.value = false
     proTableRef.value?.refresh();
   }
