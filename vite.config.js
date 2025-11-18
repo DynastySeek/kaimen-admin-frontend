@@ -97,7 +97,8 @@ export default defineConfig(({ mode }) => {
           target: 'https://agent.kaimen.site',
           changeOrigin: true,
           rewrite: path => path.replace(/^\/aichat/, ''),
-          secure: false,configure: (proxy, options) => {
+          secure: false,
+          configure: (proxy, options) => {
             // 配置此项可在响应头中看到请求的真实地址
             proxy.on('proxyRes', (proxyRes, req) => {
               proxyRes.headers['x-real-url'] = new URL(req.url || '', options.target)?.href || '';
@@ -109,7 +110,8 @@ export default defineConfig(({ mode }) => {
           target: 'https://kaimen-d-app-server-164046-6-1360990667.sh.run.tcloudbase.com',
           changeOrigin: true,
           rewrite: path => path.replace(/^\/aiuser/, ''),
-          secure: false,configure: (proxy, options) => {
+          secure: false,
+          configure: (proxy, options) => {
             // 配置此项可在响应头中看到请求的真实地址
             proxy.on('proxyRes', (proxyRes, req) => {
               proxyRes.headers['x-real-url'] = new URL(req.url || '', options.target)?.href || '';

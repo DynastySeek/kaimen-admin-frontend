@@ -116,9 +116,11 @@ function formatSearchParams(params) {
  * @returns {Array} 格式化后的数据列表
 //  */
 async function formatResponseList(list) {
+  console.log(isEditing.value, list)
   if(isEditing.value){
     return list;
   }
+ 
   checkedRowKeys.value = []
   try {
     const clonedList = cloneDeep(list);
@@ -215,7 +217,7 @@ const columns = computed(() => [
   {
     title: '图片',
     key: 'images',
-    width: 400,
+    width: 300,
     render: (row) => {
       return h(ImagePreview, {
         images: row.images || [],
@@ -227,7 +229,12 @@ const columns = computed(() => [
   },
   {
     title: '描述',
+    width: 200,
     key: 'description',
+  },
+  {
+    title: '奖励',
+    key: 'fine_tips',
   },
  
 ].filter(column => !column.hidden));
@@ -283,7 +290,7 @@ async function handleBatchAppraisalSubmit(submitData) {
         return {
         id: item.appraisal_id,
         fine_class:item.fine_class=== -1? 0: 1,
-        fine_tips: item.fine_class=== -1? 0: item.fine_tips
+        fine_tips: item.fine_class=== -1? 0: Number(item.fine_tips)
         }
       }
     });
