@@ -272,6 +272,7 @@ async function handledSubmit(_data) {
       return;
     }
     await goldXchange({userInfoId:formState._id, gold:Number(formState.gold),price:Number(formState.price)});
+    $message.success('兑换成功');
     exchangeModalVisible.value = false
     proTableRef.value?.refresh();
   }
