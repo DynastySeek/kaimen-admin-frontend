@@ -34,40 +34,30 @@
             <div>{{ row.description }}</div> 
           </div>
           <div class="appraisal-item1">
-    <label class="required">奖励</label>
-    <div class="input-wrapper">
-      <n-input 
-        v-model:value="row.fine_tips" 
-        type="number"
-        placeholder="请输入0-500的整数"
-        :min="0"
-        :max="500"
-        :step="1"
-        :status="getFineTipsStatus(row.appraisal_id)"
-        @blur="validateFineTips(row)"
-      />
-      <div v-if="getFineTipsError(row.appraisal_id)" class="error-tip">
-        {{ getFineTipsError(row.appraisal_id) }}
-      </div>
-    </div>
-  </div>
-          </div>
-          <div class="appraisal-actions">
-              <n-button
-                text
-                type="error"
-                @click="handleDelete(row)"
-              >
-                删除
-              </n-button>
+            <label class="required">奖励</label>
+            <div class="input-wrapper">
+              <n-input 
+                v-model:value="row.fine_tips" 
+                type="number"
+                placeholder="请输入1-500的整数"
+                :min="0"
+                :max="500"
+                :step="1"
+                :status="getFineTipsStatus(row.appraisal_id)"
+                @blur="validateFineTips(row)"
+              />
+              <div v-if="getFineTipsError(row.appraisal_id)" class="error-tip">{{ getFineTipsError(row.appraisal_id) }}</div>
             </div>
+          </div>
+        </div>
+        <div class="appraisal-actions">
+          <n-button text type="error" @click="handleDelete(row)">删除</n-button>
         </div>
       </div>
-      
+    </div>
       <!-- 底部警告文字 -->
       <div class="drawer-warning">
-        <n-gradient-text type="error">
-          请确认信息后点击提交,提交后将短信通知用户,尽量不要修改
+        <n-gradient-text type="error">请确认信息后点击提交，提交后不可修改
         </n-gradient-text>
       </div>
       
@@ -142,7 +132,7 @@ const validateFineTips = (row) => {
     return false
   }
   
-  if (numValue < 0 || numValue > 500) {
+  if (numValue <= 0 || numValue > 500) {
     fineTipsValidation[id] = { status: 'error', message: '必须在0-500之间' }
     return false
   }
