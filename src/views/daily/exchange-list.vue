@@ -251,13 +251,18 @@ async function handledDetails(row) {
   }
 }
 async function handledSubmit(_data) {
-  const valid = await formRef.value?.validate();
+  try{
+    const valid = await formRef.value?.validate();
     if (!valid) {
       return;
     }
-  await goldXchange({userinfoid:formState._id, gold:formState.gold,price:formState.price});
-  exchangeModalVisible.value = false
-  proTableRef.value?.refresh();
+    await goldXchange({userinfoid:formState._id, gold:formState.gold,price:formState.price});
+    exchangeModalVisible.value = false
+    proTableRef.value?.refresh();
+  }
+  catch (error) {
+    console.error('兑换黄金失败:', error);
+  }
 }
 
 async function searchList() {
