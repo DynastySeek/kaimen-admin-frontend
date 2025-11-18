@@ -214,18 +214,19 @@ const columns = [
 {
     title: '授权登录手机号',
     key: 'phone',
-    width: 140,
+    width: 300,
+ 
   },
   {
     title: '当前余额',
     key: 'remain_tips',
-    width: 100,
+    width: 300,
   },
   {
     title: '操作',
     key: 'actions',
-    width: 200,
     fixed: 'right',
+    width: 300,
     render: (row) => {
       return h(NSpace, { size: 'small' }, {
         default: () => [
