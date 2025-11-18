@@ -247,7 +247,6 @@ watch([checkedRowKeys, tableData], () => {
   // if(checkedRowKeys.value.length > 0){
   const temp = tableData.value.filter(row => checkedRowKeys.value.includes(row.appraisal_id));
   checkedRows.value = temp.filter(item => item != null);
-  console.log(checkedRows.value)
   
 });
 function handleTotalDataChange(payload) {
