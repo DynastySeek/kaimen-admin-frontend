@@ -37,13 +37,14 @@
         :form-items="formItems"
         label-width="100px"
       />
+     
       <template #footer>
-        <n-flex justify="end">
-          <n-button @click="exchangeModalVisible = false">
-            取消
-          </n-button>
+      
+        <n-flex justify="end" align="center">
+          <n-gradient-text type="error">请确认信息后点击提交，提交后不可修改
+          </n-gradient-text>
           <n-button type="primary" @click="handledSubmit">
-            确定
+            确定提交
           </n-button>
         </n-flex>
       </template>
@@ -272,6 +273,7 @@ async function handledSubmit(_data) {
       return;
     }
     await goldXchange({userInfoId:formState._id, gold:Number(formState.gold),price:Number(formState.price)});
+    $message.success('兑换成功');
     exchangeModalVisible.value = false
     proTableRef.value?.refresh();
   }
