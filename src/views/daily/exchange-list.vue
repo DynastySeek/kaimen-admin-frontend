@@ -269,7 +269,7 @@ async function handledSubmit(_data) {
     if (!valid) {
       return;
     }
-    await goldXchange({userinfoid:formState._id, gold:Number(formState.gold),price:Number(formState.price)});
+    await goldXchange({userInfoId:formState._id, gold:Number(formState.gold),price:Number(formState.price)});
     exchangeModalVisible.value = false
     proTableRef.value?.refresh();
   }
