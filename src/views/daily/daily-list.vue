@@ -29,7 +29,7 @@
     >
       <template #header>
         <NSpace>
-          <NButton
+          <!-- <NButton
             v-if="totalData>0"
             type="primary"
             @click="handleBatchUpdate"
@@ -37,7 +37,7 @@
            batchAppraisalModalTitle
           }}
           </NButton>
-    
+     -->
           <span
           class="text-[#316C72] cursor-pointer"
           style="height: 34px;line-height: 34px;"

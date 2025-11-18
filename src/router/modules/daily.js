@@ -3,6 +3,7 @@
  * 每日精品评选
  * @description 每日精品评选
  */
+
 export const daily = [
   {
     name: 'Daily',
