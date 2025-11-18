@@ -30,8 +30,8 @@
          collapse-mode="width"
           :collapsed-width="0"
           :width="360"
-         :native-scrollbar="false"
-          style="min-height: 600px;"
+         :native-scrollbar="true"
+          style="height: calc(100vh - 240px)"
         >
           <n-tabs animated>
             <!-- 等待队列标签 -->
@@ -250,7 +250,7 @@
           </n-tabs>
        </n-layout-sider>
         <!-- 右侧：聊天区域 -->
-        <n-layout style="min-height: 600px;">
+        <n-layout   style="height: calc(100vh - 240px)">
           <n-card v-if="!currentConversationId" style="height: 100%;">
             <n-empty description="请从左侧选择或接受一个会话" />
           </n-card>
