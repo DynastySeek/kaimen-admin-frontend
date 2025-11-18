@@ -51,18 +51,23 @@
 
 <script setup>
 import { cloneDeep, omit } from 'lodash-es';
-import { computed, ref } from 'vue';
+import { computed, ref, reactive, onMounted, h } from 'vue';
 import { getTempFileUrls } from '@/cloud';
 import { CommonPage, ProTable, FormBuilder, VideoModal } from '@/components';
 import { NButton, NSpace, NModal, NTable } from 'naive-ui';
 import {goldXchangelist,  goldXchange,  fetchUserinfoList,fetchUserGoldList,fetchAppraisalFineList} from '@/services';
-import { onMounted } from 'vue';
 import dayjs from 'dayjs';
 
 const proTableRef = ref();
+const formRef = ref();
 const checkedRowKeys = ref([]);
 const showModal = ref(false);
-const formState = reactive({_id:''})
+const formState = reactive({
+  _id: '',
+  remain_tips: 0,
+  gold: '',
+  price: ''
+})
 const detailsData = ref([]);
 const exchangeModalVisible = ref(false);
 /**
@@ -83,6 +88,7 @@ function formatSearchParams(params) {
  * @returns {Array} 格式化后的数据列表
  */
 async function formatResponseList(list) {
+  console.log("list", list)
   try {
     const clonedList = cloneDeep(list);
     const allCloudImages = clonedList.reduce((acc, d) => acc.concat(d.images || []), []).filter(v => v.startsWith('cloud://'));
@@ -101,6 +107,7 @@ async function formatResponseList(list) {
         });
       });
     }
+    console.log("clonedList", clonedList)
     return clonedList;
   } catch (error) {
     console.error('获取鉴定详情失败:', error);
@@ -231,8 +238,13 @@ const columns = computed(() => [
             size: 'small',
             type: 'primary',
             onClick: () => {
-              formState.remain_tips = row.remain_tips;
-              formState._id = row._id;
+              // 重置表单并赋值
+              Object.assign(formState, {
+                _id: row._id,
+                remain_tips: row.remain_tips || 0,
+                gold: '',
+                price: ''
+              });
               exchangeModalVisible.value = true;
             },
           }, { default: () => '兑换黄金' })
