@@ -1,11 +1,12 @@
 import { useAuthStore, usePermissionStore, useUserStore } from '@/stores';
+import { Role } from '@/constants';
 
 const WHITE_LIST = ['/login', '/404'];
 export function createPermissionGuard(router) {
+
   router.beforeEach(async (to) => {
     const authStore = useAuthStore();
     const token = authStore.accessToken;
-
     /** 没有token */
     if (!token) {
       if (WHITE_LIST.includes(to.path)) {
@@ -31,6 +32,14 @@ export function createPermissionGuard(router) {
         !router.hasRoute(route.name) && router.addRoute(route);
       });
       return { ...to, replace: true };
+    }
+
+    // 检查 ExchangeList 路由权限：只有超级管理员可以访问
+    if (to.name === 'ExchangeList') {
+      const isSuperAdmin = userStore.userInfo?.role === Role.SuperAdmin;
+      if (!isSuperAdmin) {
+         return { name: '403', query: { path: to.fullPath } };
+      }
     }
 
     const routes = router.getRoutes();

@@ -32,12 +32,14 @@ export const usePermissionStore = defineStore('permission', {
     accessRoutes: [],
     permissions: [],
     menus: [],
+    userInfo: null,
   }),
 
   actions: {
     /** 更新权限数据 */
     updatePermissions(userInfo) {
       try {
+        this.userInfo = userInfo;
         const userRole = userInfo?.role;
         const permissions = RolePermissionMap[userRole] || [];
         this.setPermissions(permissions);
@@ -54,7 +56,12 @@ export const usePermissionStore = defineStore('permission', {
     /** 根据权限数据生成菜单树 */
     getMenus(permissions) {
       const filteredRoutes = this.generateRoute(permissions);
+      const isSuperAdmin = this.userInfo?.role === Role.SuperAdmin;
       const generateMenuFromRoute = (route, _parentKey = null) => {
+        // 动态控制 ExchangeList 路由的显示：只有超级管理员可见
+        if (route.name === 'ExchangeList' && !isSuperAdmin) {
+          return null;
+        }
         if (!route.meta || route.meta.show === false) {
           return null;
         }

@@ -17,6 +17,8 @@
       title="明细"
       style="width: 600px;">
         <n-data-table
+        :max-height="440"
+        :virtual-scroll="true"
         :columns="detailscolumns"
         :data="detailsData"
         :pagination="false"
