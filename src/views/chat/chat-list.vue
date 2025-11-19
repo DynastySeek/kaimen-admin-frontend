@@ -675,7 +675,7 @@ function connectSocket() {
   socket.value.on('user_message', (data) => {
     const msgData = data?.data || data || {};
     // 如果是当前会话的消息，添加到聊天列表
-    if (msgData.conversation_id === currentConversationId.value) {
+    if (msgData.conversation_id === baseInfo.currentConversationId) {
       addMessageToChatList({
         query: msgData.content || msgData.message_content || '',
         answer: '',
