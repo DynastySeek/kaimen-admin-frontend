@@ -35,9 +35,10 @@
         >
           <n-tabs animated>
             <!-- 等待队列标签 -->
+
             <n-tab-pane name="queue" tab="新消息">
               <template #tab>
-                <n-badge :value="waitingQueue?.length" :max="99">
+                <n-badge :value="queueState.waitingQueue?.length" :max="99">
                   <span style="font-size: 12px;padding: 10px;">  {{ '新消息' }}</span>
                 </n-badge>
               </template>
@@ -51,13 +52,13 @@
                   >
                     刷新队列
                   </n-button>
-                  <n-spin :show="loadingQueue">
-                    <div v-if="waitingQueue.length === 0" class="empty-state">
+                  <n-spin :show="loadingState.loadingQueue">
+                    <div v-if="queueState.waitingQueue.length === 0" class="empty-state">
                       <n-empty description="暂无等待中的会话" />
                     </div>
                     <n-space v-else vertical :size="12">
                       <n-card
-                        v-for="item in waitingQueue"
+                        v-for="item in queueState.waitingQueue"
                         :key="item.conversation_id"
                         size="small"
                         hoverable
@@ -84,7 +85,7 @@
                             type="warning" 
                             size="small"
                             block
-                            @click="acceptConversationFromQueue(item.conversation_id, item.user_id)"
+                            @click="isHistoryView = false;acceptConversationFromQueue(item.conversation_id, item.user_id)"
                           >
                             接受会话
                           </n-button>
@@ -95,9 +96,11 @@
                 </n-space>
               </div>
             </n-tab-pane>
+
+
             <n-tab-pane name="active" tab="处理中">
               <template #tab>
-                <n-badge :value="activeConversations?.length" :max="99">
+                <n-badge :value="queueState.activeConversations?.length" :max="99">
                   <span style="font-size: 12px;padding: 10px;">{{ '处理中' }}</span> 
                 </n-badge>
                </template>
@@ -112,26 +115,26 @@
                     刷新活跃会话
                   </n-button>
                   
-                  <n-spin :show="loadingActive">
-                    <div v-if="activeConversations.length === 0" class="empty-state">
+                  <n-spin :show="loadingState.loadingActive">
+                    <div v-if="queueState.activeConversations.length === 0" class="empty-state">
                       <n-empty description="暂无活跃会话" />
                     </div>
                     <n-space v-else vertical :size="12">
                       <n-card
-                        v-for="conv in activeConversations"
+                        v-for="conv in queueState.activeConversations"
                         :key="conv.conversation_id"
                         size="small"
                         hoverable
-                        :bordered="conv.conversation_id === currentConversationId"
-                        :style="conv.conversation_id === currentConversationId ? 'border: 2px solid #18a058;' : ''"
+                        :bordered="conv.conversation_id === baseInfo.currentConversationId"
+                        :style="conv.conversation_id === baseInfo.currentConversationId ? 'border: 2px solid #18a058;' : ''"
                       >
                       <template #header>
                           <n-space align="center" justify="space-between">
                             <span style="font-size: 13px;">
-                              {{ conv.conversation_id === currentConversationId ? '⭐ 当前会话' : '💬 活跃' }}
+                              {{ conv.conversation_id === baseInfo.currentConversationId ? '⭐ 当前会话' : '💬 活跃' }}
                             </span>
                             <n-tag 
-                              v-if="conv.conversation_id === currentConversationId" 
+                              v-if="conv.conversation_id === baseInfo.currentConversationId" 
                               type="success" 
                               size="small"
                             >
@@ -154,10 +157,10 @@
                           </n-text>
                           <n-space>
                             <n-button 
-                              v-if="conv.conversation_id !== currentConversationId"
+                              v-if="conv.conversation_id !== baseInfo.currentConversationId"
                               type="info" 
                               size="small"
-                              @click="switchToConversation(conv.conversation_id, conv.user_id)"
+                              @click="isHistoryView = false;switchToConversation(conv.conversation_id, conv.user_id)"
                             >
                               切换
                             </n-button>
@@ -180,7 +183,7 @@
             <!-- 已结束会话标签 -->
             <n-tab-pane name="closed" tab="聊天记录">
               <template #tab>
-                <n-badge :value="closedConversations?.length" :max="99">
+                <n-badge :value="queueState.closedConversations?.length" :max="99">
                   <span style="font-size: 12px;padding: 10px;">{{ '聊天记录' }}</span>        
                 </n-badge>
                </template>
@@ -195,13 +198,13 @@
                     刷新已结束会话
                   </n-button>
                   
-                  <n-spin :show="loadingClosed">
-                    <div v-if="closedConversations.length === 0" class="empty-state">
+                  <n-spin :show="loadingState.loadingClosed">
+                    <div v-if="queueState.closedConversations.length === 0" class="empty-state">
                       <n-empty description="暂无已结束的会话" />
                     </div>
                     <n-space v-else vertical :size="12">
                       <n-card
-                        v-for="conv in closedConversations"
+                        v-for="conv in queueState.closedConversations"
                         :key="conv.conversation_id"
                         size="small"
                         hoverable
@@ -243,7 +246,7 @@
                         </n-space>
                       </n-card>
                     </n-space>
-         </n-spin>
+                   </n-spin>
                 </n-space>
               </div>
             </n-tab-pane>
@@ -251,7 +254,7 @@
        </n-layout-sider>
         <!-- 右侧：聊天区域 -->
         <n-layout   style="height: calc(100vh - 240px)">
-          <n-card v-if="!currentConversationId" style="height: 100%;">
+          <n-card v-if="!baseInfo.currentConversationId" style="height: 100%;">
             <n-empty description="请从左侧选择或接受一个会话" />
           </n-card>
           <div v-else style="height: 100%; display: flex; flex-direction: column;">
@@ -266,37 +269,38 @@
                     </n-tag>
                   </n-space>
                   <n-text depth="3" style="font-size: 12px;">
-                    会话ID: {{ currentConversationId }}
+                    会话ID: {{ baseInfo.currentConversationId }}
                   </n-text>
                   <n-text depth="3" style="font-size: 12px;">
-                    用户ID: {{ currentUserId }}
+                    用户ID: {{ baseInfo.currentUserId }}
                   </n-text>
                 </n-space>
                 <n-button 
                   v-if="!isHistoryView"
                   type="error" 
+                  :disabled="baseInfo.isConversationClosed"
                   @click="closeConversation"
                 >
-                  关闭会话
+                  {{ baseInfo.isConversationClosed ? '会话已结束' : '关闭会话' }}
                 </n-button>
               </n-space>
             </n-card>
 
             <!-- 聊天消息区域 -->
             <n-scrollbar class="chat-scroll" style="flex: 1;">
-              <n-spin :show="loadingClosed && isHistoryView" size="large">
+              <n-spin :show="loadingState.loadingClosed && isHistoryView" size="large">
                 <template #description>
                   正在加载历史聊天记录...
                 </template>
              <div class="chat-container">
                   <!-- 空状态提示 -->
-                  <div v-if="chatListData.length === 0 && !loadingClosed" class="empty-state">
+                  <div v-if="baseInfo.chatListData.length === 0 && !loadingState.loadingClosed" class="empty-state">
                     <n-empty description="暂无聊天记录" />
                   </div>
-                  
+            
                   <!-- 聊天消息列表 -->
                <div
-                 v-for="(message, index) in chatListData"
+                 v-for="(message, index) in baseInfo.chatListData"
                  :key="message.id || index"
                  class="chat-entry"
                >
@@ -371,9 +375,10 @@ import { useUserStore } from '@/stores';
 import { io } from 'socket.io-client';
  import dayjs from 'dayjs';
 import { fetchChatList } from "@/services";
+import { dataTableInjectionKey } from 'naive-ui/es/data-table/src/interface';
+import { reactive } from 'vue';
 
 const userStore = useUserStore();
-
 // ==================== 服务配置 ====================
 const SERVER_URL = 'https://agent.kaimen.site'; // WebSocket 服务器地址
 const APP_API_TOKEN = 'app-s8l0tNc5oPbHVJBeoLCXoPMg'; // API 认证 Token
@@ -382,30 +387,49 @@ const APP_API_TOKEN = 'app-s8l0tNc5oPbHVJBeoLCXoPMg'; // API 认证 Token
 const socket = ref(null); // Socket.IO 实例
 const isConnected = ref(false); // WebSocket 连接状态
 
+
+const baseInfo = reactive({
+  currentUserId: null,
+  currentConversationId:null,
+  chatListData:[],
+  isConversationClosed: false // 当前会话是否已关闭
+
+})
+
 // ==================== 当前会话状态 ====================
-const currentConversationId = ref(''); // 当前活跃的会话ID
-const currentUserId = ref(''); // 当前会话的用户ID
+// const currentConversationId = ref(''); // 当前活跃的会话ID
+// const currentUserId = ref(''); // 当前会话的用户ID
 const isHistoryView = ref(false); // 是否正在查看历史记录（只读模式）
-const chatListData = ref([]); // 当前会话的聊天消息列表
+// const chatListData = ref([]); // 当前会话的聊天消息列表
 const message = ref(''); // 消息输入框内容
 
 // ==================== 队列和会话列表 ====================
-const waitingQueue = ref([]); // 等待队列列表
-const activeConversations = ref([]); // 活跃会话列表
-const closedConversations = ref([]); // 已结束会话列表
+const queueState = reactive({
+  waitingQueue:[],
+  activeConversations:[],
+  closedConversations:[]
+})
+// const waitingQueue = ref([]); // 等待队列列表
+// const activeConversations = ref([]); // 活跃会话列表
+// const closedConversations = ref([]); // 已结束会话列表
 
+const loadingState = reactive({
+  loadingQueue:false,
+  loadingActive:false,
+  loadingClosed:false
+})
 // ==================== 加载状态 ====================
-const loadingQueue = ref(false); // 等待队列加载状态
-const loadingActive = ref(false); // 活跃会话加载状态
-const loadingClosed = ref(false); // 已结束会话加载状态
+// const loadingQueue = ref(false); // 等待队列加载状态
+// const loadingActive = ref(false); // 活跃会话加载状态
+// const loadingClosed = ref(false); // 已结束会话加载状态
 
 // ==================== 统计数据 ====================
-const stats = ref({
-  onlineUsers: 0, // 在线用户数
-  onlineHumans: 0, // 在线客服数
-  waitingQueue: 0, // 等待队列数量
-  activeConversations: 0 // 活跃会话数量
-});
+// const stats = ref({
+//   onlineUsers: 0, // 在线用户数
+//   onlineHumans: 0, // 在线客服数
+//   waitingQueue: 0, // 等待队列数量
+//   activeConversations: 0 // 活跃会话数量
+// });
 
 // ==================== 定时器 ====================
 let autoRefreshInterval = null; // 自动刷新定时器
@@ -450,14 +474,14 @@ async function callApi(endpoint, method = 'GET', body = null) {
  */
 async function refreshStats() {
   const result = await callApi('/console/api/human-service/stats');
-  if (result.success) {
-    stats.value.onlineUsers = result.data.online_users || 0;
-    stats.value.onlineHumans = result.data.online_humans || 0;
-    stats.value.waitingQueue = result.data.waiting_queue_length || 0;
-    stats.value.activeConversations = result.data.active_conversations || 0;
-  } else {
-    console.error(`❌ 获取统计信息失败: ${result.status}`);
-  }
+  // if (result.success) {
+  //   stats.value.onlineUsers = result.data.online_users || 0;
+  //   stats.value.onlineHumans = result.data.online_humans || 0;
+  //   stats.value.waitingQueue = result.data.waiting_queue_length || 0;
+  //   stats.value.activeConversations = result.data.active_conversations || 0;
+  // } else {
+  //   console.error(`❌ 获取统计信息失败: ${result.status}`);
+  // }
 }
 
 /**
@@ -465,14 +489,15 @@ async function refreshStats() {
  * 获取所有等待接入的用户会话
  */
 async function refreshQueue() {
-  loadingQueue.value = true;
+
+  loadingState.loadingQueue = true;
   const result = await callApi('/console/api/human-service/queue');
   if (result.success) {
-    waitingQueue.value = result.data.queue || [];
+    queueState.waitingQueue = result.data.queue || [];
   } else {
     console.error(`❌ 获取队列失败: ${result.status}`);
   }
-  loadingQueue.value = false;
+  loadingState.loadingQueue = false;
 }
 
 /**
@@ -480,15 +505,15 @@ async function refreshQueue() {
  * 获取所有正在进行中的客服会话
  */
 async function refreshActiveConversations() {
-  loadingActive.value = true;
+  loadingState.loadingActive = true;
   const result = await callApi('/console/api/human-service/conversations?status=connected');
   
   if (result.success) {
-    activeConversations.value = result.data.conversations || [];
+    queueState.activeConversations = result.data.conversations || [];
   } else {
     console.error(`❌ 获取活跃会话失败: ${result.status}`);
   }
-  loadingActive.value = false;
+  loadingState.loadingActive = false;
 }
 
 /**
@@ -496,15 +521,15 @@ async function refreshActiveConversations() {
  * 获取所有已关闭的历史会话
  */
 async function refreshClosedConversations() {
-  loadingClosed.value = true;
+  loadingState.loadingClosed = true;
   const result = await callApi('/console/api/human-service/conversations?status=closed');
   
   if (result.success) {
-    closedConversations.value = result.data.conversations || [];
+    queueState.closedConversations = result.data.conversations || [];
   } else {
     console.error(`❌ 获取已结束会话失败: ${result.status}`);
   }
-  loadingClosed.value = false;
+  loadingState.loadingClosed = false;
 }
 
 /**
@@ -529,24 +554,25 @@ async function refreshAll() {
  * @param {string} user - 用户ID
  */
 async function viewConversationHistory(conversationId, user) {
-  const conv = closedConversations.value.find(c => c.conversation_id === conversationId);
+  baseInfo.chatListData = []
+  const conv = queueState.closedConversations.find(c => c.conversation_id === conversationId);
   const userId = conv?.user_id || 'unknown';
-  currentConversationId.value = conversationId;
-  currentUserId.value = userId;
+  baseInfo.currentConversationId = conversationId;
+  baseInfo.currentUserId = userId;
   // 从API获取历史聊天记录
   try {
-    loadingClosed.value = true;
+    loadingState.loadingClosed = true;
     const result = await fetchChatList({ 
       conversation_id: conversationId,
       user_id: user,
     });
-    chatListData.value = result?.data||[];
+    baseInfo.chatListData = result?.data||[];
   
    } catch (error) {
     console.error('❌ 获取历史记录失败:', error);
-    chatListData.value = [];
+    baseInfo.chatListData = [];
   } finally {
-    loadingClosed.value = false;
+    loadingState.loadingClosed = false;
   }
 }
 
@@ -632,16 +658,17 @@ function connectSocket() {
   });
     // 接受会话确认
     socket.value.on('accept_conversation_ack', (data) => {
-    const ackData = data?.data || data || {};
-    if (ackData.conversation_id) {
-      currentConversationId.value = ackData.conversation_id;
-      currentUserId.value = ackData.user_id || 'unknown';
-      isHistoryView.value = false;
-      chatListData.value = [];
+      // console.log('data', data)
+    // const ackData = data?.data || data || {};
+    // if (ackData.conversation_id) {
+    //   currentConversationId.value = ackData.conversation_id;
+    //   currentUserId.value = ackData.user_id || 'unknown';
+    //   isHistoryView.value = false;
+      
       refreshQueue();
       refreshStats();
       refreshActiveConversations();
-    }
+    // }
   });
 
   // 接收用户消息
@@ -701,10 +728,10 @@ function acceptConversationFromQueue(conversationId, userId) {
       timestamp: Math.floor(Date.now() / 1000)
     }
   });
-  
-  currentConversationId.value = conversationId;
-  currentUserId.value = userId;
-  isHistoryView.value = false;
+  // 第一次进入聊天窗口
+  baseInfo.currentConversationId = conversationId;
+  baseInfo.currentUserId = userId;
+  viewConversationHistory(conversationId,userId)
 }
 
 /**
@@ -721,12 +748,9 @@ function switchToConversation(conversationId, userId) {
       timestamp: Math.floor(Date.now() / 1000)
     }
   });
-  
+  baseInfo.currentConversationId = conversationId;
+  baseInfo.currentUserId = userId;
   viewConversationHistory(conversationId, userId);
-  currentConversationId.value = conversationId;
-  currentUserId.value = userId;
-  chatListData.value = [];
-  isHistoryView.value = false;
   setTimeout(() => refreshActiveConversations(), 500);
 }
 
@@ -757,8 +781,9 @@ function closeConversationById(conversationId) {
  * 关闭当前正在处理的会话
  */
 function closeConversation() {
-  if (!currentConversationId.value) return;
-  closeConversationById(currentConversationId.value);
+  if (!baseInfo.currentConversationId) return;
+  closeConversationById(baseInfo.currentConversationId);
+  baseInfo.isConversationClosed = true;
 }
 
 // ==================== 消息处理函数 ====================
@@ -768,7 +793,7 @@ function closeConversation() {
  * 通过 WebSocket 发送客服消息并更新本地聊天列表
  */
 function sendMessage() {
-  if (!currentConversationId.value) return;
+  if (!baseInfo.currentConversationId) return;
   if (!socket.value?.connected || !isConnected.value) return;
 
   const messageToSend = message.value.trim();
@@ -785,7 +810,7 @@ function sendMessage() {
   socket.value.emit('human_message', {
     type: 'human_message',
     data: {
-      conversation_id: currentConversationId.value,
+      conversation_id: baseInfo.currentConversationId,
       message_content: messageToSend,
       message_type: 'text',
       timestamp: Math.floor(Date.now() / 1000)
@@ -807,19 +832,19 @@ function sendMessage() {
  */
 function addMessageToChatList(messageData) {
   if (messageData.isUser) {
-    chatListData.value.push({
+    baseInfo.chatListData.push({
       query: messageData.query,
       answer: '',
       created_at: messageData.created_at,
       id: messageData.id
     });
   } else {
-    const lastItem = chatListData.value[chatListData.value.length - 1];
+    const lastItem = baseInfo.chatListData[baseInfo.chatListData.length - 1];
     if (lastItem && lastItem.query && !lastItem.answer) {
       lastItem.answer = messageData.answer;
       lastItem.created_at = messageData.created_at;
     } else {
-      chatListData.value.push({
+      baseInfo.chatListData.push({
         query: '',
         answer: messageData.answer,
         created_at: messageData.created_at,
@@ -887,9 +912,8 @@ function disconnectSocket() {
   } finally {
     socket.value = null;
     isConnected.value = false;
-    currentConversationId.value = '';
-    currentUserId.value = '';
-    chatListData.value = [];
+    baseInfo.currentConversationId = '';
+    baseInfo.currentUserId = '';
     stopAutoRefresh();
   }
 }

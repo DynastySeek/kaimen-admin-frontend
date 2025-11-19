@@ -60,8 +60,6 @@ import { CommonPage, ProTable, FormBuilder, VideoModal } from '@/components';
 import { NButton, NSpace, NModal, NTable } from 'naive-ui';
 import {goldXchangelist,  goldXchange,  fetchUserinfoList,fetchUserGoldList,fetchAppraisalFineList} from '@/services';
 import dayjs from 'dayjs';
-import { render } from 'less';
-
 const proTableRef = ref();
 const formRef = ref();
 const checkedRowKeys = ref([]);
