@@ -31,11 +31,10 @@
           :collapsed-width="0"
           :width="360"
          :native-scrollbar="true"
-          style="height: calc(100vh - 240px)"
+         style="height: calc(100vh - 240px);"
         >
           <n-tabs animated>
             <!-- 等待队列标签 -->
-
             <n-tab-pane name="queue" tab="新消息">
               <template #tab>
                 <n-badge :value="queueState.waitingQueue?.length" :max="99">
@@ -253,7 +252,7 @@
           </n-tabs>
        </n-layout-sider>
         <!-- 右侧：聊天区域 -->
-        <n-layout   style="height: calc(100vh - 240px)">
+        <n-layout style="height: calc(100vh - 240px);">
           <n-card v-if="!baseInfo.currentConversationId" style="height: 100%;">
             <n-empty description="请从左侧选择或接受一个会话" />
           </n-card>
@@ -287,12 +286,12 @@
             </n-card>
 
             <!-- 聊天消息区域 -->
-            <n-scrollbar class="chat-scroll" style="flex: 1;">
+            <n-scrollbar class="chat-scroll"  ref="chatScrollbarRef" c style="flex: 1;" >
               <n-spin :show="loadingState.loadingClosed && isHistoryView" size="large">
                 <template #description>
                   正在加载历史聊天记录...
                 </template>
-             <div class="chat-container">
+                <div class="chat-container">
                   <!-- 空状态提示 -->
                   <div v-if="baseInfo.chatListData.length === 0 && !loadingState.loadingClosed" class="empty-state">
                     <n-empty description="暂无聊天记录" />
@@ -343,22 +342,21 @@
                <n-input 
                  v-model:value="message" 
                  type="textarea" 
-                 :rows="3"
+                 :rows="1"
                  placeholder="输入消息内容... (Enter 发送，Shift+Enter 换行)"
                   @keydown.enter.exact.prevent="sendMessage"
                />
-               <n-space class="mt-2" justify="end">
-                 <n-button 
-                   type="primary" 
-                   @click="sendMessage"
+               <n-button 
+                  style="margin-left: 10px;"
+                  type="primary" 
+                  @click="sendMessage"
                   :disabled="!message.trim()"
                  >
                    发送
                  </n-button>
-               </n-space>
              </div>
-            <div v-else class="message-input-container">
-              <n-alert type="info" :bordered="false">
+            <div v-else  class="message-input-container">
+              <n-alert type="info" :bordered="false" style="width: 100%;">
                 这是历史会话记录，无法发送新消息
               </n-alert>
             </div>
@@ -386,7 +384,7 @@ const APP_API_TOKEN = 'app-s8l0tNc5oPbHVJBeoLCXoPMg'; // API 认证 Token
 // ==================== WebSocket 连接状态 ====================
 const socket = ref(null); // Socket.IO 实例
 const isConnected = ref(false); // WebSocket 连接状态
-
+const chatScrollbarRef = ref(null)
 
 const baseInfo = reactive({
   currentUserId: null,
@@ -548,15 +546,32 @@ async function refreshAll() {
 // ==================== 历史记录查看 ====================
 
 /**
+ * 滚动聊天区域到底部
+ * 用于在加载历史记录或添加新消息后自动滚动到底部
+ */
+function scrollToBottom(event) {
+  nextTick(() => {
+    requestAnimationFrame(() => {
+      const scrollContent = document.querySelector('.n-scrollbar-content')
+      chatScrollbarRef.value?.scrollTo({
+          top:scrollContent.scrollHeight || 10000,
+          behavior: 'smooth'
+        })
+    });
+  });
+}
+
+/**
  * 查看历史聊天记录
  * 从 API 获取指定会话的历史消息
  * @param {string} conversationId - 会话ID
  * @param {string} user - 用户ID
  */
 async function viewConversationHistory(conversationId, user) {
+  baseInfo.isConversationClosed = false
   baseInfo.chatListData = []
   const conv = queueState.closedConversations.find(c => c.conversation_id === conversationId);
-  const userId = conv?.user_id || 'unknown';
+  const userId = conv?.user_id || user || 'unknown';
   baseInfo.currentConversationId = conversationId;
   baseInfo.currentUserId = userId;
   // 从API获取历史聊天记录
@@ -574,6 +589,8 @@ async function viewConversationHistory(conversationId, user) {
   } finally {
     loadingState.loadingClosed = false;
   }
+
+  scrollToBottom();
 }
 
 // ==================== 工具函数 ====================
@@ -658,13 +675,6 @@ function connectSocket() {
   });
     // 接受会话确认
     socket.value.on('accept_conversation_ack', (data) => {
-      // console.log('data', data)
-    // const ackData = data?.data || data || {};
-    // if (ackData.conversation_id) {
-    //   currentConversationId.value = ackData.conversation_id;
-    //   currentUserId.value = ackData.user_id || 'unknown';
-    //   isHistoryView.value = false;
-      
       refreshQueue();
       refreshStats();
       refreshActiveConversations();
@@ -853,13 +863,9 @@ function addMessageToChatList(messageData) {
     }
   }
   
-  nextTick(() => {
-    const scrollbar = document.querySelector('.chat-scroll .n-scrollbar-content');
-    if (scrollbar) {
-      scrollbar.scrollTop = scrollbar.scrollHeight;
-    }
-  });
+  scrollToBottom();
 }
+
 
 // ==================== 自动刷新管理 ====================
 
@@ -943,6 +949,7 @@ onUnmounted(() => {
 
  .chat-scroll {
    padding: 16px;
+   overflow: auto;
  }
  
  .chat-container {
@@ -1029,9 +1036,11 @@ onUnmounted(() => {
 
 .message-input-container {
   padding: 16px;
-  background: #f5f7fa;
+  display: flex;
+  align-items: center;
+  /* background: #f5f7fa; */
   border-radius: 8px;
-  border-top: 1px solid #e4e7ed;
+  /* border-top: 1px solid #e4e7ed; */
 }
 
 .mt-2 {
