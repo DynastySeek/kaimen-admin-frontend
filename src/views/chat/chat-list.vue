@@ -278,9 +278,9 @@
                   v-if="!isHistoryView"
                   type="error" 
                   :disabled="baseInfo.isConversationClosed "
-                  @click="closeConversation"
+                  @click="closeConversation(baseInfo.currentConversationId)"
                 >
-                  {{ baseInfo.isConversationClosed ? '会话已结束' : '关闭会话' }}
+                  {{ baseInfo.isConversationClosed ? '会话已结束' : '结束会话' }}
                 </n-button>
               </n-space>
             </n-card>
@@ -790,9 +790,8 @@ function closeConversationById(conversationId) {
 /**
  * 关闭当前正在处理的会话
  */
-function closeConversation() {
-  if (!baseInfo.currentConversationId) return;
-  closeConversationById(baseInfo.currentConversationId);
+function closeConversation(conversationId) {
+  closeConversationById(conversationId);
   baseInfo.isConversationClosed = true;
 }
 
