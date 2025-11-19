@@ -277,7 +277,7 @@
                 <n-button 
                   v-if="!isHistoryView"
                   type="error" 
-                  :disabled="baseInfo.isConversationClosed"
+                  :disabled="baseInfo.isConversationClosed "
                   @click="closeConversation"
                 >
                   {{ baseInfo.isConversationClosed ? '会话已结束' : '关闭会话' }}
@@ -570,10 +570,10 @@ function scrollToBottom(event) {
 async function viewConversationHistory(conversationId, user) {
   baseInfo.isConversationClosed = false
   baseInfo.chatListData = []
-  const conv = queueState.closedConversations.find(c => c.conversation_id === conversationId);
-  const userId = conv?.user_id || user || 'unknown';
-  baseInfo.currentConversationId = conversationId;
-  baseInfo.currentUserId = userId;
+  // const conv = queueState.closedConversations.find(c => c.conversation_id === conversationId);
+  // const userId = conv?.user_id || user || 'unknown';
+  // baseInfo.currentConversationId = conversationId;
+  // baseInfo.currentUserId = userId;
   // 从API获取历史聊天记录
   try {
     loadingState.loadingClosed = true;
