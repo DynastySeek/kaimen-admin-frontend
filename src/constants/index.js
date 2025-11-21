@@ -1,10 +1,12 @@
 export const Role = {
-  SuperAdmin: 'admin',
-  Appraiser: 'appraiser',
+  SuperAdmin: 0,
+  SysAdmin: 1,
+  Appraiser: 2
 };
 
 export const RoleLabelMap = {
   [Role.SuperAdmin]: '超级管理员',
+  [Role.SysAdmin]: '系统管理员',
   [Role.Appraiser]: '鉴定师',
 };
 
@@ -105,6 +107,7 @@ export const AppraisalStatus = {
   PendingCompletion: 4,
   Rejected: 5,
   Cancelled: 6,
+  ToPay:20,
 };
 
 export const AppraisalStatusLabelMap = {
@@ -114,6 +117,7 @@ export const AppraisalStatusLabelMap = {
   [AppraisalStatus.PendingCompletion]: '待完善',
   [AppraisalStatus.Rejected]: '已退回',
   [AppraisalStatus.Cancelled]: '已取消',
+  [AppraisalStatus.ToPay]: '待支付',
 };
 
 export const AppraisalClass = {

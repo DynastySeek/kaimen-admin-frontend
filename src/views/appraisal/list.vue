@@ -10,18 +10,29 @@
         />
       </n-radio-group>
     </template>
-
+    <AppCard v-if="activeTab==null||activeTab?.appraisalStatus==1" style="padding-left:20px;height: 60px;line-height: 60px;margin-bottom: 10px;">
+      <n-radio-group v-model:value="moneyTab"name="appraisal-status" @update:value="handleTabChange">
+        <n-radio-button
+          v-for="tab in moneyList"
+          :key="tab.value"  
+          :value="tab.value"
+          :label="`${tab.label}待鉴定(${tab.value})`"
+        />
+      </n-radio-group>
+    </AppCard>
     <ProTable
       ref="proTableRef"
       label-width="140px"
       :columns="columns"
       :checked-row-keys="checkedRowKeys"
+      :checked-row="checkedRows"
       :search-form-items="searchFormItems"
       :fetch-data="fetchAppraisalList"
       :format-search-params="formatSearchParams"
       :format-response-list="formatResponseList"
-      :row-key="item => item.appraisal_id"
+      :row-key="item => item.id"
       @update:checked-row-keys="keys => checkedRowKeys = keys"
+      @update:checked-row="rows => checkedRows = rows"
     >
       <template #header>
         <NSpace>
@@ -42,6 +53,7 @@
     <BatchAppraisalDrawer
       v-model:show="batchAppraisalModalVisible"
       :checked-row-keys="checkedRowKeys"
+      :checked-rows="checkedRows"
       @submit="handleBatchAppraisalSubmit"
     />
   </CommonPage>
@@ -50,7 +62,7 @@
 <script setup>
 import { cloneDeep, omit } from 'lodash-es';
 import { NButton, NIcon, NSpace, NTag } from 'naive-ui';
-import { computed, ref } from 'vue';
+import { computed, ref, watch} from 'vue';
 import { getTempFileUrls } from '@/cloud';
 import { CommonPage, ProTable, SelectDictionary, VideoModal } from '@/components';
 import { AppraisalStatus, AppraisalStatusLabelMap, AppraisalBusinessTypeLabelMap } from '@/constants';
@@ -60,7 +72,6 @@ import { formatDateTime } from '@/utils';
 import AppraisalAction from './components/AppraisalAction.vue';
 import BatchAppraisalDrawer from './components/BatchAppraisalDrawer.vue';
 import ImagePreview from './components/ImagePreview.vue';
-
 const tabs = [
   { label: '全部', value: null },
   { label: '待鉴定', value: { appraisalStatus: AppraisalStatus.PendingAppraisal } },
@@ -69,6 +80,10 @@ const tabs = [
   { label: '已完成，鉴定为伪', value: { appraisalStatus: AppraisalStatus.Completed, appraisalResult: AppraisalStatus.InProgress } },
   { label: '已驳回', value: { appraisalStatus: AppraisalStatus.Rejected } },
   { label: '已取消', value: { appraisalStatus: AppraisalStatus.Cancelled } },
+];
+const moneyList = [
+  { label: '光速鉴定', value: 0 },
+  { label: '普通鉴定', value: 1 },
 ];
 
 const activeTab = ref(null);
@@ -80,6 +95,7 @@ const videoModalVisible = ref(false);
 const currentVideoSrc = ref('');
 const currentVideoTitle = ref('');
 const checkedRowKeys = ref([]);
+const checkedRows = ref([]);
 
 /**
  * 搜索参数格式化函数
@@ -146,7 +162,7 @@ const searchFormItems = computed(() => [
     span: 6,
   },
   {
-    prop: 'firstClass',
+    prop: 'mainCategory',
     label: '类目',
     type: 'selectDictionary',
     name: 'AppraisalClass',
@@ -162,7 +178,7 @@ const searchFormItems = computed(() => [
     hidden: !userStore.isAdmin,
   },
   {
-    prop: 'desc',
+    prop: 'description',
     label: '描述',
     type: 'input',
     placeholder: '请输入描述',
@@ -215,9 +231,22 @@ const columns = computed(() => [
   },
   {
     title: '鉴定ID',
-    key: 'appraisal_id',
+    key: 'id',
     width: 100,
     fixed: 'left',
+  },
+  {
+    title: '鉴定倒计时',
+    key: 'time',
+    width: 100,
+  },
+  {
+    title: '钱款信息',
+    key: 'money',
+    width: 100,
+    render:(row)=>{
+      return h('div', row.money==1?"已支付":"已退款");
+    }
   },
   {
     title: '图片',
@@ -225,7 +254,7 @@ const columns = computed(() => [
     width: 420,
     render: (row) => {
       return h(ImagePreview, {
-        images: row.images,
+        images: row.pictures.map(item=>item.url),
         width: 110,
         height: 68,
         maxDisplay: 4,
@@ -271,12 +300,12 @@ const columns = computed(() => [
   // },
   {
     title: '类目',
-    key: 'first_class',
+    key: 'mainCategory',
     width: 100,
     render: (row) => {
       return h(SelectDictionary, {
         'name': 'AppraisalClass',
-        'modelValue': row.first_class ? Number(row.first_class) : null,
+        'modelValue': row.mainCategory ? Number(row.mainCategory) : null,
         'clearable': false,
         'onUpdate:modelValue': value => handleCategoryChange(value, row),
       });
@@ -295,9 +324,9 @@ const columns = computed(() => [
   },
   {
     title: '类型',
-    key: 'appraisalBusinessType',
+    key: 'businessType',
     width: 120,
-    render: (row) => AppraisalBusinessTypeLabelMap[row.appraisalBusinessType] || '-',
+    render: (row) => AppraisalBusinessTypeLabelMap[row.businessType] || '-',
   },
   {
     title: '联系方式',
@@ -313,7 +342,7 @@ const columns = computed(() => [
   },
   {
     title: '授权登录手机号',
-    key: 'user_phone',
+    key: 'phone',
     width: 140,
     hidden: !userStore.isAdmin,
   },
@@ -331,13 +360,13 @@ const columns = computed(() => [
   },
   {
     title: '最后提交鉴定师',
-    key: 'lastAppraiser',
+    key: 'lastSubmitUser',
     width: 140,
     render: ({ last_appraiser }) => last_appraiser?.nickname || '-',
   },
   {
     title: '状态',
-    key: 'appraisal_status',
+    key: 'status',
     width: 120,
     render: (row) => {
       const statusConfig = {
@@ -349,9 +378,9 @@ const columns = computed(() => [
         [AppraisalStatus.Cancelled]: { type: 'default' },
       };
       return h(NTag, {
-        type: statusConfig[row.appraisal_status]?.type || 'default',
+        type: statusConfig[row.status]?.type || 'default',
       }, {
-        default: () => AppraisalStatusLabelMap[row.appraisal_status] || '未知',
+        default: () => AppraisalStatusLabelMap[row.status] || '未知',
       });
     },
   },
@@ -395,11 +424,12 @@ function handleVideoPlay(row, videoIndex = 0) {
 async function handleCategoryChange(value, row) {
   try {
     const updateData = [{
-      id: row.appraisal_id,
-      appraisal_class: String(value),
+      appraisalId: row.id,
+      mainCategory:value,
+      status: row.status,
     }];
 
-    await fetchAppraisalUpdate(updateData);
+    await fetchAppraisalUpdate({items:updateData});
     $message.success('分类更新成功');
     proTableRef.value?.refresh();
   } catch (error) {

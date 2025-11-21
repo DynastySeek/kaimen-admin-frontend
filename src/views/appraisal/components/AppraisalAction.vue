@@ -226,9 +226,10 @@ async function handleSubmit() {
   isSubmitting.value = true;
   try {
     const params = {
-      appraisalId: props.data.appraisal_id,
-      appraisalResult: formData.result,
+      appraisalId: props.data.id,
+      result: Number(formData.result),
       comment: formData.comment,
+      userId: props.data.userId
     };
     let appraisal_status = null;
     if (formData.result === AppraisalResult.Authentic) {
@@ -248,7 +249,7 @@ async function handleSubmit() {
     }
 
     await fetchAppraisalResultAdd({ items: [params] });
-    await fetchAppraisalUpdate([{ id: props.data.appraisal_id, appraisal_status }]);
+    await fetchAppraisalUpdate({items:[{ appraisalId: props.data.id, status: appraisal_status,mainCategory:props.data.mainCategory }]});
     emit('submit', params);
     $message.success('鉴定结果提交成功');
     resetForm();
