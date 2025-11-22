@@ -10,8 +10,8 @@
         />
       </n-radio-group>
     </template>
-    <AppCard v-if="activeTab==null||activeTab?.appraisalStatus==1" style="padding-left:20px;height: 60px;line-height: 60px;margin-bottom: 10px;">
-      <n-radio-group v-model:value="moneyTab"name="appraisal-status" @update:value="handleTabChange">
+    <AppCard v-if="activeTab==null||activeTab?.status==1" style="padding-left:20px;height: 60px;line-height: 60px;margin-bottom: 10px;">
+      <n-radio-group v-model:value="moneyTab"name="appraisal-status" >
         <n-radio-button
           v-for="tab in moneyList"
           :key="tab.value"  
@@ -60,13 +60,13 @@
 </template>
 
 <script setup>
-import { cloneDeep, omit } from 'lodash-es';
+import { cloneDeep, omit, result } from 'lodash-es';
 import { NButton, NIcon, NSpace, NTag } from 'naive-ui';
-import { computed, ref, watch} from 'vue';
+import { computed, h, ref, watch} from 'vue';
 import { getTempFileUrls } from '@/cloud';
 import { CommonPage, ProTable, SelectDictionary, VideoModal } from '@/components';
 import { AppraisalStatus, AppraisalStatusLabelMap, AppraisalBusinessTypeLabelMap } from '@/constants';
-import { fetchAppraisalList, fetchAppraisalUpdate } from '@/services';
+import { fetchAppraisalList, fetchAppraisalUpdate,fetchUserInfoById } from '@/services';
 import { useUserStore } from '@/stores';
 import { formatDateTime } from '@/utils';
 import AppraisalAction from './components/AppraisalAction.vue';
@@ -74,12 +74,12 @@ import BatchAppraisalDrawer from './components/BatchAppraisalDrawer.vue';
 import ImagePreview from './components/ImagePreview.vue';
 const tabs = [
   { label: '全部', value: null },
-  { label: '待鉴定', value: { appraisalStatus: AppraisalStatus.PendingAppraisal } },
-  { label: '待用户完善', value: { appraisalStatus: AppraisalStatus.PendingCompletion } },
-  { label: '已完成，鉴定为真', value: { appraisalStatus: AppraisalStatus.Completed, appraisalResult: AppraisalStatus.PendingAppraisal } },
-  { label: '已完成，鉴定为伪', value: { appraisalStatus: AppraisalStatus.Completed, appraisalResult: AppraisalStatus.InProgress } },
-  { label: '已驳回', value: { appraisalStatus: AppraisalStatus.Rejected } },
-  { label: '已取消', value: { appraisalStatus: AppraisalStatus.Cancelled } },
+  { label: '待鉴定', value: { status: AppraisalStatus.PendingAppraisal } },
+  { label: '待用户完善', value: { status: AppraisalStatus.PendingCompletion } },
+  { label: '已完成，鉴定为真', value: { status: AppraisalStatus.Completed, results: AppraisalStatus.PendingAppraisal } },
+  { label: '已完成，鉴定为伪', value: { status: AppraisalStatus.Completed, results: AppraisalStatus.InProgress } },
+  { label: '已驳回', value: { status: AppraisalStatus.Rejected } },
+  { label: '已取消', value: { status: AppraisalStatus.Cancelled } },
 ];
 const moneyList = [
   { label: '光速鉴定', value: 0 },
@@ -96,6 +96,8 @@ const currentVideoSrc = ref('');
 const currentVideoTitle = ref('');
 const checkedRowKeys = ref([]);
 const checkedRows = ref([]);
+// 用户信息缓存
+const userInfoCache = ref(new Map());
 
 /**
  * 搜索参数格式化函数
@@ -106,10 +108,10 @@ function formatSearchParams(params) {
   return omit({
     ...params,
     ...(activeTab.value || {}),
-    createStartTime: params.createTimeRange?.[0] ? formatDateTime(params.createTimeRange?.[0]) : null,
-    createEndTime: params.createTimeRange?.[1] ? formatDateTime(params.createTimeRange?.[1]) : null,
-    updateStartTime: params.updateTimeRange?.[0] ? formatDateTime(params.updateTimeRange?.[0]) : null,
-    updateEndTime: params.updateTimeRange?.[1] ? formatDateTime(params.updateTimeRange?.[1]) : null,
+    startCreateDate: params.createTimeRange?.[0] ? formatDateTime(params.createTimeRange?.[0]) : null,
+    endCreateDate: params.createTimeRange?.[1] ? formatDateTime(params.createTimeRange?.[1]) : null,
+    startUpdateDate: params.updateTimeRange?.[0] ? formatDateTime(params.updateTimeRange?.[0]) : null,
+    endUpdateDate: params.updateTimeRange?.[1] ? formatDateTime(params.updateTimeRange?.[1]) : null,
   }, ['createTimeRange', 'updateTimeRange']);
 }
 
@@ -145,6 +147,11 @@ async function formatResponseList(list) {
   }
 }
 
+// async function userNameById(params) {
+  
+//   return data?.nickName || data?.name 
+// }
+
 const searchFormItems = computed(() => [
   {
     prop: 'appraisalId',
@@ -178,7 +185,7 @@ const searchFormItems = computed(() => [
     hidden: !userStore.isAdmin,
   },
   {
-    prop: 'description',
+    prop: 'keyword',
     label: '描述',
     type: 'input',
     placeholder: '请输入描述',
@@ -199,7 +206,7 @@ const searchFormItems = computed(() => [
     span: 6,
   },
   {
-    prop: 'lastAppraiserId',
+    prop: 'lastSubmitUser',
     label: '最后提交鉴定师',
     type: 'selectRemote',
     name: 'user',
@@ -261,43 +268,6 @@ const columns = computed(() => [
       });
     },
   },
-  // {
-  //   title: '视频',
-  //   key: 'videos',
-  //   width: 200,
-  //   render: (row) => {
-  //     if (row.videos && row.videos.length > 0) {
-  //       return h(
-  //         'div',
-  //         { style: 'max-width: 180px; overflow-x: auto;' },
-  //         [
-  //           h(
-  //             NSpace,
-  //             { size: 4, wrap: false },
-  //             row.videos.map((video, index) =>
-  //               h(
-  //                 NButton,
-  //                 {
-  //                   strong: true,
-  //                   secondary: true,
-  //                   size: 'medium',
-  //                   style: 'width: 110px; height: 68px;',
-  //                   onClick: () => handleVideoPlay(row, index),
-  //                 },
-  //                 {
-  //                   icon: () => h(NIcon, null, {
-  //                     default: () => h('i', { class: 'i-fe:play-circle' }),
-  //                   }),
-  //                 },
-  //               ),
-  //             ),
-  //           ),
-  //         ],
-  //       );
-  //     }
-  //     return '-';
-  //   },
-  // },
   {
     title: '类目',
     key: 'mainCategory',
@@ -362,7 +332,31 @@ const columns = computed(() => [
     title: '最后提交鉴定师',
     key: 'lastSubmitUser',
     width: 140,
-    render: ({ last_appraiser }) => last_appraiser?.nickname || '-',
+    render: (row) => {
+      const userid = row?.results?.[0]?.appraiserId;
+      
+      if (!userid) {
+        return h('span', '-');
+      }
+      // 如果缓存中有，直接返回
+      if (userInfoCache.value.has(userid)) {
+        const userName = userInfoCache.value.get(userid);
+        return h('span', userName || '-');
+      }
+      // 如果缓存中没有，发起请求并更新缓存
+      fetchUserInfoById(userid).then(({ data }) => {
+        const userName = data?.nickName || data?.name || '-';
+        userInfoCache.value.set(userid, userName);
+        // 触发表格重新渲染
+        proTableRef.value?.refresh();
+      }).catch(() => {
+        userInfoCache.value.set(userid, '-');
+        proTableRef.value?.refresh();
+      });
+      
+      // 返回加载中的占位符
+      return h('span', '加载中...');
+    }
   },
   {
     title: '状态',

@@ -232,7 +232,7 @@ async function handleSubmit() {
   isSubmitting.value = true;
 
   try {
-    console.log('props.checkedRows', props.checkedRows)
+
     // 构建批量鉴定结果数据
     const resultItems = props.checkedRows.map(item => ({
       appraisalId: item.id,
