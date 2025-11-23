@@ -23,7 +23,7 @@
           <div class="appraisal-item1">
             <label>图片</label>
             <ImagePreview
-            :images="row.images || []"
+            :images="row.pictures?.map(item=>item.url) || []"
             :width="80"
             :height="80"
             :max-display="3"

@@ -253,6 +253,7 @@ function handleTotalDataChange(payload) {
   totalData.value = payload?.done ?? 0;
 }
 function handleCheckedRowKeysChange(temp,rows, meta) {
+  console.log(temp,rows, meta)
   const keys = temp.filter(item => item != null);
   batchAppraisalModalVisible.value = keys.length>=0
   if (meta.action=='check'&&keys.length > 5) {
@@ -289,7 +290,7 @@ async function handleBatchAppraisalSubmit(submitData) {
         return {
         appraisalId: item.id,
         tags:item.tags=== -1? 0: 1,
-        fineTips: item.tags=== -1? 0: Number(item.fineTips)
+        fineTips: item.tags=== -1? 0: String(item.fineTips)
         }
       }
     });
