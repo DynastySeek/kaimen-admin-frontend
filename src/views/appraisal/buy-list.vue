@@ -42,7 +42,7 @@ function formatSearchParams(params) {
 // 表格列定义
 const columns = computed(() => [
   { title: 'ID', key: 'id', width: 80 },
-  { title: '类型', key: 'buyerType', width: 100, render: row => AppraisalClassLabelMap[row.buyerType] || '-' },
+  { title: '类型', key: 'mainCategory', width: 100, render: row => AppraisalClassLabelMap[row.mainCategory] || '-' },
   { title: '描述', key: 'description', width: 200, ellipsis: { tooltip: true } },
   { title: '授权手机号', key: 'phone', width: 120, render: row => row.phone || '-', hidden: !userStore.isAdmin },
   { title: '联系方式', key: 'phone', width: 120, render: row => row.phone || '-', hidden: !userStore.isAdmin },
@@ -71,7 +71,7 @@ const searchFormItems = [
     span: 6,
   },
   {
-    prop: 'type',
+    prop: 'mainCategory',
     label: '类目',
     type: 'selectDictionary',
     name: 'AppraisalClass',
@@ -79,7 +79,7 @@ const searchFormItems = [
     span: 6,
   },
   {
-    prop: 'desc',
+    prop: 'keyword',
     label: '描述',
     type: 'input',
     placeholder: '请输入描述',

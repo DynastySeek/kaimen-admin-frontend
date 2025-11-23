@@ -105,7 +105,7 @@ function formatSearchParams(params) {
     ...params,
     // fineClass: activeTab.value,
     startCreateDate: startOfRange ? startOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
-    startCreateDate: endOfRange ? endOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
+    endCreateDate: endOfRange ? endOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
     results:1,
     pageSize:10000,
   }, ['selectedDate',]);
@@ -192,7 +192,7 @@ const searchFormItems = computed(() => [
     width: 300,
   },
   {
-    prop: 'desc',
+    prop: 'keyword',
     label: '描述',
     type: 'input',
     placeholder: '请输入描述',
@@ -294,7 +294,7 @@ async function handleBatchAppraisalSubmit(submitData) {
         }
       }
     });
-   await fetchAppraisalUpdate(updateData);
+   await fetchAppraisalUpdate({items:updateData});
     // TODO: 调用实际批量更新接口
     $message.success('更新成功');
     proTableRef.value?.refresh();
