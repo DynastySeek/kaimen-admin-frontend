@@ -161,7 +161,7 @@ const searchFormItems = computed(() => [
     span: 6,
   },
   {
-    prop: 'appraisalBusinessType',
+    prop: 'businessType',
     label: '鉴定类型',
     type: 'selectDictionary',
     name: 'AppraisalBusinessType',
@@ -177,7 +177,7 @@ const searchFormItems = computed(() => [
     span: 6,
   },
   {
-    prop: 'userPhone',
+    prop: 'phone',
     label: '登录授权手机号',
     type: 'input',
     placeholder: '请输入登录授权手机号',
@@ -283,7 +283,7 @@ const columns = computed(() => [
   },
   {
     title: '描述',
-    key: 'desc',
+    key: 'description',
     width: 200,
     render: (row) => {
       const text = row.desc ?? row.description ?? '-';
