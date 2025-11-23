@@ -57,7 +57,7 @@ const RemoteDataMap = {
   user: {
     fetchFn: fetchUserList,
     labelField: 'name',
-    valueField: 'userId',
+    valueField: 'name',
     params: { page: 1, pageSize: 100 }, // 获取所有用户
   },
 };
