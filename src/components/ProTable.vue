@@ -186,6 +186,7 @@ const emit = defineEmits(['update:checked-row-keys', 'update:checked-row', 'upda
     if (props.formatResponseList) {
       tableList = await props.formatResponseList(tableList);
     }
+
     tableData.value = tableList;
   });
   
@@ -211,10 +212,10 @@ const emit = defineEmits(['update:checked-row-keys', 'update:checked-row', 'upda
    handleSearch();
   }
   
-function handleCheckedRowKeysChange(keys) {
+function handleCheckedRowKeysChange(keys,rows, meta) {
  const keySet = new Set(keys);
  const selectedRows = tableData.value.filter(item => keySet.has(props.rowKey(item)));
- emit('update:checked-row-keys', keys);
+ emit('update:checked-row-keys', keys,rows, meta);
  emit('update:checked-row', selectedRows);
 }
   

@@ -22,7 +22,7 @@
       :format-search-params="formatSearchParams"
       :format-response-list="formatResponseList"
       @update:total-data="handleTotalDataChange"
-      :row-key="item => item.appraisal_id"
+      :row-key="item => item.id"
       @update:checked-row-keys="handleCheckedRowKeysChange"
       :virtual-scroll="true"
       :max-height="650"
@@ -36,8 +36,8 @@
           >{{ 
            batchAppraisalModalTitle
           }}
-          </NButton>
-     -->
+          </NButton> -->
+    
           <span
           class="text-[#316C72] cursor-pointer"
           style="height: 34px;line-height: 34px;"
@@ -104,9 +104,9 @@ function formatSearchParams(params) {
   return omit({
     ...params,
     // fineClass: activeTab.value,
-    createStartTime: startOfRange ? startOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
-    createEndTime: endOfRange ? endOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
-    appraisalResult:1,
+    startCreateDate: startOfRange ? startOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
+    startCreateDate: endOfRange ? endOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
+    results:1,
     pageSize:10000,
   }, ['selectedDate',]);
 }
@@ -141,7 +141,7 @@ async function formatResponseList(list) {
       });
     }
     const temp =  list.filter(item=>{
-      if(item.fine_class === 1){
+      if(item.tags === 1){
         return {
           ...item,
         }
@@ -220,7 +220,7 @@ const columns = computed(() => [
     width: 300,
     render: (row) => {
       return h(ImagePreview, {
-        images: row.images.map(item=>item.url) || [],
+        images: row?.pictures?.map(item=>item.url) || [],
         width: 110,
         height: 68,
         maxDisplay: 4,
@@ -234,7 +234,7 @@ const columns = computed(() => [
   },
   {
     title: '奖励',
-    key: 'fine_tips',
+    key: 'fineTips',
   },
  
 ].filter(column => !column.hidden));
@@ -245,7 +245,7 @@ const columns = computed(() => [
  */
 watch([checkedRowKeys, tableData], () => {
   // if(checkedRowKeys.value.length > 0){
-  const temp = tableData.value.filter(row => checkedRowKeys.value.includes(row.appraisal_id));
+  const temp = tableData.value.filter(row => checkedRowKeys.value.includes(row.id));
   checkedRows.value = temp.filter(item => item != null);
   
 });
@@ -253,6 +253,7 @@ function handleTotalDataChange(payload) {
   totalData.value = payload?.done ?? 0;
 }
 function handleCheckedRowKeysChange(temp,rows, meta) {
+  console.log(temp,rows, meta)
   const keys = temp.filter(item => item != null);
   batchAppraisalModalVisible.value = keys.length>=0
   if (meta.action=='check'&&keys.length > 5) {
@@ -266,7 +267,7 @@ function handleCheckedRowKeysChange(temp,rows, meta) {
 let originFineclass = []
 function handleBatchUpdate() {
   proTableRef.value?.reload(); 
-  originFineclass = tableData.value.filter(item => item.fine_class === 1)
+  originFineclass = tableData.value.filter(item => item.tags === 1)
     isEditing.value = !isEditing.value;
     batchAppraisalModalTitle.value = isEditing.value ? "取消重新评选" : "重新评选"
     if(!isEditing.value) {
@@ -280,16 +281,16 @@ async function handleBatchAppraisalSubmit(submitData) {
   const result = [
   ...submitData,
   ...originFineclass
-    .filter(originItem => !submitData.some(submitItem => submitItem.appraisal_id === originItem.appraisal_id))
-    .map(item => ({ ...item, fine_class: -1 }))
+    .filter(originItem => !submitData.some(submitItem => submitItem.id === originItem.id))
+    .map(item => ({ ...item, tags: -1 }))
 ];
   try {
     const updateData =Array.from(result) ?.map(item => {
       if(item) {
         return {
-        id: item.appraisal_id,
-        fine_class:item.fine_class=== -1? 0: 1,
-        fine_tips: item.fine_class=== -1? 0: Number(item.fine_tips)
+        appraisalId: item.id,
+        tags:item.tags=== -1? 0: 1,
+        fineTips: item.tags=== -1? 0: String(item.fineTips)
         }
       }
     });
