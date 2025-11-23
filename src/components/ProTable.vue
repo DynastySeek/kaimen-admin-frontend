@@ -179,8 +179,6 @@ const emit = defineEmits(['update:checked-row-keys', 'update:checked-row', 'upda
      initialPageSize: 20,
    },
   );
-  // conos
-  
   handleSuccess(async ({data}) => {
     const rawData = data?.data ?? null;
     emit('update:total-data', data.data);
