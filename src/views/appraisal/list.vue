@@ -161,7 +161,7 @@ const searchFormItems = computed(() => [
     span: 6,
   },
   {
-    prop: 'businessType',
+    prop: 'type',
     label: '鉴定类型',
     type: 'selectDictionary',
     name: 'AppraisalBusinessType',
@@ -206,7 +206,7 @@ const searchFormItems = computed(() => [
     span: 6,
   },
   {
-    prop: 'lastSubmitUser',
+    prop: 'lastAppraiserId',
     label: '最后提交鉴定师',
     type: 'selectRemote',
     name: 'user',
