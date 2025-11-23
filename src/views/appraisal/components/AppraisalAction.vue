@@ -9,7 +9,7 @@
       </n-button>
     </div>
     <div>
-      {{ AppraisalResultLabelMap[data.last_appraisal_result.result] }}
+      {{ resultLabelMap[data.last_appraisal_result.result] }}
     </div>
     <div class="text-[#1560FA] font-bold">
       原因
@@ -143,8 +143,8 @@
 <script setup>
 import { Edit } from '@vicons/carbon';
 import { isEmpty } from 'lodash-es';
-import { reactive, ref, watch } from 'vue';
-import { AppraisalResult, AppraisalResultLabelMap, AppraisalStatus } from '@/constants';
+import { computed, reactive, ref, watch } from 'vue';
+import { AppraisalClass, AppraisalResult, AppraisalResultLabelMap, AppraisalStatus, QuWuInterest, QuWuInterestLabelMap } from '@/constants';
 import { fetchAppraisalResultAdd, fetchAppraisalUpdate } from '@/services';
 
 const props = defineProps({
@@ -173,12 +173,38 @@ const rejectReasonOptions = [
   { label: '请勿上传与鉴定无关的图片或视频', value: '请勿上传与鉴定无关的图片或视频' },
 ];
 
-const resultOptions = [
-  { label: AppraisalResultLabelMap[AppraisalResult.Authentic], value: AppraisalResult.Authentic, color: '#21D476' },
-  { label: AppraisalResultLabelMap[AppraisalResult.Fake], value: AppraisalResult.Fake, color: '#FD4648' },
-  { label: AppraisalResultLabelMap[AppraisalResult.Doubt], value: AppraisalResult.Doubt, color: '#FD9E28' },
-  { label: AppraisalResultLabelMap[AppraisalResult.Rejected], value: AppraisalResult.Rejected, color: '#555555' },
-];
+/**
+ * 是否为“趣物”类目。
+ * @type {import('vue').ComputedRef<boolean>}
+ */
+const isQuWu = computed(() => Number(props.data?.first_class) === AppraisalClass.QuWu);
+
+/**
+ * 根据类目返回结果标签映射。
+ * @type {import('vue').ComputedRef<Record<string, string>>}
+ */
+const resultLabelMap = computed(() => (isQuWu.value ? QuWuInterestLabelMap : AppraisalResultLabelMap));
+
+/**
+ * 鉴定结果选项列表（趣物类目仅有有趣/无聊）。
+ * @type {import('vue').ComputedRef<Array<{label: string, value: string, color: string}>>}
+ */
+const resultOptions = computed(() => {
+  if (isQuWu.value) {
+    return [
+      { label: QuWuInterestLabelMap[QuWuInterest.Interesting], value: QuWuInterest.Interesting, color: '#21D476' },
+      { label: QuWuInterestLabelMap[QuWuInterest.Boring], value: QuWuInterest.Boring, color: '#FD4648' },
+      { label: QuWuInterestLabelMap[QuWuInterest.Doubt], value: QuWuInterest.Doubt, color: '#FD9E28' },
+      { label: QuWuInterestLabelMap[QuWuInterest.Rejected], value: QuWuInterest.Rejected, color: '#555555' },
+    ];
+  }
+  return [
+    { label: AppraisalResultLabelMap[AppraisalResult.Authentic], value: AppraisalResult.Authentic, color: '#21D476' },
+    { label: AppraisalResultLabelMap[AppraisalResult.Fake], value: AppraisalResult.Fake, color: '#FD4648' },
+    { label: AppraisalResultLabelMap[AppraisalResult.Doubt], value: AppraisalResult.Doubt, color: '#FD9E28' },
+    { label: AppraisalResultLabelMap[AppraisalResult.Rejected], value: AppraisalResult.Rejected, color: '#555555' },
+  ];
+});
 
 watch(
   () => props.data?.last_appraisal_result,

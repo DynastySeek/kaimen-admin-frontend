@@ -287,7 +287,7 @@ async function handleSubmit() {
 
     // 重置表单并关闭弹窗
     resetForm();
-    visible.value = false;
+    // visible.value = false;
   } catch (error) {
     $message.error('批量鉴定提交失败');
     console.error('批量鉴定提交失败:', error);

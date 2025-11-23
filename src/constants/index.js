@@ -150,6 +150,21 @@ export const AppraisalResultLabelMap = {
   [AppraisalResult.Rejected]: '驳回',
 };
 
+// 趣物枚举：1-有趣，2-无聊
+export const QuWuInterest = {
+  Interesting: '1',
+  Boring: '2',
+  Doubt: '3',
+  Rejected: '4',
+};
+
+export const QuWuInterestLabelMap = {
+  [QuWuInterest.Interesting]: '有趣',
+  [QuWuInterest.Boring]: '无聊',
+  [QuWuInterest.Doubt]: '存疑',
+  [QuWuInterest.Rejected]: '驳回',
+};
+
 export const PubStatus = {
   ToPublish: '1',
   Published: '2',
