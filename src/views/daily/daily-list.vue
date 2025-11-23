@@ -36,8 +36,8 @@
           >{{ 
            batchAppraisalModalTitle
           }}
-          </NButton>
-     -->
+          </NButton> -->
+    
           <span
           class="text-[#316C72] cursor-pointer"
           style="height: 34px;line-height: 34px;"
@@ -104,9 +104,9 @@ function formatSearchParams(params) {
   return omit({
     ...params,
     // fineClass: activeTab.value,
-    createStartTime: startOfRange ? startOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
-    createEndTime: endOfRange ? endOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
-    appraisalResult:1,
+    startCreateDate: startOfRange ? startOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
+    startCreateDate: endOfRange ? endOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
+    results:1,
     pageSize:10000,
   }, ['selectedDate',]);
 }
@@ -220,7 +220,7 @@ const columns = computed(() => [
     width: 300,
     render: (row) => {
       return h(ImagePreview, {
-        images: row.images.map(item=>item.url) || [],
+        images: row?.pictures?.map(item=>item.url) || [],
         width: 110,
         height: 68,
         maxDisplay: 4,
