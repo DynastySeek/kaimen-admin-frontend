@@ -29,14 +29,14 @@ const userStore = useUserStore();
  * @returns {object} 格式化后的参数
  */
 function formatSearchParams(params) {
-  const [minPrice, maxPrice] = PriceRangeValueMap[params.expectedPrice] || [null, null];
+  const [minPrice, maxPrice] = PriceRangeValueMap[params.expected_price] || [null, null];
   return omit({
     ...params,
     minPrice,
     maxPrice,
     startDate: params.createTimeRange?.[0] ? formatDateTime(params.createTimeRange?.[0]) : null,
     endDate: params.createTimeRange?.[1] ? formatDateTime(params.createTimeRange?.[1]) : null,
-  }, ['expectedPrice', 'createTimeRange']);
+  }, ['expected_price', 'createTimeRange']);
 }
 
 // 表格列定义
