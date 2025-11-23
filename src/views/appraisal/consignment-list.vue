@@ -58,13 +58,15 @@ const searchFormItems = [
     type: 'input',
     placeholder: '请输入求购ID',
     span: 6,
+    width:300,
   },
   {
     prop: 'phone',
     label: '联系方式（手机号）',
     type: 'input',
     placeholder: '请输入手机号',
-    span: 6,
+    span: 18,
+    width: 300,
     hidden: !userStore.isAdmin,
   },
   {
@@ -73,14 +75,16 @@ const searchFormItems = [
     type: 'input',
     placeholder: '请输入微信号',
     span: 6,
+    width: 300,
     hidden: !userStore.isAdmin,
   },
   {
-    prop: 'desc',
+    prop: 'keyword',
     label: '描述',
     type: 'input',
     placeholder: '请输入描述',
-    span: 6,
+    span: 8,
+    width: 300,
   },
 ];
 
@@ -91,10 +95,7 @@ const searchFormItems = [
  */
 function formatSearchParams(params) {
   return {
-    id: params.id,
-    phone: params.phone,
-    wechatId: params.wechatId,
-    desc: params.desc,
+   ...params
   };
 }
 </script>
