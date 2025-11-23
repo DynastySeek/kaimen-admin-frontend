@@ -239,6 +239,7 @@ async function handleSubmit() {
       email: formState.email,
       gender: formState.gender,
       avatar: formState.avatar,
+      
     });
     $message.success('修改成功');
     router.push('/');

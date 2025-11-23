@@ -8,7 +8,6 @@ export function createTabGuard(router) {
       return;
     }
     const tabStore = useTabStore();
-    console.log('tabStore', tabStore ,to)
     const { name, fullPath: path } = to;
     const title = to.meta?.title;
     const icon = to.meta?.icon;

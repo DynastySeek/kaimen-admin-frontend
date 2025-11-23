@@ -111,6 +111,7 @@ async function handleLogin() {
     $message.loading('正在验证，请稍后...', { key: 'login' });
     // 移除验证码参数和isQuick参数
     const { data } = await fetchLogin({ username, password: password.toString() });
+    console.log('data',data)
     onLoginSuccess(data);
   } catch (error) {
     // 验证码相关逻辑已注释
@@ -125,7 +126,7 @@ async function handleLogin() {
 }
 
 async function onLoginSuccess(data = {}) {
-  authStore.setToken(data);
+  authStore.setToken({access_token:data.token});
   $message.loading('登录中...', { key: 'login' });
   try {
     $message.success('登录成功', { key: 'login' });

@@ -27,7 +27,7 @@ const userStore = useUserStore();
 // 表格列定义（调整为：id, 描述，联系方式，授权登录手机号，创建时间）
 const columns = computed(() => [
   { title: 'ID', key: 'id', width: 80 },
-  { title: '描述', key: 'desc', width: 200, ellipsis: { tooltip: true } },
+  { title: '描述', key: 'description', width: 200, ellipsis: { tooltip: true } },
   {
     title: '联系方式',
     key: 'contact',
@@ -46,7 +46,7 @@ const columns = computed(() => [
       );
     },
   },
-  { title: '授权登录手机号', key: 'user_phone', width: 140, render: row => row.user_phone || '-', hidden: !userStore.isAdmin },
+  { title: '授权登录手机号', key: 'phone', width: 140, render: row => row.phone || '-', hidden: !userStore.isAdmin },
   { title: '创建时间', key: 'created_at', width: 180, render: row => formatDateTime(row.created_at) },
 ].filter(column => !column.hidden));
 

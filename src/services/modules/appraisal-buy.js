@@ -16,7 +16,7 @@ import alovaInstance from '../alovaInstance';
  * @returns {Promise} 求购单列表数据
  */
 export function fetchAppraisalBuyList(params) {
-  return alovaInstance.Get('/appraisal-buy/list', {
+  return alovaInstance.Get('/appraisalBuy/query', {
     params,
   });
 }

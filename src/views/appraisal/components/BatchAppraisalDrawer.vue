@@ -125,6 +125,7 @@
 import { computed, reactive, ref } from 'vue';
 import { AppraisalResult, AppraisalResultLabelMap, AppraisalStatus } from '@/constants';
 import { fetchAppraisalResultAdd, fetchAppraisalUpdate } from '@/services';
+import { watch } from 'less';
 
 const props = defineProps({
   /**
@@ -138,6 +139,10 @@ const props = defineProps({
    * 选中的行键值数组
    */
   checkedRowKeys: {
+    type: Array,
+    default: () => [],
+  },
+  checkedRows: {
     type: Array,
     default: () => [],
   },
@@ -227,13 +232,15 @@ async function handleSubmit() {
   isSubmitting.value = true;
 
   try {
+
     // 构建批量鉴定结果数据
-    const resultItems = props.checkedRowKeys.map(id => ({
-      appraisalId: id,
-      appraisalResult: formData.result,
+    const resultItems = props.checkedRows.map(item => ({
+      appraisalId: item.id,
+      result: Number(formData.result),
       comment: formData.comment,
-      reasons: formData.reasons,
+      reason: formData.reasons,
       customReason: '',
+      userId: item.userId,
     }));
 
     // 构建批量状态更新数据
@@ -248,17 +255,27 @@ async function handleSubmit() {
       appraisal_status = AppraisalStatus.Rejected;
     }
 
-    const updateItems = props.checkedRowKeys.map(id => ({
-      id,
-      appraisal_status,
+    const updateItems = props.checkedRows.map(item => ({
+      appraisalId: item.id,
+      mainCategory: item.mainCategory,
+      status: appraisal_status,
     }));
-
+    try {
+      console.log('resultItems', resultItems)
+      await fetchAppraisalResultAdd({ items: resultItems });
+    } catch (error) {
+      console.error('批量更新鉴定状态失败:', error);
+    }
+    try {
+      await fetchAppraisalUpdate({items:updateItems});
+    } catch (error) {
+      console.error('批量更新鉴定状态失败:', error);
+    }
+   
     // 批量更新鉴定状态
-    await fetchAppraisalUpdate(updateItems);
-
+  
     // 批量添加鉴定结果
-    await fetchAppraisalResultAdd({ items: resultItems });
-
+   
     const submitData = {
       ids: props.checkedRowKeys,
       result: formData.result,

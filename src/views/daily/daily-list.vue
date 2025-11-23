@@ -167,7 +167,7 @@ const searchFormItems = computed(() => [
     value: DEFAULT_DATE, // 设置默认值为今天
   },
   {
-  prop: 'firstClass',
+  prop: 'mainCategory',
   label: '类目',
   type: 'select',
   placeholder: '请选择类目',
@@ -211,7 +211,7 @@ const columns = computed(() => [
   },
   {
     title: '鉴定ID',
-    key: 'appraisal_id',
+    key: 'id',
     width: 200,
   },
   {
@@ -220,7 +220,7 @@ const columns = computed(() => [
     width: 300,
     render: (row) => {
       return h(ImagePreview, {
-        images: row.images || [],
+        images: row.images.map(item=>item.url) || [],
         width: 110,
         height: 68,
         maxDisplay: 4,

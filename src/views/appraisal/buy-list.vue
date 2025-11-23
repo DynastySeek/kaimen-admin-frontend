@@ -34,20 +34,19 @@ function formatSearchParams(params) {
     ...params,
     minPrice,
     maxPrice,
-    userPhone: params.userPhone,
-    createStartTime: params.createTimeRange?.[0] ? formatDateTime(params.createTimeRange?.[0]) : null,
-    createEndTime: params.createTimeRange?.[1] ? formatDateTime(params.createTimeRange?.[1]) : null,
+    startDate: params.createTimeRange?.[0] ? formatDateTime(params.createTimeRange?.[0]) : null,
+    endDate: params.createTimeRange?.[1] ? formatDateTime(params.createTimeRange?.[1]) : null,
   }, ['expectedPrice', 'createTimeRange']);
 }
 
 // 表格列定义
 const columns = computed(() => [
   { title: 'ID', key: 'id', width: 80 },
-  { title: '类型', key: 'buyer_type', width: 100, render: row => AppraisalClassLabelMap[row.buyer_type] || '-' },
-  { title: '描述', key: 'desc', width: 200, ellipsis: { tooltip: true } },
-  { title: '授权手机号', key: 'user_phone', width: 120, render: row => row.user_phone || '-', hidden: !userStore.isAdmin },
+  { title: '类型', key: 'buyerType', width: 100, render: row => AppraisalClassLabelMap[row.buyerType] || '-' },
+  { title: '描述', key: 'description', width: 200, ellipsis: { tooltip: true } },
+  { title: '授权手机号', key: 'phone', width: 120, render: row => row.phone || '-', hidden: !userStore.isAdmin },
   { title: '联系方式', key: 'phone', width: 120, render: row => row.phone || '-', hidden: !userStore.isAdmin },
-  { title: '期望价格', key: 'expected_price', width: 120, render: row => `${row.min_price} - ${row.max_price}` },
+  { title: '期望价格', key: 'expected_price', width: 120, render: row => `${row.minPrice} - ${row.maxPrice}` },
   {
     title: '创建时间',
     key: 'created_at',
@@ -72,7 +71,7 @@ const searchFormItems = [
     span: 6,
   },
   {
-    prop: 'buyer_type',
+    prop: 'type',
     label: '类目',
     type: 'selectDictionary',
     name: 'AppraisalClass',
@@ -87,7 +86,7 @@ const searchFormItems = [
     span: 6,
   },
   {
-    prop: 'expectedPrice',
+    prop: 'expected_price',
     label: '心理价位',
     type: 'selectDictionary',
     name: 'PriceRange',
@@ -95,7 +94,7 @@ const searchFormItems = [
     span: 6,
   },
   {
-    prop: 'userPhone',
+    prop: 'auth_phone',
     label: '授权手机号',
     type: 'input',
     placeholder: '请输入授权手机号',

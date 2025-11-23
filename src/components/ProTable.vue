@@ -64,7 +64,7 @@
   import { computed, reactive, ref, watch } from 'vue';
   import FormBuilder from './FormBuilder.vue';
   
-  const props = defineProps({
+const props = defineProps({
    // 搜索表单项配置
    searchFormItems: {
      type: Array,
@@ -95,11 +95,16 @@
      type: Function,
      default: null,
    },
-   // 选中的行键
+  // 选中的行键
    checkedRowKeys: {
      type: Array,
      default: () => [],
    },
+  // 选中的行数据
+  checkedRow: {
+    type: Array,
+    default: () => [],
+  },
    // 行数据的 key，用于表格行的唯一标识
    rowKey: {
      type: Function,
@@ -117,7 +122,7 @@
    },
   });
   
-  const emit = defineEmits(['update:checked-row-keys', 'update:total-data']);
+const emit = defineEmits(['update:checked-row-keys', 'update:checked-row', 'update:total-data']);
   
   const searchForm = reactive({});
   const tableData = ref([]);
@@ -168,17 +173,16 @@
      }),
    {
   
-     total: response => response.data.total,
-     data: response => response.data.list || [],
+     total: response => response.data.totalElements,
+     data: response => response.data.content|| [],
      initialPage: 1,
      initialPageSize: 20,
    },
   );
-  
-  handleSuccess(async ({ data}) => {
+  handleSuccess(async ({data}) => {
     const rawData = data?.data ?? null;
     emit('update:total-data', data.data);
-    let tableList = rawData?.list || rawData || [];
+    let tableList = data?.data?.content || rawData || [];
     if (props.formatResponseList) {
       tableList = await props.formatResponseList(tableList);
     }
@@ -207,9 +211,12 @@
    handleSearch();
   }
   
-  function handleCheckedRowKeysChange(keys,rows, meta) {
-   emit('update:checked-row-keys', keys,rows, meta);
-  }
+function handleCheckedRowKeysChange(keys) {
+ const keySet = new Set(keys);
+ const selectedRows = tableData.value.filter(item => keySet.has(props.rowKey(item)));
+ emit('update:checked-row-keys', keys);
+ emit('update:checked-row', selectedRows);
+}
   
   defineExpose({
    refresh: fetchList,
