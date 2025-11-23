@@ -2,10 +2,10 @@ import { createAlova } from 'alova';
 import adapterFetch from 'alova/fetch';
 import vueHook from 'alova/vue';
 import {  omit } from 'lodash-es';
-import { isLocal  } from '@/config/env';
+import { isLocal,VITE_PROXY_BASE_REQUEST_User_API } from '@/config/env';
 import { cleanParams, getToken, isObject, sleep } from '@/utils';
 const alovaInstance = createAlova({
-  baseURL: isLocal ? '/aiuser' : 'https://kaimen-d-app-server-164046-6-1360990667.sh.run.tcloudbase.com',
+  baseURL: isLocal ? '/aiuser' : VITE_PROXY_BASE_REQUEST_User_API,
   requestAdapter: adapterFetch(),
   statesHook: vueHook,
   cacheFor: null,

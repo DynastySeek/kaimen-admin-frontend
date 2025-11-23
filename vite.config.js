@@ -33,7 +33,7 @@ function toTransformConfig(config) {
 
 export default defineConfig(({ mode }) => {
   const viteEnv = loadEnv(mode, process.cwd());
-  const { VITE_PUBLIC_PATH, VITE_PROXY_BASE_REQUEST_API, VITE_PORT, VITE_SOURCE_MAP, VITE_GZIP, VITE_REPORT } = toTransformConfig(viteEnv);
+  const { VITE_PUBLIC_PATH, VITE_PROXY_BASE_REQUEST_API,  VITE_PORT, VITE_SOURCE_MAP, VITE_GZIP, VITE_REPORT, VITE_PROXY_BASE_REQUEST_AI_API, VITE_PROXY_BASE_REQUEST_User_API} = toTransformConfig(viteEnv);
 
   return {
     base: VITE_PUBLIC_PATH || '/',
@@ -81,8 +81,7 @@ export default defineConfig(({ mode }) => {
       proxy: {
         '/api': {
           // target: 'http://localhost:8000',
-          target:'https://kaimen-refactor-web-164046-6-1360990667.sh.run.tcloudbase.com',
-          // VITE_PROXY_BASE_REQUEST_API,
+          target: VITE_PROXY_BASE_REQUEST_API,
           changeOrigin: true,
           // rewrite: path => path.replace(/^\/api/, ''),
           secure: false,
@@ -95,7 +94,7 @@ export default defineConfig(({ mode }) => {
         },
         '/aichat': {
           // target: 'http://localhost:8000',
-          target: 'https://agent.kaimen.site',
+          target: VITE_PROXY_BASE_REQUEST_AI_API,
           changeOrigin: true,
           rewrite: path => path.replace(/^\/aichat/, ''),
           secure: false,
@@ -108,7 +107,7 @@ export default defineConfig(({ mode }) => {
         },
         '/aiuser': {
           // target: 'http://localhost:8000',
-          target: 'https://kaimen-d-app-server-164046-6-1360990667.sh.run.tcloudbase.com',
+          target: VITE_PROXY_BASE_REQUEST_User_API,
           changeOrigin: true,
           rewrite: path => path.replace(/^\/aiuser/, ''),
           secure: false,
