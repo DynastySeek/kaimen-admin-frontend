@@ -80,7 +80,7 @@ export default defineConfig(({ mode }) => {
       proxy: {
         '/api': {
           // target: 'http://localhost:8000',
-          target: VITE_PROXY_BASE_REQUEST_API,
+          target: "https://kaimen-refactor-web-164046-6-1360990667.sh.run.tcloudbase.com",
           changeOrigin: true,
           // rewrite: path => path.replace(/^\/api/, ''),
           secure: false,
