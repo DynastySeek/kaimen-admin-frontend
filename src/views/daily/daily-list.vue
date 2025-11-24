@@ -100,7 +100,6 @@ function formatSearchParams(params) {
   const endOfRange = selectedDate
     ? selectedDate.hour(21).minute(0).second(0)
     : null;
-
   return omit({
     ...params,
     // fineClass: activeTab.value,

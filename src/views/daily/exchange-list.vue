@@ -58,17 +58,18 @@ import { computed, ref, reactive, onMounted, h } from 'vue';
 import { getTempFileUrls } from '@/cloud';
 import { CommonPage, ProTable, FormBuilder, VideoModal } from '@/components';
 import { NButton, NSpace, NModal, NTable } from 'naive-ui';
-import {goldXchangelist,  goldXchange,  fetchUserinfoList,fetchUserGoldList,fetchAppraisalFineList} from '@/services';
+import { goldXchangelist,  goldXchange,fetchUserGoldList } from '@/services';
 import dayjs from 'dayjs';
+import { User } from 'lucide-vue-next';
 const proTableRef = ref();
 const formRef = ref();
 const checkedRowKeys = ref([]);
 const showModal = ref(false);
 const formState = reactive({
-  _id: '',
-  remain_tips: 0,
-  gold: '',
-  price: ''
+  userId: '',
+  reward: 0,
+  goldGram: '',
+  goldPrice: ''
 })
 const detailsData = ref([]);
 const exchangeModalVisible = ref(false);
@@ -117,14 +118,14 @@ async function formatResponseList(list) {
 }
 const formItems = [
   {
-    prop: 'remain_tips',
+    prop: 'reward',
     label: '当前余额',
     type: 'input',
     disabled: true,
   },
   {
     
-    prop: 'gold',
+    prop: 'goldGram',
     label: '金额(￥)',
     type: 'input',
     placeholder: '请输入金额',
@@ -140,7 +141,7 @@ const formItems = [
             return Promise.reject('请输入合法金额，最多2位小数');
           }
           // 判断是否大于当前余额
-          if (parseFloat(value) > formState.remain_tips) {
+          if (parseFloat(value) > formState.reward) {
             return Promise.reject('金额不能超过当前余额');
           }
           return Promise.resolve();
@@ -150,7 +151,7 @@ const formItems = [
   
   },
   {
-    prop: 'price',
+    prop: 'goldPrice',
     label: '重量(g)',
     type: 'input',
     placeholder: '请输入重量',
@@ -197,14 +198,14 @@ const detailscolumns = [
   },
   {
     title: '详情',
-    key: 'gold_gram',
+    key: 'goldGram',
     render: (row) => {
-      return h('div',row.type === 1 ? `${row.gold_gram}g` :  row.gold_gram );
+      return h('div',row.type === 1 ? `${row.goldGram}g` :  row.goldGram );
     },
   },
   {
     title: '金额',
-    key: 'remain_tips',
+    key: 'goldPrice',
   },
 ];
 
@@ -217,7 +218,7 @@ const columns = [
   },
   {
     title: '当前余额',
-    key: 'remain_tips',
+    key: 'reward',
     width: 300,
   },
   {
@@ -241,10 +242,10 @@ const columns = [
             onClick: () => {
               // 重置表单并赋值
               Object.assign(formState, {
-                _id: row._id,
-                remain_tips: row.remain_tips || 0,
-                gold: '',
-                price: ''
+                userId: row.userId,
+                reward: row.reward || 0,
+                goldGram: '',
+                goldPrice: ''
               });
               exchangeModalVisible.value = true;
             },
@@ -257,8 +258,15 @@ const columns = [
 async function handledDetails(row) {
   showModal.value = true
   try {
-    const { data } = await goldXchangelist({userinfoid:row._id});
-    detailsData.value = data
+    const current = {
+      currentUser:false,
+      userId:row.userId,
+      page:1,
+      pageSize:1000
+    }
+    const { data } = await goldXchangelist(current);
+
+    detailsData.value = data?.content || []
   } catch (error) {
     console.error('获取明细失败:', error);
   }
@@ -269,7 +277,12 @@ async function handledSubmit(_data) {
     if (!valid) {
       return;
     }
-    await goldXchange({userInfoId:formState._id, gold:Number(formState.gold),price:Number(formState.price)});
+    const current = {
+      userId:formState.userId,
+      goldGram:Number(formState.goldGram),
+      goldPrice:Number(formState.goldPrice)
+    }
+    await goldXchange(current);
     $message.success('兑换成功');
     exchangeModalVisible.value = false
     proTableRef.value?.refresh();
@@ -278,13 +291,4 @@ async function handledSubmit(_data) {
     console.error('兑换黄金失败:', error);
   }
 }
-
-async function searchList() {
-  // await fetchUserGoldList({page:1,size:20});
-}
-
-onMounted(()=>{
-  // searchList()
-})
-
 </script>

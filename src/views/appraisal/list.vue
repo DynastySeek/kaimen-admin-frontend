@@ -10,7 +10,7 @@
         />
       </n-radio-group>
     </template>
-    <AppCard v-if="activeTab==null||activeTab?.status==1" style="padding-left:20px;height: 60px;line-height: 60px;margin-bottom: 10px;">
+    <AppCard style="padding-left:20px;height: 60px;line-height: 60px;margin-bottom: 10px;">
       <n-radio-group v-model:value="moneyTab"name="appraisal-status" >
         <n-radio-button
           v-for="tab in moneyList"
