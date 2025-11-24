@@ -39,9 +39,8 @@
               <n-input 
                 v-model:value="row.fineTips" 
                 type="number"
-                placeholder="请输入1-500的整数"
+                placeholder="请输入整数"
                 :min="0"
-                :max="500"
                 :step="1"
                 :status="getFineTipsStatus(row.id)"
                 @blur="validateFineTips(row)"
@@ -132,10 +131,10 @@ const validateFineTips = (row) => {
     return false
   }
   
-  if (numValue <= 0 || numValue > 500) {
-    fineTipsValidation[id] = { status: 'error', message: '必须在0-500之间' }
-    return false
-  }
+  // if (numValue <= 0 || numValue > 500) {
+  //   fineTipsValidation[id] = { status: 'error', message: '必须在0-500之间' }
+  //   return false
+  // }
   
   fineTipsValidation[id] = { status: 'success', message: '' }
   return true
