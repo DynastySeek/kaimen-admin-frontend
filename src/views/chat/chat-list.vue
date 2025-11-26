@@ -78,7 +78,7 @@
                             用户ID: {{ item.user_id }}
                           </n-text>
                           <n-text depth="3" style="font-size: 12px;">
-                            首条: {{ item.first_message || '无' }}
+                            首条: {{ item.first_message || '请求接入客服' }}
                           </n-text>
                           <n-button 
                             type="warning" 
