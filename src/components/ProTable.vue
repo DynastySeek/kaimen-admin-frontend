@@ -122,7 +122,7 @@ const props = defineProps({
    },
   });
   
-const emit = defineEmits(['update:checked-row-keys', 'update:checked-row', 'update:total-data']);
+const emit = defineEmits(['update:checked-row-keys', 'update:checked-row', 'update:total-data', 'update:total']);
   
   const searchForm = reactive({});
   const tableData = ref([]);
@@ -182,6 +182,7 @@ const emit = defineEmits(['update:checked-row-keys', 'update:checked-row', 'upda
   handleSuccess(async ({data}) => {
     const rawData = data?.data ?? null;
     emit('update:total-data', data.data);
+    emit('update:total', data.data.totalElements);
     let tableList = data?.data?.content || rawData || [];
     if (props.formatResponseList) {
       tableList = await props.formatResponseList(tableList);

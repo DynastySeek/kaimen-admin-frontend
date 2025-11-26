@@ -11,12 +11,12 @@
       </n-radio-group>
     </template>
     <AppCard style="padding-left:20px;height: 60px;line-height: 60px;margin-bottom: 10px;">
-      <n-radio-group v-model:value="moneyTab"name="appraisal-status" >
+      <n-radio-group v-model:value="moneyTab"name="appraisal-status"  @update:value="handleMoneyTabChange">
         <n-radio-button
           v-for="tab in moneyList"
           :key="tab.value"  
           :value="tab.value"
-          :label="`${tab.label}待鉴定(${tab.value})`"
+          :label="`${tab.label} ${activeTab?.status==1||activeTab==null?`（待鉴定${tab.length}单）`:''}`"
         />
       </n-radio-group>
     </AppCard>
@@ -33,6 +33,10 @@
       :row-key="item => item.id"
       @update:checked-row-keys="keys => checkedRowKeys = keys"
       @update:checked-row="rows => checkedRows = rows"
+      @update:total="(total)=>{
+        moneyList[0].length = moneyTab==1?total:0
+        moneyList[1].length = moneyTab==0?total:0;
+      }"
     >
       <template #header>
         <NSpace>
@@ -72,6 +76,8 @@ import { formatDateTime } from '@/utils';
 import AppraisalAction from './components/AppraisalAction.vue';
 import BatchAppraisalDrawer from './components/BatchAppraisalDrawer.vue';
 import ImagePreview from './components/ImagePreview.vue';
+import { reactive } from 'vue';
+import dayjs from 'dayjs';
 const tabs = [
   { label: '全部', value: null },
   { label: '待鉴定', value: { status: AppraisalStatus.PendingAppraisal } },
@@ -81,15 +87,20 @@ const tabs = [
   { label: '已驳回', value: { status: AppraisalStatus.Rejected } },
   { label: '已取消', value: { status: AppraisalStatus.Cancelled } },
 ];
-const moneyList = [
-  { label: '光速鉴定', value: 0 },
-  { label: '普通鉴定', value: 1 },
-];
+const moneyList = reactive([
+  { label: '光速鉴定', value: 1, length:0},
+  { label: '普通鉴定', value: 0, length:0 },
+]);
+const payResultList = {
+  1:'已支付',
+  2:'已退款',
+  0:'异常'
+}
 
 const activeTab = ref(null);
 const userStore = useUserStore();
+const moneyTab = ref(1);
 const proTableRef = ref();
-
 const batchAppraisalModalVisible = ref(false);
 const videoModalVisible = ref(false);
 const currentVideoSrc = ref('');
@@ -98,7 +109,6 @@ const checkedRowKeys = ref([]);
 const checkedRows = ref([]);
 // 用户信息缓存
 const userInfoCache = ref(new Map());
-
 /**
  * 搜索参数格式化函数
  * @param {object} params - 搜索参数
@@ -108,6 +118,7 @@ function formatSearchParams(params) {
   return omit({
     ...params,
     ...(activeTab.value || {}),
+    light:moneyTab.value,
     startCreateDate: params.createTimeRange?.[0] ? formatDateTime(params.createTimeRange?.[0]) : null,
     endCreateDate: params.createTimeRange?.[1] ? formatDateTime(params.createTimeRange?.[1]) : null,
     startUpdateDate: params.updateTimeRange?.[0] ? formatDateTime(params.updateTimeRange?.[0]) : null,
@@ -243,16 +254,19 @@ const columns = computed(() => [
     fixed: 'left',
   },
   {
-    title: '鉴定倒计时',
+    title: '鉴定截止时间',
     key: 'time',
-    width: 100,
+    width: 200,
+    render:(row)=>{
+      return h('div', dayjs(row.apraisalDeadline).format('YYYY-MM-DD HH:mm:ss'));
+    }
   },
   {
     title: '钱款信息',
-    key: 'money',
+    key: 'payOrRefund',
     width: 100,
     render:(row)=>{
-      return h('div', row.money==1?"已支付":"已退款");
+      return h('div', payResultList[row.payOrRefund]);
     }
   },
   {
@@ -385,10 +399,13 @@ const columns = computed(() => [
     fixed: 'right',
     hidden: activeTab.value?.appraisalStatus === AppraisalStatus.Cancelled,
     render: (row) => {
-      return h(AppraisalAction, {
-        data: row,
-        onSubmit: handleAppraisalSubmit,
-      });
+      // if(!row.modifyDeadLine){
+        return h(AppraisalAction, {
+          data: row,
+          onSubmit: handleAppraisalSubmit,
+        });
+     
+      
     },
   },
 ].filter(column => !column.hidden));
@@ -397,7 +414,10 @@ function handleTabChange(value) {
   activeTab.value = value;
   proTableRef.value?.reload();
 }
-
+function handleMoneyTabChange(value) {
+  moneyTab.value = value;
+  proTableRef.value?.reload();
+}
 function handleAppraisalSubmit(_data) {
   proTableRef.value?.refresh();
 }

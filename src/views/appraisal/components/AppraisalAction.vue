@@ -1,21 +1,21 @@
 <template>
-  <n-space v-if="!isEditing && data?.last_appraisal_result" vertical class="text-[12px]">
+  <n-space v-if="!isEditing && data?.results[0]" vertical class="text-[12px]">
     <div class="flex items-center gap-6 text-[#1560FA] font-bold">
       <span>鉴定结果</span>
-      <n-button text style="font-size: 16px" @click="handleEdit">
+      <n-button v-if="data?.modifyDeadLine" text style="font-size: 16px" @click="handleEdit">
         <n-icon color="#1560FA">
           <Edit />
         </n-icon>
       </n-button>
     </div>
     <div>
-      {{ resultLabelMap[data.last_appraisal_result.result] }}
+      {{ resultLabelMap[data?.results[0]?.result] }}
     </div>
     <div class="text-[#1560FA] font-bold">
       原因
     </div>
     <div>
-      {{ data.last_appraisal_result.notes || '-' }}
+      {{ data?.results[0]?.notes || '-' }}
     </div>
   </n-space>
   <n-space v-else vertical class="text-[12px]">
@@ -44,9 +44,10 @@
     </n-space>
 
     <!-- 第二步：原因（选填） - 存疑状态 -->
-    <template v-if="[AppraisalResult.Doubt].includes(formData.result)">
+    <template v-if="[AppraisalResult.Doubt, QuWuInterest.Doubt].includes(formData.result)">
       <div class="text-[#1560FA] font-bold">
-        第二步：原因（选填）
+        第二步：原因
+        {{ data?.light === 1 ? '' : '(选填)' }}   
       </div>
       <!-- 原因选项 -->
       <n-checkbox-group v-model:value="formData.reasons" class="mb-2">
@@ -73,11 +74,15 @@
         }"
         size="small"
       />
+      <!-- 原因错误提示 -->
+      <div v-if="reasonError" class="text-red-500 text-[12px] mt-1">
+        {{ reasonError }}
+      </div>
     </template>
-
-    <template v-else-if="[AppraisalResult.Rejected].includes(formData.result)">
+    <template v-else-if="[AppraisalResult.Rejected, QuWuInterest.Rejected].includes(formData.result)">
       <div class="text-[#1560FA] font-bold">
-        第二步：原因（选填）
+        第二步：原因
+        {{ data?.light === 1 ? '' : '(选填)' }}
       </div>
       <!-- 原因选项 -->
       <n-checkbox-group v-model:value="formData.reasons" class="mb-2">
@@ -104,12 +109,16 @@
         }"
         size="small"
       />
+      <div v-if="reasonError" class="text-red-500 text-[12px] mt-1">
+        {{ reasonError }}
+      </div>
     </template>
 
     <!-- 第二步：评语 -->
     <template v-else>
       <div class="text-[#1560FA] font-bold">
-        第二步：评语（选填）
+        第二步：评语
+        {{ data?.light === 1 ? '' : '(选填)' }} 
       </div>
       <n-input
         v-model:value="formData.comment"
@@ -121,6 +130,9 @@
         }"
         size="small"
       />
+      <div v-if="commentError" class="text-red-500 text-[12px] mt-1">
+        {{ commentError }}
+      </div>
     </template>
 
     <!-- 第三步：确认操作 -->
@@ -173,6 +185,36 @@ const rejectReasonOptions = [
   { label: '请勿上传与鉴定无关的图片或视频', value: '请勿上传与鉴定无关的图片或视频' },
 ];
 
+const isRequired = computed(() => props.data?.light === 1);
+
+const commentError = computed(() => {
+  if (!isRequired.value) return '';
+
+  // 趣物兴趣类结果也需要评语
+  if (formData.result === QuWuInterest.Interesting ||
+      formData.result === QuWuInterest.Boring) {
+    return formData.comment.trim() ? '' : '请输入评语';
+  }
+
+  if (formData.result === AppraisalResult.Authentic ||
+      formData.result === AppraisalResult.Fake) {
+    return formData.comment.trim() ? '' : '请输入评语';
+  }
+
+  return '';
+});
+
+const reasonError = computed(() => {
+  if (!isRequired.value) return '';
+
+  if (formData.result === AppraisalResult.Doubt ||
+      formData.result === AppraisalResult.Rejected ||
+      formData.result === QuWuInterest.Doubt ||
+      formData.result === QuWuInterest.Rejected) {
+    return formData.reasons.length ? '' : '请输入原因';
+  }
+  return '';
+});
 /**
  * 是否为“趣物”类目。
  * @type {import('vue').ComputedRef<boolean>}
@@ -207,9 +249,9 @@ const resultOptions = computed(() => {
 });
 
 watch(
-  () => props.data?.last_appraisal_result,
+  () => props.data?.results[0],
   (val) => {
-    isEditing.value = !val;
+    isEditing.value =!val
   },
   { immediate: true },
 );
@@ -221,7 +263,7 @@ function handleEdit() {
 }
 
 function initFormData() {
-  const { result, notes } = props.data?.last_appraisal_result || {};
+  const { result, notes } = props.data?.results[0] || {};
   if (result) {
     formData.result = result;
     if (notes) {
@@ -249,6 +291,17 @@ async function handleSubmit() {
   if (!formData.result) {
     return;
   }
+
+  // 校验评语
+  if (commentError.value) {
+    return;
+  }
+
+  // 校验原因
+  if (reasonError.value) {
+    return;
+  }
+
   isSubmitting.value = true;
   try {
     const params = {
