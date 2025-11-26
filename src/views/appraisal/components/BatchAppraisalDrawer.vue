@@ -33,7 +33,8 @@
         <!-- 第二步：原因（选填） - 存疑状态 -->
         <template v-if="[AppraisalResult.Doubt].includes(formData.result)">
           <div class="text-[#1560FA] font-bold">
-            第二步：原因（选填）
+            第二步：原因
+            {{ checkedRows?.[0]?.light === 1 ? '' : '(选填)' }} 
           </div>
           <!-- 原因选项 -->
           <n-checkbox-group v-model:value="formData.reasons" class="mb-2">
@@ -53,11 +54,14 @@
             }"
             size="small"
           />
+          <div v-if="reasonError" class="text-red-500 text-[12px] mt-1">
+            {{ reasonError }}
+          </div>
         </template>
-
         <template v-else-if="[AppraisalResult.Rejected].includes(formData.result)">
           <div class="text-[#1560FA] font-bold">
-            第二步：原因（选填）
+            第二步：原因
+            {{ checkedRows?.[0]?.light === 1 ? '' : '(选填)' }} 
           </div>
           <!-- 原因选项 -->
           <n-checkbox-group v-model:value="formData.reasons" class="mb-2">
@@ -77,12 +81,16 @@
             }"
             size="small"
           />
+          <div v-if="reasonError" class="text-red-500 text-[12px] mt-1">
+        {{ reasonError }}
+      </div>
         </template>
 
         <!-- 第二步：评语 -->
         <template v-else>
           <div class="text-[#1560FA] font-bold">
-            第二步：评语（选填）
+            第二步：评语
+            {{ checkedRows?.[0]?.light === 1 ? '' : '(选填)' }} 
           </div>
           <n-input
             v-model:value="formData.comment"
@@ -94,6 +102,9 @@
             }"
             size="small"
           />
+          <div v-if="commentError" class="text-red-500 text-[12px] mt-1">
+        {{ commentError }}
+      </div>
         </template>
 
         <!-- 选中的数据信息 -->
@@ -163,6 +174,29 @@ const doubtReasonOptions = [
 const rejectReasonOptions = [
   { label: '请勿上传与鉴定无关的图片或视频', value: '请勿上传与鉴定无关的图片或视频' },
 ];
+const isRequired = computed(() => props.checkedRows?.[0]?.light === 1);
+
+const commentError = computed(() => {
+  if (!isRequired.value) return '';
+
+  if (formData.result === AppraisalResult.Authentic ||
+      formData.result === AppraisalResult.Fake) {
+    return formData.comment.trim() ? '' : '请输入评语';
+  }
+
+  return '';
+});
+
+const reasonError = computed(() => {
+  if (!isRequired.value) return '';
+
+  if (formData.result === AppraisalResult.Doubt ||
+      formData.result === AppraisalResult.Rejected
+    ) {
+    return formData.reasons.length ? '' : '请输入原因';
+  }
+  return '';
+});
 
 // 弹窗显示状态
 const visible = computed({
@@ -229,6 +263,14 @@ async function handleSubmit() {
     return;
   }
 
+  if (commentError.value) {
+    return;
+  }
+
+  // 校验原因
+  if (reasonError.value) {
+    return;
+  }
   isSubmitting.value = true;
 
   try {
