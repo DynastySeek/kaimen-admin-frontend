@@ -116,11 +116,6 @@ const fechTotal =async () => {
     console.error('获取鉴定列表失败:', error);
    }
 } 
-watch(activeTab.value,()=>{
-  if(activeTab.value?.status==1||activeTab.value==null){
-    fechTotal();
-  }
-}, { immediate: true })
 
 /**
  * 搜索参数格式化函数
@@ -147,6 +142,9 @@ function formatSearchParams(params) {
  */
 async function formatResponseList(list) {
   try {
+    if(activeTab.value?.status==1||activeTab.value==null){
+    fechTotal()
+  }
     const clonedList = cloneDeep(list);
     const allCloudImages = clonedList.reduce((acc, d) => acc.concat(d.images || []), []).filter(v => v.startsWith('cloud://'));
     const allCloudVideos = clonedList.reduce((acc, d) => acc.concat(d.videos || []), []).filter(v => v.startsWith('cloud://'));
