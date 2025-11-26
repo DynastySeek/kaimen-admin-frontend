@@ -46,7 +46,7 @@ const columns = computed(() => [
       );
     },
   },
-  { title: '授权登录手机号', key: 'phone', width: 140, render: row => row.phone || '-', hidden: !userStore.isAdmin },
+  { title: '授权登录手机号', key: 'userPhone', width: 140, render: row => row.userPhone || '-', hidden: !userStore.isAdmin },
   { title: '创建时间', key: 'created_at', width: 180, render: row => formatDateTime(row.created_at) },
 ].filter(column => !column.hidden));
 
