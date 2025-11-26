@@ -33,10 +33,6 @@
       :row-key="item => item.id"
       @update:checked-row-keys="keys => checkedRowKeys = keys"
       @update:checked-row="rows => checkedRows = rows"
-      @update:total="(total)=>{
-        moneyList[0].length = moneyTab==1?total:0
-        moneyList[1].length = moneyTab==0?total:0;
-      }"
     >
       <template #header>
         <NSpace>
@@ -49,10 +45,8 @@
         </NSpace>
       </template>
     </ProTable>
-
     <!-- 视频播放弹窗 -->
     <VideoModal v-model:show="videoModalVisible" :src="currentVideoSrc" :title="currentVideoTitle" />
-
     <!-- 批量鉴定弹窗 -->
     <BatchAppraisalDrawer
       v-model:show="batchAppraisalModalVisible"
@@ -64,9 +58,9 @@
 </template>
 
 <script setup>
-import { cloneDeep, omit, result } from 'lodash-es';
-import { NButton, NIcon, NSpace, NTag } from 'naive-ui';
-import { computed, h, ref, watch} from 'vue';
+import { cloneDeep, omit } from 'lodash-es';
+import { NButton, NSpace, NTag } from 'naive-ui';
+import { computed, h, ref } from 'vue';
 import { getTempFileUrls } from '@/cloud';
 import { CommonPage, ProTable, SelectDictionary, VideoModal } from '@/components';
 import { AppraisalStatus, AppraisalStatusLabelMap, AppraisalBusinessTypeLabelMap } from '@/constants';
@@ -76,7 +70,7 @@ import { formatDateTime } from '@/utils';
 import AppraisalAction from './components/AppraisalAction.vue';
 import BatchAppraisalDrawer from './components/BatchAppraisalDrawer.vue';
 import ImagePreview from './components/ImagePreview.vue';
-import { reactive } from 'vue';
+import { reactive, watch } from 'vue';
 import dayjs from 'dayjs';
 const tabs = [
   { label: '全部', value: null },
@@ -97,6 +91,8 @@ const payResultList = {
   0:'异常'
 }
 
+
+
 const activeTab = ref(null);
 const userStore = useUserStore();
 const moneyTab = ref(1);
@@ -109,11 +105,29 @@ const checkedRowKeys = ref([]);
 const checkedRows = ref([]);
 // 用户信息缓存
 const userInfoCache = ref(new Map());
+
+const fechTotal =async () => {
+  try {
+   const data1 =  await  fetchAppraisalList({pageSize:1,page:1,light:1})
+   const data2 =  await  fetchAppraisalList({pageSize:1,page:1,light:0})
+   moneyList[0].length = data1.data.totalElements;
+   moneyList[1].length = data2.data.totalElements;}
+   catch (error) {
+    console.error('获取鉴定列表失败:', error);
+   }
+} 
+watch(activeTab.value,()=>{
+  if(activeTab.value?.status==1||activeTab.value==null){
+    fechTotal();
+  }
+}, { immediate: true })
+
 /**
  * 搜索参数格式化函数
  * @param {object} params - 搜索参数
  * @returns {object} 格式化后的参数
  */
+
 function formatSearchParams(params) {
   return omit({
     ...params,
@@ -187,14 +201,14 @@ const searchFormItems = computed(() => [
     placeholder: '请选择类目',
     span: 6,
   },
-  {
-    prop: 'phone',
-    label: '登录授权手机号',
-    type: 'input',
-    placeholder: '请输入登录授权手机号',
-    span: 6,
-    hidden: !userStore.isAdmin,
-  },
+  // {
+  //   prop: 'phone',
+  //   label: '登录授权手机号',
+  //   type: 'input',
+  //   placeholder: '请输入登录授权手机号',
+  //   span: 6,
+  //   hidden: !userStore.isAdmin,
+  // },
   {
     prop: 'keyword',
     label: '描述',
@@ -257,14 +271,16 @@ const columns = computed(() => [
     title: '鉴定截止时间',
     key: 'time',
     width: 200,
+    hidden:moneyTab.value==0,
     render:(row)=>{
-      return h('div', dayjs(row.apraisalDeadline).format('YYYY-MM-DD HH:mm:ss'));
+      return h('div', dayjs(row.modifyDeadLine).format('YYYY-MM-DD HH:mm:ss'));
     }
   },
   {
     title: '钱款信息',
     key: 'payOrRefund',
     width: 100,
+    hidden:moneyTab.value==0,
     render:(row)=>{
       return h('div', payResultList[row.payOrRefund]);
     }
@@ -326,7 +342,7 @@ const columns = computed(() => [
   },
   {
     title: '授权登录手机号',
-    key: 'phone',
+    key: 'userPhone',
     width: 140,
     hidden: !userStore.isAdmin,
   },

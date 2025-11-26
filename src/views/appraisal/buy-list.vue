@@ -44,7 +44,7 @@ const columns = computed(() => [
   { title: 'ID', key: 'id', width: 80 },
   { title: '类型', key: 'mainCategory', width: 100, render: row => AppraisalClassLabelMap[row.mainCategory] || '-' },
   { title: '描述', key: 'description', width: 200, ellipsis: { tooltip: true } },
-  { title: '授权手机号', key: 'phone', width: 120, render: row => row.phone || '-', hidden: !userStore.isAdmin },
+  { title: '授权手机号', key: 'userPhone', width: 120, render: row => row.userPhone || '-', hidden: !userStore.isAdmin },
   { title: '联系方式', key: 'phone', width: 120, render: row => row.phone || '-', hidden: !userStore.isAdmin },
   { title: '期望价格', key: 'expected_price', width: 120, render: row => `${row.minPrice} - ${row.maxPrice}` },
   {
@@ -93,14 +93,14 @@ const searchFormItems = [
     placeholder: '请选择价格区间',
     span: 6,
   },
-  {
-    prop: 'auth_phone',
-    label: '授权手机号',
-    type: 'input',
-    placeholder: '请输入授权手机号',
-    span: 6,
-    hidden: !userStore.isAdmin,
-  },
+  // {
+  //   prop: 'auth_phone',
+  //   label: '授权手机号',
+  //   type: 'input',
+  //   placeholder: '请输入授权手机号',
+  //   span: 6,
+  //   hidden: !userStore.isAdmin,
+  // },
   {
     prop: 'phone',
     label: '联系方式',

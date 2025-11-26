@@ -205,7 +205,7 @@ const detailscolumns = [
   },
   {
     title: '金额',
-    key: 'goldPrice',
+    key: 'reward',
   },
 ];
 
