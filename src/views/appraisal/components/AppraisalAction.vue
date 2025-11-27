@@ -1,6 +1,10 @@
 <template>
-  <n-space v-if="!isEditing && data?.results[0]" vertical class="text-[12px]">
-    <div class="flex items-center gap-6 text-[#1560FA] font-bold">
+  <n-space v-if="!isEditing" vertical class="text-[12px]">
+    <div v-if="data?.status==6">
+      -
+    </div>
+    <div v-else>
+    <div  class="flex items-center gap-6 text-[#1560FA] font-bold">
       <span>鉴定结果</span>
       <n-button v-if="data?.modifyDeadLine" text style="font-size: 16px" @click="handleEdit">
         <n-icon color="#1560FA">
@@ -17,7 +21,9 @@
     <div>
       {{ data?.results[0]?.notes || '-' }}
     </div>
+  </div>
   </n-space>
+
   <n-space v-else vertical class="text-[12px]">
     <!-- 第一步：确定结果 -->
     <div class="text-[#1560FA] font-bold">
@@ -158,6 +164,8 @@ import { isEmpty } from 'lodash-es';
 import { computed, reactive, ref, watch } from 'vue';
 import { AppraisalClass, AppraisalResult, AppraisalResultLabelMap, AppraisalStatus, QuWuInterest, QuWuInterestLabelMap } from '@/constants';
 import { fetchAppraisalResultAdd, fetchAppraisalUpdate } from '@/services';
+import { useUserStore } from '@/stores';
+const userStore = useUserStore();
 
 const props = defineProps({
   data: { type: Object, default: () => null },
@@ -249,9 +257,10 @@ const resultOptions = computed(() => {
 });
 
 watch(
-  () => props.data?.results[0],
+  () => props.data?.status,
   (val) => {
-    isEditing.value =!val
+    // 不等于三不能编辑
+    isEditing.value = (props.data?.status==1)
   },
   { immediate: true },
 );
@@ -308,7 +317,7 @@ async function handleSubmit() {
       appraisalId: props.data.id,
       result: Number(formData.result),
       comment: formData.comment,
-      userId: props.data.userId
+      userId: userStore.userInfo.user_id
     };
     let appraisal_status = null;
     if (formData.result === AppraisalResult.Authentic) {
