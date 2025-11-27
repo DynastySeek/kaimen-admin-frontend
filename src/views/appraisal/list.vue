@@ -348,13 +348,13 @@ const columns = computed(() => [
     title: '创建时间',
     key: 'createdAt',
     width: 160,
-    render: ({ createdAt }) => formatDateTime(createdAt),
+    render: ({ createdAt }) =>createdAt ? formatDateTime(createdAt):'-',
   },
   {
     title: '最后修改时间',
     key: 'updatedAt',
     width: 160,
-    render: ({ updatedAt }) => formatDateTime(updatedAt),
+    render: ({ updatedAt }) =>updatedAt? formatDateTime(updatedAt):'-',
   },
   {
     title: '最后提交鉴定师',

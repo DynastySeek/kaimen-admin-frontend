@@ -49,15 +49,15 @@ const columns = computed(() => [
   { title: '期望价格', key: 'expected_price', width: 120, render: row => `${row.minPrice} - ${row.maxPrice}` },
   {
     title: '创建时间',
-    key: 'created_at',
+    key: 'createdAt',
     width: 180,
-    render: row => formatDateTime(row.created_at),
+    render: ({createdAt}) => createdAt? formatDateTime(createdAt):'-',
   },
   {
     title: '更新时间',
-    key: 'updated_at',
+    key: 'updatedAt',
     width: 180,
-    render: row => formatDateTime(row.updated_at),
+    render: ({updatedAt}) => updatedAt? formatDateTime(updatedAt):'-',
   },
 ].filter(column => !column.hidden));
 
