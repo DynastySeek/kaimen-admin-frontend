@@ -186,7 +186,7 @@ const detailscolumns = [
     title: '时间',
     key: 'createdAt',
     render: ({createdAt}) => {
-      return h('div',createdAt? dayjs(row.createdAt).format('YYYY-MM-DD HH:mm:ss'):'-');
+      return h('div',createdAt? dayjs(createdAt).format('YYYY-MM-DD HH:mm:ss'):'-');
     },
   },
   {
