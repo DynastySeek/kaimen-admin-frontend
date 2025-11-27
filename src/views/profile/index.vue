@@ -217,7 +217,7 @@ const passwordFormItems = [
  */
 async function fetchUserInfoData() {
   try {
-    const { data } = await fetchCurrentUserInfo();
+    const {data}  = await fetchCurrentUserInfo();
     Object.assign(formState, data);
   } catch (_error) {
     $message.error('获取用户信息失败');

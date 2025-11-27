@@ -35,7 +35,7 @@
       @update:checked-row="rows => checkedRows = rows"
     >
       <template #header>
-        <NSpace>
+        <NSpace v-if="!(activeTab==null||activeTab?.status==6)">
           <NButton
             type="primary"
             @click="batchAppraisalModalVisible = true"
@@ -271,7 +271,7 @@ const columns = computed(() => [
     width: 200,
     hidden:moneyTab.value==0,
     render:(row)=>{
-      return h('div', dayjs(row.modifyDeadLine).format('YYYY-MM-DD HH:mm:ss'));
+      return h('div',  row.appraisalDeadLine? dayjs(row.appraisalDeadLine).format('YYYY-MM-DD HH:mm:ss'):'-');
     }
   },
   {
@@ -346,15 +346,15 @@ const columns = computed(() => [
   },
   {
     title: '创建时间',
-    key: 'create_time',
+    key: 'createdAt',
     width: 160,
-    render: ({ create_time }) => formatDateTime(create_time),
+    render: ({ createdAt }) => formatDateTime(createdAt),
   },
   {
     title: '最后修改时间',
-    key: 'update_time',
+    key: 'updatedAt',
     width: 160,
-    render: ({ update_time }) => formatDateTime(update_time),
+    render: ({ updatedAt }) => formatDateTime(updatedAt),
   },
   {
     title: '最后提交鉴定师',
