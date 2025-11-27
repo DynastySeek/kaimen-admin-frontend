@@ -207,7 +207,7 @@ const detailscolumns = [
     title: '金额',
     key: 'goldPrice',
     render: (row) => {
-      return h('div',row.type === 1 ? `+¥${row.goldPrice}` :  `-¥${row.goldPrice}` );
+      return h('div',row.type === 1 ? `-¥${row.goldPrice}` :  `+¥${row.goldPrice}` );
     },
   },
 ];
