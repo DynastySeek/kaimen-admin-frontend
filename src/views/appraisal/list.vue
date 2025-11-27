@@ -184,7 +184,7 @@ const searchFormItems = computed(() => [
     span: 6,
   },
   {
-    prop: 'type',
+    prop: 'businessType',
     label: '鉴定类型',
     type: 'selectDictionary',
     name: 'AppraisalBusinessType',
