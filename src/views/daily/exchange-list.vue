@@ -200,14 +200,14 @@ const detailscolumns = [
     title: '详情',
     key: 'goldGram',
     render: (row) => {
-      return h('div',row.type === 1 ? `${row.goldGram}g` :  row.reward );
+      return h('div',row.type === 1 ? `${row.goldGram}g` :  row.goldGram );
     },
   },
   {
     title: '金额',
     key: 'goldPrice',
     render: (row) => {
-      return h('div',row.type === 1 ? `-¥${row.goldPrice}` :  `+¥${row.goldPrice}` );
+      return h('div',row.type === 1 ? `-¥${row.goldPrice}` :  `+¥${row.reward}` );
     },
   },
 ];
