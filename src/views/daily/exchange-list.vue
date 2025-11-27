@@ -200,7 +200,7 @@ const detailscolumns = [
     title: '详情',
     key: 'goldGram',
     render: (row) => {
-      return h('div',row.type === 1 ? `${row.goldGram}g` :  row.goldGram );
+      return h('div',row.type === 1 ? `${row.goldGram}g` :  '-' );
     },
   },
   {
