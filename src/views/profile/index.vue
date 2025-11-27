@@ -14,6 +14,7 @@
       </n-flex>
     </template>
     <n-card>
+
       <FormBuilder
         ref="formRef"
         v-model="formState"
@@ -31,11 +32,17 @@
             {{ UserStatusLabelMap[formState.status] }}
           </n-tag>
         </template>
-        <template #createTime>
-          <span>{{ formatDateTime(formState.createTime) }}</span>
+       
+        <!-- https://kaimen-app-resource-1360990667.cos.ap-shanghai.myqcloud.com/server/af2ad5c4-690f-4558-9b7f-3af024e4910a.png -->
+        <template #avatar>
+          <Avatar v-if="formState.avatar" src="https://kaimen-refactor-web-164046-6-1360990667.sh.run.tcloudbase.com/server-test/a27645c7-dc14-4a3a-a498-5ca19675fe17.png"></Avatar>
+          <UploadImage v-else @update:avatar="(item)=>formState.avatar=item"></UploadImage>
         </template>
-        <template #updateTime>
-          <span>{{ formatDateTime(formState.updateTime) }}</span>
+        <template #createdAt>
+          <span>{{ formatDateTime(formState.createdAt) }}</span>
+        </template>
+        <template #updatedAt>
+          <span>{{ formatDateTime(formState.updateAt) }}</span>
         </template>
       </FormBuilder>
     </n-card>
@@ -75,6 +82,7 @@ import { UserStatus, UserStatusLabelMap, UserTypeLabelMap } from '@/constants';
 import { fetchChangePassword, fetchCurrentUserInfo, fetchUpdateUserInfo } from '@/services';
 import { useAuthStore } from '@/stores';
 import { formatDateTime } from '@/utils';
+import UploadImage from '@/components/UploadImage.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -104,10 +112,10 @@ const formItems = [
     rules: [{ required: true, message: '请输入用户名' }],
   },
   {
-    prop: 'name',
-    label: '真实姓名',
+    prop: 'nickname',
+    label: '姓名',
     type: 'input',
-    rules: [{ required: true, message: '请输入真实姓名' }],
+    rules: [{ required: true, message: '请输入姓名' }],
   },
   {
     prop: 'phone',
@@ -138,7 +146,7 @@ const formItems = [
   {
     prop: 'avatar',
     label: '头像',
-    type: 'upload',
+    type: 'custom',
   },
   // {
   //   prop: 'userType',
@@ -160,14 +168,12 @@ const formItems = [
   {
     prop: 'createdAt',
     label: '创建时间',
-    disabled: true,
-    type: 'datetime',
+    type: 'custom',
   },
   {
     prop: 'updatedAt',
     label: '更新时间',
-    disabled: true,
-    type: 'datetime',
+    type: 'custom',
   },
 ];
 
@@ -236,10 +242,10 @@ async function handleSubmit() {
       return;
     }
     await fetchUpdateUserInfo({
-      realName: formState.realName,
+      nickname: formState.nickname,
       phone: formState.phone,
       email: formState.email,
-      gender: formState.gender,
+      // gender: formState.gender,
       avatar: formState.avatar,
       
     });
@@ -298,3 +304,4 @@ function handlePasswordCancel() {
 // 初始化获取用户信息
 fetchUserInfoData();
 </script>
+

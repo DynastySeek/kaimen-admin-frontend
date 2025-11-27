@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { NCascader, NCheckbox, NDatePicker, NInput, NInputNumber, NRadioGroup, NSelect, NSwitch, NTimePicker, NText } from 'naive-ui';
+import { NCascader, NCheckbox, NDatePicker, NInput, NInputNumber, NRadioGroup, NSelect, NSwitch, NTimePicker } from 'naive-ui';
 import { computed, defineModel, useTemplateRef } from 'vue';
 import BasicEditor from './BasicEditor.vue';
 import SelectDictionary from './SelectDictionary.vue';
@@ -101,7 +101,6 @@ const componentMap = {
   selectDictionary: SelectDictionary,
   selectRemote: SelectRemote,
   basicEditor: BasicEditor,
-  text: NText,
 };
 
 function getComponent(item) {
