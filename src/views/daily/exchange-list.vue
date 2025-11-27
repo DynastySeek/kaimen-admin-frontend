@@ -125,7 +125,7 @@ const formItems = [
   },
   {
     
-    prop: 'goldGram',
+    prop: 'goldPrice',
     label: '金额(￥)',
     type: 'input',
     placeholder: '请输入金额',
@@ -151,7 +151,7 @@ const formItems = [
   
   },
   {
-    prop: 'goldPrice',
+    prop: 'goldGram',
     label: '重量(g)',
     type: 'input',
     placeholder: '请输入重量',
