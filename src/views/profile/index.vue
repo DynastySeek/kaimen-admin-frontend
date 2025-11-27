@@ -97,16 +97,16 @@ const formState = reactive({
 
 const formItems = [
   {
-    prop: 'username',
+    prop: 'name',
     label: '用户名',
     type: 'input',
     disabled: true,
     rules: [{ required: true, message: '请输入用户名' }],
   },
   {
-    prop: 'realName',
+    prop: 'name',
     label: '真实姓名',
-    type: 'select',
+    type: 'input',
     rules: [{ required: true, message: '请输入真实姓名' }],
   },
   {
@@ -140,32 +140,34 @@ const formItems = [
     label: '头像',
     type: 'upload',
   },
+  // {
+  //   prop: 'userType',
+  //   label: '用户类型',
+  //   type: 'custom',
+  // },
+  // {
+  //   prop: 'gender',
+  //   label: '性别',
+  //   type: 'selectDictionary',
+  //   name: 'Gender',
+  //   valueType: 'number',
+  // // },
+  // {
+  //   prop: 'status',
+  //   label: '状态',
+  //   type: 'custom',
+  // },
   {
-    prop: 'userType',
-    label: '用户类型',
-    type: 'custom',
-  },
-  {
-    prop: 'gender',
-    label: '性别',
-    type: 'selectDictionary',
-    name: 'Gender',
-    valueType: 'number',
-  },
-  {
-    prop: 'status',
-    label: '状态',
-    type: 'custom',
-  },
-  {
-    prop: 'createTime',
+    prop: 'createdAt',
     label: '创建时间',
-    type: 'custom',
+    disabled: true,
+    type: 'datetime',
   },
   {
-    prop: 'updateTime',
+    prop: 'updatedAt',
     label: '更新时间',
-    type: 'custom',
+    disabled: true,
+    type: 'datetime',
   },
 ];
 
