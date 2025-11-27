@@ -184,9 +184,9 @@ const searchFormItems =  [
 const detailscolumns = [
   {
     title: '时间',
-    key: 'created_at',
-    render: (row) => {
-      return h('div', dayjs(row.created_at).format('YYYY-MM-DD HH:mm:ss'));
+    key: 'createdAt',
+    render: ({createdAt}) => {
+      return h('div',createdAt ? dayjs(row.createdAt).format('YYYY-MM-DD HH:mm:ss')):'-';
     },
   },
   {
