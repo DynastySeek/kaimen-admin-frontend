@@ -47,7 +47,7 @@ const columns = computed(() => [
     },
   },
   { title: '授权登录手机号', key: 'userPhone', width: 140, render: row => row.userPhone || '-', hidden: !userStore.isAdmin },
-  { title: '创建时间', key: 'created_at', width: 180, render: row => formatDateTime(row.created_at) },
+  { title: '创建时间', key: 'created_at', width: 180, render: ({createdAt}) =>createdAt? formatDateTime(createdAt):'-' },
 ].filter(column => !column.hidden));
 
 // 搜索表单项配置（调整为：id，phone（手机号），wechatId（微信号），描述；两个联系方式仅管理员可见）
