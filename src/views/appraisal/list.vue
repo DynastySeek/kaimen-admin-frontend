@@ -108,8 +108,8 @@ const userInfoCache = ref(new Map());
 
 const fechTotal =async () => {
   try {
-   const data1 =  await  fetchAppraisalList({pageSize:1,page:1,light:1})
-   const data2 =  await  fetchAppraisalList({pageSize:1,page:1,light:0})
+   const data1 =  await  fetchAppraisalList({pageSize:1,page:1,light:1, status:1})
+   const data2 =  await  fetchAppraisalList({pageSize:1,page:1,light:0, status:1})
    moneyList[0].length = data1.data.totalElements;
    moneyList[1].length = data2.data.totalElements;}
    catch (error) {
