@@ -76,8 +76,8 @@ const tabs = [
   { label: '全部', value: null },
   { label: '待鉴定', value: { status: AppraisalStatus.PendingAppraisal } },
   { label: '待用户完善', value: { status: AppraisalStatus.PendingCompletion } },
-  { label: '已完成，鉴定为真', value: { status: AppraisalStatus.Completed, results: AppraisalStatus.PendingAppraisal } },
-  { label: '已完成，鉴定为伪', value: { status: AppraisalStatus.Completed, results: AppraisalStatus.InProgress } },
+  { label: '已完成，鉴定为真', value: { status: AppraisalStatus.Completed, resultList: AppraisalStatus.PendingAppraisal } },
+  { label: '已完成，鉴定为伪', value: { status: AppraisalStatus.Completed, resultList: AppraisalStatus.InProgress } },
   { label: '已驳回', value: { status: AppraisalStatus.Rejected } },
   { label: '已取消', value: { status: AppraisalStatus.Cancelled } },
 ];
