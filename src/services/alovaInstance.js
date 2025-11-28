@@ -5,7 +5,7 @@ import { isLocal, VITE_PROXY_BASE_REQUEST_API } from '@/config/env';
 import { cleanParams, getToken, isObject, sleep } from '@/utils';
 
 const alovaInstance = createAlova({
-  baseURL: isLocal ? '/api' :VITE_PROXY_BASE_REQUEST_API,
+  baseURL: isLocal ? '/api' : VITE_PROXY_BASE_REQUEST_API,
   requestAdapter: adapterFetch(),
   statesHook: vueHook,
   cacheFor: null,
