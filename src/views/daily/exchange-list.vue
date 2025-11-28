@@ -140,6 +140,8 @@ const formItems = [
           if (!reg.test(value)) {
             return Promise.reject('请输入合法金价,最多2位小数');
           }
+
+         
           // 判断是否大于当前余额
           // if (parseFloat(value) > formState.reward) {
           //   return Promise.reject('金额不能超过当前余额');
@@ -166,7 +168,7 @@ const formItems = [
           // }
 
           if (value*formState.goldPrice>formState.reward) {
-            return Promise.reject('兑换金额不能超过当前余额');
+            return Promise.reject('兑换总金额不能超过当前余额');
           }
           return Promise.resolve();
         },

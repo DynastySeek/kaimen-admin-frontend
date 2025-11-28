@@ -115,7 +115,6 @@ function formatSearchParams(params) {
  * @returns {Array} 格式化后的数据列表
 //  */
 async function formatResponseList(list) {
-  console.log(isEditing.value, list)
   if(isEditing.value){
     return list;
   }

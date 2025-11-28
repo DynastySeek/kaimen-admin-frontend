@@ -1,11 +1,11 @@
 import { createAlova } from 'alova';
 import adapterFetch from 'alova/fetch';
 import vueHook from 'alova/vue';
-import { isLocal, VITE_BASE_REQUEST_API } from '@/config/env';
+import { isLocal, VITE_PROXY_BASE_REQUEST_API } from '@/config/env';
 import { cleanParams, getToken, isObject, sleep } from '@/utils';
 
 const alovaInstance = createAlova({
-  baseURL: isLocal ? '/api' :"https://kaimen-refactor-web-164046-6-1360990667.sh.run.tcloudbase.com/api",
+  baseURL: isLocal ? '/api' :VITE_PROXY_BASE_REQUEST_API,
   requestAdapter: adapterFetch(),
   statesHook: vueHook,
   cacheFor: null,
