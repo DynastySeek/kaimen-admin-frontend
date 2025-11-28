@@ -142,9 +142,6 @@ function formatSearchParams(params) {
  */
 async function formatResponseList(list) {
   try {
-    if(activeTab.value?.status==1||activeTab.value==null){
-    fechTotal()
-  }
     const clonedList = cloneDeep(list);
     const allCloudImages = clonedList.reduce((acc, d) => acc.concat(d.images || []), []).filter(v => v.startsWith('cloud://'));
     const allCloudVideos = clonedList.reduce((acc, d) => acc.concat(d.videos || []), []).filter(v => v.startsWith('cloud://'));
@@ -422,7 +419,7 @@ const columns = computed(() => [
       
     },
   },
-].filter(column => !column.hidden));
+]);
 
 function handleTabChange(value) {
   activeTab.value = value;
@@ -465,4 +462,9 @@ async function handleCategoryChange(value, row) {
     $message.error('分类更新失败');
   }
 }
+onMounted(()=>{
+  if(activeTab.value?.status==1||activeTab.value==null){
+    fechTotal()
+  }
+})
 </script>

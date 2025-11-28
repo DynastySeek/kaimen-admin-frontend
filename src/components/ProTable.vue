@@ -172,7 +172,7 @@ const emit = defineEmits(['update:checked-row-keys', 'update:checked-row', 'upda
        ...(props.formatSearchParams ? props.formatSearchParams(searchForm) : searchForm),
      }),
    {
-  
+    // immediate: false, 
      total: response => response.data.totalElements,
      data: response => response.data.content|| [],
      initialPage: 1,
