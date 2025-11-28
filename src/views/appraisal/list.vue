@@ -60,7 +60,7 @@
 <script setup>
 import { cloneDeep, omit } from 'lodash-es';
 import { NButton, NSpace, NTag } from 'naive-ui';
-import { computed, h, ref } from 'vue';
+import { computed, h, ref, onMounted } from 'vue';
 import { getTempFileUrls } from '@/cloud';
 import { CommonPage, ProTable, SelectDictionary, VideoModal } from '@/components';
 import { AppraisalStatus, AppraisalStatusLabelMap, AppraisalBusinessTypeLabelMap } from '@/constants';
@@ -141,6 +141,7 @@ function formatSearchParams(params) {
  * @returns {Array} 格式化后的数据列表
  */
 async function formatResponseList(list) {
+
   try {
     const clonedList = cloneDeep(list);
     const allCloudImages = clonedList.reduce((acc, d) => acc.concat(d.images || []), []).filter(v => v.startsWith('cloud://'));
@@ -373,10 +374,10 @@ const columns = computed(() => [
         const userName = data?.nickName || data?.name || '-';
         userInfoCache.value.set(userid, userName);
         // 触发表格重新渲染
-        proTableRef.value?.refresh();
+        // proTableRef.value?.refresh();
       }).catch(() => {
         userInfoCache.value.set(userid, '-');
-        proTableRef.value?.refresh();
+        // proTableRef.value?.refresh();
       });
       
       // 返回加载中的占位符
@@ -419,7 +420,7 @@ const columns = computed(() => [
       
     },
   },
-]);
+].filter(column => !column.hidden));
 
 function handleTabChange(value) {
   activeTab.value = value;
@@ -462,9 +463,13 @@ async function handleCategoryChange(value, row) {
     $message.error('分类更新失败');
   }
 }
-onMounted(()=>{
-  if(activeTab.value?.status==1||activeTab.value==null){
-    fechTotal()
-  }
-})
+onMounted(() => {
+  // 延迟执行，避免与 ProTable 的初始化请求冲突
+  // 使用 setTimeout 确保在 ProTable 的初始化请求完成后再执行
+
+    if (activeTab.value?.status === 1 || activeTab.value === null) {
+      fechTotal();
+    }
+ 
+});
 </script>
