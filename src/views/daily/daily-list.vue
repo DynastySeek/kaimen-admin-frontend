@@ -105,7 +105,7 @@ function formatSearchParams(params) {
     // fineClass: activeTab.value,
     startCreateDate: startOfRange ? startOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
     endCreateDate: endOfRange ? endOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
-    results:1,
+    resultList:1,
     pageSize:10000,
   }, ['selectedDate',]);
 }
@@ -233,6 +233,10 @@ const columns = computed(() => [
   {
     title: '奖励',
     key: 'fineTips',
+
+    render: (row) => {
+      return row?.otherAttributes?.fine_tips??'-';
+    },
   },
  
 ].filter(column => !column.hidden));
@@ -251,7 +255,6 @@ function handleTotalDataChange(payload) {
   totalData.value = payload?.done ?? 0;
 }
 function handleCheckedRowKeysChange(temp,rows, meta) {
-  console.log(temp,rows, meta)
   const keys = temp.filter(item => item != null);
   batchAppraisalModalVisible.value = keys.length>=0
   if (meta.action=='check'&&keys.length > 5) {
