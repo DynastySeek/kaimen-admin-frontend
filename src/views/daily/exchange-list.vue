@@ -60,7 +60,6 @@ import { CommonPage, ProTable, FormBuilder, VideoModal } from '@/components';
 import { NButton, NSpace, NModal, NTable } from 'naive-ui';
 import { goldXchangelist,  goldXchange,fetchUserGoldList } from '@/services';
 import dayjs from 'dayjs';
-import { User } from 'lucide-vue-next';
 const proTableRef = ref();
 const formRef = ref();
 const checkedRowKeys = ref([]);
@@ -126,24 +125,25 @@ const formItems = [
   {
     
     prop: 'goldPrice',
-    label: '金额(￥)',
+    label: '金价(元/g)',
     type: 'input',
-    placeholder: '请输入金额',
+    // disabled:true,
+    placeholder: '请输入金价',
     rules: [
     {
         validator: (rule, value) => {
           if (value === '' || value === null || value === undefined) {
-            return Promise.reject('请输入金额');
+            return Promise.reject('请输入金价');
           }
           // 判断数字格式，最多2位小数
           const reg = /^(0|[1-9]\d*)(\.\d{1,2})?$/;
           if (!reg.test(value)) {
-            return Promise.reject('请输入合法金额，最多2位小数');
+            return Promise.reject('请输入合法金价,最多2位小数');
           }
           // 判断是否大于当前余额
-          if (parseFloat(value) > formState.reward) {
-            return Promise.reject('金额不能超过当前余额');
-          }
+          // if (parseFloat(value) > formState.reward) {
+          //   return Promise.reject('金额不能超过当前余额');
+          // }
           return Promise.resolve();
         }
       }
@@ -161,8 +161,12 @@ const formItems = [
           if (value === '' || value === null || value === undefined) {
             return Promise.reject('请输入重量');
           }
-          if (!/^[1-9]\d*$/.test(value)) {
-            return Promise.reject('重量必须为正整数');
+          // if (!/^[1-9]\d*$/.test(value)) {
+          //   return Promise.reject('重量必须为正整数');
+          // }
+
+          if (value*formState.goldPrice>formState.reward) {
+            return Promise.reject('兑换金额不能超过当前余额');
           }
           return Promise.resolve();
         },
@@ -207,7 +211,7 @@ const detailscolumns = [
     title: '金额',
     key: 'goldPrice',
     render: (row) => {
-      return h('div',row.type === 1 ? `-¥${row.goldPrice}` :  `+¥${row.reward}` );
+      return h('div',row.type === 1 ? `-¥${(row.goldPrice*row.goldGram).toFixed(2)}` :  `+¥${row.reward.toFixed(2)}` );
     },
   },
 ];
@@ -248,7 +252,7 @@ const columns = [
                 userId: row.userId,
                 reward: row.reward || 0,
                 goldGram: '',
-                goldPrice: ''
+                goldPrice:'',
               });
               exchangeModalVisible.value = true;
             },
