@@ -80,8 +80,8 @@ const exchangeModalVisible = ref(false);
 function formatSearchParams(params) {
   return omit({
     ...params,
-    size:params?.pageSize,
-  },(['pageSize']));
+    reward:0, 
+  });
 }
 
 /**
