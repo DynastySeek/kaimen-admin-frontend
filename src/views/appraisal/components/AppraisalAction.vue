@@ -1,5 +1,5 @@
 <template>
-  <n-space v-if="!isEditing" vertical class="text-[12px]">
+  <n-space v-if="!isEditing&&props.data?.results?.[0]" vertical class="text-[12px]">
     <div v-if="data?.status==6">
       -
     </div>
@@ -227,7 +227,7 @@ const reasonError = computed(() => {
  * 是否为“趣物”类目。
  * @type {import('vue').ComputedRef<boolean>}
  */
-const isQuWu = computed(() => Number(props.data?.first_class) === AppraisalClass.QuWu);
+const isQuWu = computed(() => Number(props.data?.mainCategory) === AppraisalClass.QuWu);
 
 /**
  * 根据类目返回结果标签映射。
@@ -256,14 +256,24 @@ const resultOptions = computed(() => {
   ];
 });
 
+// watch(
+//   () => props.data?.status,
+//   (val) => {
+//     // last_appraisal_result 有值 
+//     isEditing.value = (props.data?.status==1)
+//   },
+//   { immediate: true },
+// );
+
+
 watch(
-  () => props.data?.status,
+  () => props.data?.results?.[0],
   (val) => {
-    // 不等于三不能编辑
-    isEditing.value = (props.data?.status==1)
+    isEditing.value = !val;
   },
   { immediate: true },
 );
+
 
 watch(() => props.data, initFormData, { immediate: true, deep: true });
 
