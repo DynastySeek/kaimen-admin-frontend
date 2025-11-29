@@ -33,8 +33,7 @@ function toTransformConfig(config) {
 
 export default defineConfig(({ mode }) => {
   const viteEnv = loadEnv(mode, process.cwd());
-  const { VITE_PUBLIC_PATH, VITE_PROXY_BASE_REQUEST_API, VITE_PORT, VITE_SOURCE_MAP, VITE_GZIP, VITE_REPORT } = toTransformConfig(viteEnv);
-
+  const { VITE_PUBLIC_PATH, VITE_PROXY_BASE_REQUEST_API,  VITE_PORT, VITE_SOURCE_MAP, VITE_GZIP, VITE_REPORT, VITE_PROXY_BASE_REQUEST_AI_API, VITE_PROXY_BASE_REQUEST_User_API } = toTransformConfig(viteEnv);
   return {
     base: VITE_PUBLIC_PATH || '/',
     plugins: [
@@ -94,10 +93,11 @@ export default defineConfig(({ mode }) => {
         },
         '/aichat': {
           // target: 'http://localhost:8000',
-          target: 'https://agent.kaimen.site',
+          target: VITE_PROXY_BASE_REQUEST_AI_API,
           changeOrigin: true,
           rewrite: path => path.replace(/^\/aichat/, ''),
-          secure: false,configure: (proxy, options) => {
+          secure: false,
+          configure: (proxy, options) => {
             // 配置此项可在响应头中看到请求的真实地址
             proxy.on('proxyRes', (proxyRes, req) => {
               proxyRes.headers['x-real-url'] = new URL(req.url || '', options.target)?.href || '';
@@ -106,10 +106,11 @@ export default defineConfig(({ mode }) => {
         },
         '/aiuser': {
           // target: 'http://localhost:8000',
-          target: 'https://kaimen-d-app-server-164046-6-1360990667.sh.run.tcloudbase.com',
+          target: VITE_PROXY_BASE_REQUEST_User_API,
           changeOrigin: true,
           rewrite: path => path.replace(/^\/aiuser/, ''),
-          secure: false,configure: (proxy, options) => {
+          secure: false,
+          configure: (proxy, options) => {
             // 配置此项可在响应头中看到请求的真实地址
             proxy.on('proxyRes', (proxyRes, req) => {
               proxyRes.headers['x-real-url'] = new URL(req.url || '', options.target)?.href || '';

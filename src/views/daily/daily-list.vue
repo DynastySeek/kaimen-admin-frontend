@@ -22,21 +22,21 @@
       :format-search-params="formatSearchParams"
       :format-response-list="formatResponseList"
       @update:total-data="handleTotalDataChange"
-      :row-key="item => item.appraisal_id"
+      :row-key="item => item.id"
       @update:checked-row-keys="handleCheckedRowKeysChange"
       :virtual-scroll="true"
       :max-height="650"
     >
       <template #header>
         <NSpace>
-          <NButton
+          <!-- <NButton
             v-if="totalData>0"
             type="primary"
             @click="handleBatchUpdate"
           >{{ 
            batchAppraisalModalTitle
           }}
-          </NButton>
+          </NButton> -->
     
           <span
           class="text-[#316C72] cursor-pointer"
@@ -100,13 +100,12 @@ function formatSearchParams(params) {
   const endOfRange = selectedDate
     ? selectedDate.hour(21).minute(0).second(0)
     : null;
-
   return omit({
     ...params,
     // fineClass: activeTab.value,
-    createStartTime: startOfRange ? startOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
-    createEndTime: endOfRange ? endOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
-    appraisalResult:1,
+    startCreateDate: startOfRange ? startOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
+    endCreateDate: endOfRange ? endOfRange.format('YYYY-MM-DD HH:mm:ss') : null,
+    resultList:1,
     pageSize:10000,
   }, ['selectedDate',]);
 }
@@ -119,6 +118,7 @@ async function formatResponseList(list) {
   if(isEditing.value){
     return list;
   }
+ 
   checkedRowKeys.value = []
   try {
     const clonedList = cloneDeep(list);
@@ -139,7 +139,7 @@ async function formatResponseList(list) {
       });
     }
     const temp =  list.filter(item=>{
-      if(item.fine_class === 1){
+      if(item.tags === 1){
         return {
           ...item,
         }
@@ -165,7 +165,7 @@ const searchFormItems = computed(() => [
     value: DEFAULT_DATE, // 设置默认值为今天
   },
   {
-  prop: 'firstClass',
+  prop: 'mainCategory',
   label: '类目',
   type: 'select',
   placeholder: '请选择类目',
@@ -190,7 +190,7 @@ const searchFormItems = computed(() => [
     width: 300,
   },
   {
-    prop: 'desc',
+    prop: 'keyword',
     label: '描述',
     type: 'input',
     placeholder: '请输入描述',
@@ -209,16 +209,16 @@ const columns = computed(() => [
   },
   {
     title: '鉴定ID',
-    key: 'appraisal_id',
+    key: 'id',
     width: 200,
   },
   {
     title: '图片',
     key: 'images',
-    width: 400,
+    width: 300,
     render: (row) => {
       return h(ImagePreview, {
-        images: row.images || [],
+        images: row?.pictures?.map(item=>item.url) || [],
         width: 110,
         height: 68,
         maxDisplay: 4,
@@ -227,7 +227,16 @@ const columns = computed(() => [
   },
   {
     title: '描述',
+    width: 200,
     key: 'description',
+  },
+  {
+    title: '奖励',
+    key: 'fineTips',
+
+    render: (row) => {
+      return row?.otherAttributes?.fine_tips??'-';
+    },
   },
  
 ].filter(column => !column.hidden));
@@ -238,7 +247,7 @@ const columns = computed(() => [
  */
 watch([checkedRowKeys, tableData], () => {
   // if(checkedRowKeys.value.length > 0){
-  const temp = tableData.value.filter(row => checkedRowKeys.value.includes(row.appraisal_id));
+  const temp = tableData.value.filter(row => checkedRowKeys.value.includes(row.id));
   checkedRows.value = temp.filter(item => item != null);
   console.log(checkedRows.value)
   
@@ -260,7 +269,7 @@ function handleCheckedRowKeysChange(temp,rows, meta) {
 let originFineclass = []
 function handleBatchUpdate() {
   proTableRef.value?.reload(); 
-  originFineclass = tableData.value.filter(item => item.fine_class === 1)
+  originFineclass = tableData.value.filter(item => item.tags === 1)
     isEditing.value = !isEditing.value;
     batchAppraisalModalTitle.value = isEditing.value ? "取消重新评选" : "重新评选"
     if(!isEditing.value) {
@@ -274,20 +283,20 @@ async function handleBatchAppraisalSubmit(submitData) {
   const result = [
   ...submitData,
   ...originFineclass
-    .filter(originItem => !submitData.some(submitItem => submitItem.appraisal_id === originItem.appraisal_id))
-    .map(item => ({ ...item, fine_class: -1 }))
+    .filter(originItem => !submitData.some(submitItem => submitItem.id === originItem.id))
+    .map(item => ({ ...item, tags: -1 }))
 ];
   try {
     const updateData =Array.from(result) ?.map(item => {
       if(item) {
         return {
-        id: item.appraisal_id,
-        fine_class:item.fine_class=== -1? 0: 1,
-        fine_tips: item.fine_class=== -1? 0: item.fine_tips
+        appraisalId: item.id,
+        tags:item.tags=== -1? 0: 1,
+        fineTips: item.tags=== -1? 0: String(item.fineTips)
         }
       }
     });
-   await fetchAppraisalUpdate(updateData);
+   await fetchAppraisalUpdate({items:updateData});
     // TODO: 调用实际批量更新接口
     $message.success('更新成功');
     proTableRef.value?.refresh();

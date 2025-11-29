@@ -12,6 +12,9 @@
         <div class="text-[#1560FA] font-bold">
           第一步：确定结果
         </div>
+        <div v-if="isQuWu" class="text-[12px] text-[#666] mb-2">
+          勾选鉴定单中有趣物类目，鉴定结果为有趣/无聊
+        </div>
         <n-grid :y-gap="8" :x-gap="8" :cols="2">
           <n-gi
             v-for="option in resultOptions"
@@ -33,7 +36,8 @@
         <!-- 第二步：原因（选填） - 存疑状态 -->
         <template v-if="[AppraisalResult.Doubt].includes(formData.result)">
           <div class="text-[#1560FA] font-bold">
-            第二步：原因（选填）
+            第二步：原因
+            {{ isRequired ? '' : '(选填)' }} 
           </div>
           <!-- 原因选项 -->
           <n-checkbox-group v-model:value="formData.reasons" class="mb-2">
@@ -53,11 +57,14 @@
             }"
             size="small"
           />
+          <div v-if="reasonError" class="text-red-500 text-[12px] mt-1">
+            {{ reasonError }}
+          </div>
         </template>
-
         <template v-else-if="[AppraisalResult.Rejected].includes(formData.result)">
           <div class="text-[#1560FA] font-bold">
-            第二步：原因（选填）
+            第二步：原因
+            {{ isRequired ? '' : '(选填)' }} 
           </div>
           <!-- 原因选项 -->
           <n-checkbox-group v-model:value="formData.reasons" class="mb-2">
@@ -77,12 +84,16 @@
             }"
             size="small"
           />
+          <div v-if="reasonError" class="text-red-500 text-[12px] mt-1">
+        {{ reasonError }}
+      </div>
         </template>
 
         <!-- 第二步：评语 -->
         <template v-else>
           <div class="text-[#1560FA] font-bold">
-            第二步：评语（选填）
+            第二步：评语
+            {{ isRequired ? '' : '(选填)' }} 
           </div>
           <n-input
             v-model:value="formData.comment"
@@ -94,6 +105,9 @@
             }"
             size="small"
           />
+          <div v-if="commentError" class="text-red-500 text-[12px] mt-1">
+        {{ commentError }}
+      </div>
         </template>
 
         <!-- 选中的数据信息 -->
@@ -122,8 +136,8 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref } from 'vue';
-import { AppraisalResult, AppraisalResultLabelMap, AppraisalStatus } from '@/constants';
+import { computed, reactive, ref, watch } from 'vue';
+import { AppraisalClass,AppraisalResult, AppraisalResultLabelMap, AppraisalStatus, QuWuInterest, QuWuInterestLabelMap } from '@/constants';
 import { fetchAppraisalResultAdd, fetchAppraisalUpdate } from '@/services';
 
 const props = defineProps({
@@ -138,6 +152,10 @@ const props = defineProps({
    * 选中的行键值数组
    */
   checkedRowKeys: {
+    type: Array,
+    default: () => [],
+  },
+  checkedRows: {
     type: Array,
     default: () => [],
   },
@@ -158,37 +176,64 @@ const doubtReasonOptions = [
 const rejectReasonOptions = [
   { label: '请勿上传与鉴定无关的图片或视频', value: '请勿上传与鉴定无关的图片或视频' },
 ];
+const isRequired = ref(false)
+
+const commentError = computed(() => {
+  if (!isRequired.value) return '';
+  if (formData.result === QuWuInterest.Interesting ||
+      formData.result === QuWuInterest.Boring) {
+    return formData.comment.trim() ? '' : '请输入评语';
+  }
+  if (formData.result === AppraisalResult.Authentic ||
+      formData.result === AppraisalResult.Fake) {
+    return formData.comment.trim() ? '' : '请输入评语';
+  }
+
+  return '';
+});
+
+const reasonError = computed(() => {
+  if (!isRequired.value) return '';
+
+  if (formData.result === AppraisalResult.Doubt ||
+  formData.result === AppraisalResult.Rejected ||
+  formData.result === AppraisalResult.Doubt ||
+  formData.result === AppraisalResult.Rejected
+    ) {
+    return formData.reasons.length ? '' : '请输入原因';
+  }
+  return '';
+});
 
 // 弹窗显示状态
 const visible = computed({
   get: () => props.show,
   set: value => emit('update:show', value),
 });
+let isQuWu =ref(false)
+watch(() => props.checkedRows, (newVal) => {
+  isQuWu.value =  newVal?.some(row => Number(row.mainCategory) == Number(AppraisalClass.QuWu))
+  isRequired.value = newVal?.some(row => row.light == 1)
+}, { deep: true, immediate: true })
 
+// const resultLabelMap = computed(() => (isQuWu.value ? QuWuInterestLabelMap : AppraisalResultLabelMap));
 // 结果选项配置
-const resultOptions = [
-  {
-    label: AppraisalResultLabelMap[AppraisalResult.Authentic],
-    value: AppraisalResult.Authentic,
-    color: '#21D476',
-  },
-  {
-    label: AppraisalResultLabelMap[AppraisalResult.Fake],
-    value: AppraisalResult.Fake,
-    color: '#FD4648',
-  },
-  {
-    label: AppraisalResultLabelMap[AppraisalResult.Doubt],
-    value: AppraisalResult.Doubt,
-    color: '#FD9E28',
-  },
-  {
-    label: AppraisalResultLabelMap[AppraisalResult.Rejected],
-    value: AppraisalResult.Rejected,
-    color: '#555555',
-  },
-];
-
+const resultOptions = computed(() => {
+  if (isQuWu.value) {
+    return [
+      { label: `${AppraisalResultLabelMap[AppraisalResult.Authentic]}/${QuWuInterestLabelMap[QuWuInterest.Interesting]}` , value: QuWuInterest.Interesting, color: '#21D476' },
+      { label: `${AppraisalResultLabelMap[AppraisalResult.Fake]}/${QuWuInterestLabelMap[QuWuInterest.Boring]}` , value: QuWuInterest.Boring, color: '#FD4648' },
+      { label: QuWuInterestLabelMap[QuWuInterest.Doubt], value: QuWuInterest.Doubt, color: '#FD9E28' },
+      { label: QuWuInterestLabelMap[QuWuInterest.Rejected], value: QuWuInterest.Rejected, color: '#555555' },
+    ];
+  }
+  return [
+    { label: AppraisalResultLabelMap[AppraisalResult.Authentic], value: AppraisalResult.Authentic, color: '#21D476' },
+    { label: AppraisalResultLabelMap[AppraisalResult.Fake], value: AppraisalResult.Fake, color: '#FD4648' },
+    { label: AppraisalResultLabelMap[AppraisalResult.Doubt], value: AppraisalResult.Doubt, color: '#FD9E28' },
+    { label: AppraisalResultLabelMap[AppraisalResult.Rejected], value: AppraisalResult.Rejected, color: '#555555' },
+  ];
+});
 // 表单数据
 const formData = reactive({
   result: null,
@@ -224,16 +269,26 @@ async function handleSubmit() {
     return;
   }
 
+  if (commentError.value) {
+    return;
+  }
+
+  // 校验原因
+  if (reasonError.value) {
+    return;
+  }
   isSubmitting.value = true;
 
   try {
+
     // 构建批量鉴定结果数据
-    const resultItems = props.checkedRowKeys.map(id => ({
-      appraisalId: id,
-      appraisalResult: formData.result,
+    const resultItems = props.checkedRows.map(item => ({
+      appraisalId: item.id,
+      result: Number(formData.result),
       comment: formData.comment,
-      reasons: formData.reasons,
+      reason: formData.reasons,
       customReason: '',
+      userId: item.userId,
     }));
 
     // 构建批量状态更新数据
@@ -248,17 +303,27 @@ async function handleSubmit() {
       appraisal_status = AppraisalStatus.Rejected;
     }
 
-    const updateItems = props.checkedRowKeys.map(id => ({
-      id,
-      appraisal_status,
+    const updateItems = props.checkedRows.map(item => ({
+      appraisalId: item.id,
+      mainCategory: item.mainCategory,
+      status: appraisal_status,
     }));
-
+    try {
+      console.log('resultItems', resultItems)
+      await fetchAppraisalResultAdd({ items: resultItems });
+    } catch (error) {
+      console.error('批量更新鉴定状态失败:', error);
+    }
+    try {
+      await fetchAppraisalUpdate({items:updateItems});
+    } catch (error) {
+      console.error('批量更新鉴定状态失败:', error);
+    }
+   
     // 批量更新鉴定状态
-    await fetchAppraisalUpdate(updateItems);
-
+  
     // 批量添加鉴定结果
-    await fetchAppraisalResultAdd({ items: resultItems });
-
+   
     const submitData = {
       ids: props.checkedRowKeys,
       result: formData.result,

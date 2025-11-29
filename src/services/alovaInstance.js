@@ -1,18 +1,17 @@
 import { createAlova } from 'alova';
 import adapterFetch from 'alova/fetch';
 import vueHook from 'alova/vue';
-import { isLocal, VITE_BASE_REQUEST_API } from '@/config/env';
+import { isLocal, VITE_PROXY_BASE_REQUEST_API } from '@/config/env';
 import { cleanParams, getToken, isObject, sleep } from '@/utils';
 
 const alovaInstance = createAlova({
-  baseURL: isLocal ? '/api' : VITE_BASE_REQUEST_API,
+  baseURL: isLocal ? '/api' : `${VITE_PROXY_BASE_REQUEST_API}/api`,
   requestAdapter: adapterFetch(),
   statesHook: vueHook,
   cacheFor: null,
   timeout: 10000,
   beforeRequest: (method) => {
     const token = getToken();
-
     if (method.type === 'GET' && method.config.params) {
       method.config.params = cleanParams(method.config.params);
     }
@@ -31,8 +30,8 @@ const alovaInstance = createAlova({
   responded: {
     // 成功响应处理
     onSuccess: async (response) => {
-      const json = await response.json();;
-      if (response.status >= 400 || json.success === false) {
+      const json = await response.json();
+      if (response.status >= 400) {
         if (response.status === 401) {
           // 清除 token
           window.localStorage.clear();

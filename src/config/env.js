@@ -3,7 +3,9 @@ export const VITE_STORAGE_PREFIX_KEY = import.meta.env.VITE_STORAGE_PREFIX_KEY;
 export const VITE_BASE_REQUEST_API = import.meta.env.VITE_BASE_REQUEST_API;
 export const VITE_PUBLIC_PATH = import.meta.env.VITE_PUBLIC_PATH || '/';
 export const VITE_PUBLIC_RESOURCE_PATH = import.meta.env.VITE_PUBLIC_RESOURCE_PATH || '';
-
+export const VITE_PROXY_BASE_REQUEST_API = import.meta.env.VITE_PROXY_BASE_REQUEST_API;
+export const VITE_PROXY_BASE_REQUEST_AI_API = import.meta.env.VITE_PROXY_BASE_REQUEST_AI_API;
+export const VITE_PROXY_BASE_REQUEST_User_API = import.meta.env.VITE_PROXY_BASE_REQUEST_User_API;
 export const isDev = import.meta.env.VITE_NODE_ENV === 'dev';
 export const isProd = import.meta.env.VITE_NODE_ENV === 'prod';
 export const isLocal = typeof window !== 'undefined' && window.location.hostname === 'localhost';

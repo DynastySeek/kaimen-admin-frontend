@@ -2,9 +2,9 @@ import { createAlova } from 'alova';
 import adapterFetch from 'alova/fetch';
 import vueHook from 'alova/vue';
 import { cleanParams,isObject, getToken } from '@/utils';
-import { isLocal  } from '@/config/env';
+import { isLocal, VITE_PROXY_BASE_REQUEST_AI_API } from '@/config/env';
 const alovaInstance = createAlova({
-  baseURL: isLocal ? '/aichat' : 'https://agent.kaimen.site',
+  baseURL: isLocal ? '/aichat' : VITE_PROXY_BASE_REQUEST_AI_API,
   requestAdapter: adapterFetch(),
   statesHook: vueHook,
   cacheFor: null,

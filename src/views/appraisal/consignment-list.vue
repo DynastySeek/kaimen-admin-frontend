@@ -27,7 +27,7 @@ const userStore = useUserStore();
 // 表格列定义（调整为：id, 描述，联系方式，授权登录手机号，创建时间）
 const columns = computed(() => [
   { title: 'ID', key: 'id', width: 80 },
-  { title: '描述', key: 'desc', width: 200, ellipsis: { tooltip: true } },
+  { title: '描述', key: 'description', width: 200, ellipsis: { tooltip: true } },
   {
     title: '联系方式',
     key: 'contact',
@@ -46,8 +46,8 @@ const columns = computed(() => [
       );
     },
   },
-  { title: '授权登录手机号', key: 'user_phone', width: 140, render: row => row.user_phone || '-', hidden: !userStore.isAdmin },
-  { title: '创建时间', key: 'created_at', width: 180, render: row => formatDateTime(row.created_at) },
+  { title: '授权登录手机号', key: 'userPhone', width: 140, render: row => row.userPhone || '-', hidden: !userStore.isAdmin },
+  { title: '创建时间', key: 'created_at', width: 180, render: ({createdAt}) =>createdAt? formatDateTime(createdAt):'-' },
 ].filter(column => !column.hidden));
 
 // 搜索表单项配置（调整为：id，phone（手机号），wechatId（微信号），描述；两个联系方式仅管理员可见）
@@ -58,13 +58,15 @@ const searchFormItems = [
     type: 'input',
     placeholder: '请输入求购ID',
     span: 6,
+    width:300,
   },
   {
     prop: 'phone',
     label: '联系方式（手机号）',
     type: 'input',
     placeholder: '请输入手机号',
-    span: 6,
+    span: 18,
+    width: 300,
     hidden: !userStore.isAdmin,
   },
   {
@@ -73,14 +75,16 @@ const searchFormItems = [
     type: 'input',
     placeholder: '请输入微信号',
     span: 6,
+    width: 300,
     hidden: !userStore.isAdmin,
   },
   {
-    prop: 'desc',
+    prop: 'keyword',
     label: '描述',
     type: 'input',
     placeholder: '请输入描述',
-    span: 6,
+    span: 8,
+    width: 300,
   },
 ];
 
@@ -91,10 +95,7 @@ const searchFormItems = [
  */
 function formatSearchParams(params) {
   return {
-    id: params.id,
-    phone: params.phone,
-    wechatId: params.wechatId,
-    desc: params.desc,
+   ...params
   };
 }
 </script>

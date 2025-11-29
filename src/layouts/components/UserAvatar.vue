@@ -21,7 +21,6 @@ const router = useRouter();
 const userStore = useUserStore();
 const authStore = useAuthStore();
 const dialog = useDialog();
-
 const options = reactive([
   {
     label: '个人资料',

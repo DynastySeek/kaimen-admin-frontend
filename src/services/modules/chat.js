@@ -1,7 +1,7 @@
-import alovaInstance from '../aichat';
-import aiuserInstance from '../aiuser';
+import alovaInstance from '../alovaInstance';
+import aichatInstance from '../aichat';
 
-export const fetchChatList = params => alovaInstance.Get(`/v1/messages`,{params});
-export const fetchUserinfoList = params => aiuserInstance.Get('/user/userinfo', { params });
-
-export const fetchAIChatList = params => alovaInstance.Get(`/v1/messages`,{ params });
+export const fetchChatList = params => aichatInstance.Get(`/v1/messages`,{params});
+export const fetchUserGoldList = params => alovaInstance.Get('/user/userList', {params});
+export const goldXchangelist = params => alovaInstance.Get('/user/goldExchangeList', { params });
+export const goldXchange= data => alovaInstance.Post('/user/goldExchange', data );

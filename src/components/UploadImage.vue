@@ -11,6 +11,7 @@
       :headers="{ Authorization: `Bearer ${getToken()}` }"
       @update:file-list="handleFileListChange"
       @finish="handleFinish"
+      name="files"
     />
   </div>
 </template>
@@ -100,6 +101,7 @@ function handleFinish({
   event,
 }) {
   const { success, message, data } = event.target.response;
+  emit('update:avatar', data?.[0]);
   if (success) {
     $message.success(message);
     file.url = data.url;

@@ -18,18 +18,18 @@ export const useUserStore = defineStore('user', {
       this.$reset();
     },
     async updateUserInfo() {
-      const { data } = await fetchCurrentUserInfo();
-      const { user_id, username, nickname, phone, email, avatar, role, create_time, update_time } = data || {};
+      const  {data}  = await fetchCurrentUserInfo();
+      const { userId, name, nickName, phone,role, email, avatar, roleName, createdAt, updatedAt } = data || {};
       const userInfo = {
-        user_id,
-        username,
-        nickname,
+        user_id:userId,
+        username:name,
+        nickname:nickName,
         phone,
         email,
         avatar,
         role,
-        create_time,
-        update_time,
+        create_time:createdAt,
+        update_time:updatedAt,
       };
       this.setUser(userInfo);
       return userInfo;

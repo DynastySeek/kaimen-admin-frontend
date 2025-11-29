@@ -14,6 +14,7 @@
       </n-flex>
     </template>
     <n-card>
+
       <FormBuilder
         ref="formRef"
         v-model="formState"
@@ -31,11 +32,17 @@
             {{ UserStatusLabelMap[formState.status] }}
           </n-tag>
         </template>
-        <template #createTime>
-          <span>{{ formatDateTime(formState.createTime) }}</span>
+       
+        <!-- https://kaimen-app-resource-1360990667.cos.ap-shanghai.myqcloud.com/server/af2ad5c4-690f-4558-9b7f-3af024e4910a.png -->
+        <template #avatar>
+          <Avatar v-if="formState.avatar" src="https://kaimen-refactor-web-164046-6-1360990667.sh.run.tcloudbase.com/server-test/a27645c7-dc14-4a3a-a498-5ca19675fe17.png"></Avatar>
+          <UploadImage v-else @update:avatar="(item)=>formState.avatar=item"></UploadImage>
         </template>
-        <template #updateTime>
-          <span>{{ formatDateTime(formState.updateTime) }}</span>
+        <template #createdAt>
+          <span>{{ formatDateTime(formState.createdAt) }}</span>
+        </template>
+        <template #updatedAt>
+          <span>{{ formatDateTime(formState.updateAt) }}</span>
         </template>
       </FormBuilder>
     </n-card>
@@ -75,6 +82,7 @@ import { UserStatus, UserStatusLabelMap, UserTypeLabelMap } from '@/constants';
 import { fetchChangePassword, fetchCurrentUserInfo, fetchUpdateUserInfo } from '@/services';
 import { useAuthStore } from '@/stores';
 import { formatDateTime } from '@/utils';
+import UploadImage from '@/components/UploadImage.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -97,17 +105,17 @@ const formState = reactive({
 
 const formItems = [
   {
-    prop: 'username',
+    prop: 'name',
     label: '用户名',
     type: 'input',
     disabled: true,
     rules: [{ required: true, message: '请输入用户名' }],
   },
   {
-    prop: 'realName',
-    label: '真实姓名',
-    type: 'select',
-    rules: [{ required: true, message: '请输入真实姓名' }],
+    prop: 'nickname',
+    label: '姓名',
+    type: 'input',
+    rules: [{ required: true, message: '请输入姓名' }],
   },
   {
     prop: 'phone',
@@ -138,32 +146,32 @@ const formItems = [
   {
     prop: 'avatar',
     label: '头像',
-    type: 'upload',
-  },
-  {
-    prop: 'userType',
-    label: '用户类型',
     type: 'custom',
   },
+  // {
+  //   prop: 'userType',
+  //   label: '用户类型',
+  //   type: 'custom',
+  // },
+  // {
+  //   prop: 'gender',
+  //   label: '性别',
+  //   type: 'selectDictionary',
+  //   name: 'Gender',
+  //   valueType: 'number',
+  // // },
+  // {
+  //   prop: 'status',
+  //   label: '状态',
+  //   type: 'custom',
+  // },
   {
-    prop: 'gender',
-    label: '性别',
-    type: 'selectDictionary',
-    name: 'Gender',
-    valueType: 'number',
-  },
-  {
-    prop: 'status',
-    label: '状态',
-    type: 'custom',
-  },
-  {
-    prop: 'createTime',
+    prop: 'createdAt',
     label: '创建时间',
     type: 'custom',
   },
   {
-    prop: 'updateTime',
+    prop: 'updatedAt',
     label: '更新时间',
     type: 'custom',
   },
@@ -217,7 +225,7 @@ const passwordFormItems = [
  */
 async function fetchUserInfoData() {
   try {
-    const { data } = await fetchCurrentUserInfo();
+    const {data}  = await fetchCurrentUserInfo();
     Object.assign(formState, data);
   } catch (_error) {
     $message.error('获取用户信息失败');
@@ -234,11 +242,12 @@ async function handleSubmit() {
       return;
     }
     await fetchUpdateUserInfo({
-      realName: formState.realName,
+      nickname: formState.nickname,
       phone: formState.phone,
       email: formState.email,
-      gender: formState.gender,
+      // gender: formState.gender,
       avatar: formState.avatar,
+      
     });
     $message.success('修改成功');
     router.push('/');
@@ -295,3 +304,4 @@ function handlePasswordCancel() {
 // 初始化获取用户信息
 fetchUserInfoData();
 </script>
+

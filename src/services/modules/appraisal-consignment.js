@@ -11,7 +11,7 @@ import alovaInstance from '../alovaInstance';
  * @returns {Promise} 传递单列表数据
  */
 export function fetchAppraisalConsignmentList(params) {
-  return alovaInstance.Get('/appraisal-consignment/list', {
+  return alovaInstance.Get('/appraisalConsignment/query', {
     params,
   });
 }

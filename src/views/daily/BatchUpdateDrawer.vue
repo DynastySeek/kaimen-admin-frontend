@@ -11,19 +11,19 @@
       <div class="drawer-content-scroll">
         <div
           v-for="(row, index) in checkedRows"
-          :key="row.appraisal_id"
+          :key="row.id"
           class="appraisal-item"
         >
         <div class="appraisal-item-content">
           <!-- 鉴定ID -->
           <div class="appraisal-item1">
             <label>鉴定ID</label>
-            <div>{{ row.appraisal_id }}</div> 
+            <div>{{ row.id }}</div> 
           </div>
           <div class="appraisal-item1">
             <label>图片</label>
             <ImagePreview
-            :images="row.images || []"
+            :images="row.pictures?.map(item=>item.url) || []"
             :width="80"
             :height="80"
             :max-display="3"
@@ -34,40 +34,29 @@
             <div>{{ row.description }}</div> 
           </div>
           <div class="appraisal-item1">
-    <label class="required">奖励</label>
-    <div class="input-wrapper">
-      <n-input 
-        v-model:value="row.fine_tips" 
-        type="number"
-        placeholder="请输入0-500的整数"
-        :min="0"
-        :max="500"
-        :step="1"
-        :status="getFineTipsStatus(row.appraisal_id)"
-        @blur="validateFineTips(row)"
-      />
-      <div v-if="getFineTipsError(row.appraisal_id)" class="error-tip">
-        {{ getFineTipsError(row.appraisal_id) }}
-      </div>
-    </div>
-  </div>
-          </div>
-          <div class="appraisal-actions">
-              <n-button
-                text
-                type="error"
-                @click="handleDelete(row)"
-              >
-                删除
-              </n-button>
+            <label class="required">奖励</label>
+            <div class="input-wrapper">
+              <n-input 
+                v-model:value="row.fineTips" 
+                type="number"
+                placeholder="请输入整数"
+                :min="0"
+                :step="1"
+                :status="getFineTipsStatus(row.id)"
+                @blur="validateFineTips(row)"
+              />
+              <div v-if="getFineTipsError(row.id)" class="error-tip">{{ getFineTipsError(row.id) }}</div>
             </div>
+          </div>
+        </div>
+        <div class="appraisal-actions">
+          <n-button text type="error" @click="handleDelete(row)">删除</n-button>
         </div>
       </div>
-      
+    </div>
       <!-- 底部警告文字 -->
       <div class="drawer-warning">
-        <n-gradient-text type="error">
-          请确认信息后点击提交,提交后将短信通知用户,尽量不要修改
+        <n-gradient-text type="error">请确认信息后点击提交，提交后不可修改
         </n-gradient-text>
       </div>
       
@@ -128,8 +117,8 @@ const fineTipsValidation = reactive({})
 
 // 校验单个奖励输入
 const validateFineTips = (row) => {
-  const value = row.fine_tips
-  const id = row.appraisal_id
+  const value = row.fineTips
+  const id = row.id
   
   if (value === '' || value === null || value === undefined) {
     fineTipsValidation[id] = { status: 'error', message: '奖励不能为空' }
@@ -142,10 +131,10 @@ const validateFineTips = (row) => {
     return false
   }
   
-  if (numValue < 0 || numValue > 500) {
-    fineTipsValidation[id] = { status: 'error', message: '必须在0-500之间' }
-    return false
-  }
+  // if (numValue <= 0 || numValue > 500) {
+  //   fineTipsValidation[id] = { status: 'error', message: '必须在0-500之间' }
+  //   return false
+  // }
   
   fineTipsValidation[id] = { status: 'success', message: '' }
   return true
@@ -193,12 +182,12 @@ watch(
     console.log('props.checkedRows', props.checkedRows)
     // 初始化新项的描述为空
     newRows.forEach((row) => {
-      if (!(row.appraisal_id in itemDescriptions)) {
-        itemDescriptions[row.appraisal_id] = row.description || '';
+      if (!(row.id in itemDescriptions)) {
+        itemDescriptions[row.id] = row.description || '';
       }
     });
     // 清理已删除项的描述
-    const currentIds = newRows.map((row) => row.appraisal_id);
+    const currentIds = newRows.map((row) => row.id);
     Object.keys(itemDescriptions).forEach((id) => {
       if (!currentIds.includes(id)) {
         delete itemDescriptions[id];
@@ -213,13 +202,13 @@ watch(
  */
 function handleDelete(row) {
   // 从选中的行中移除该项
-  const index = props.checkedRowKeys.indexOf(row.appraisal_id);
+  const index = props.checkedRowKeys.indexOf(row.id);
   if (index > -1) {
     const newKeys = [...props.checkedRowKeys];
     newKeys.splice(index, 1);
     emit('update:checked-row-keys', newKeys);
     // 删除对应的描述
-    delete itemDescriptions[row.appraisal_id];
+    delete itemDescriptions[row.id];
   }
 }
 
@@ -242,7 +231,7 @@ async function handleSubmit() {
     // 准备提交数据，包含描述信息
     const submitData = props.checkedRows.map((row) => ({
       ...row,
-      description: itemDescriptions[row.appraisal_id] || '',
+      description: itemDescriptions[row.id] || '',
     }));
     
     // TODO: 这里调用实际的批量更新 API

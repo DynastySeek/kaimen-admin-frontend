@@ -1,10 +1,12 @@
 export const Role = {
-  SuperAdmin: 'admin',
-  Appraiser: 'appraiser',
+  SuperAdmin: 0,
+  SysAdmin: 1,
+  Appraiser: 2
 };
 
 export const RoleLabelMap = {
   [Role.SuperAdmin]: '超级管理员',
+  [Role.SysAdmin]: '系统管理员',
   [Role.Appraiser]: '鉴定师',
 };
 
@@ -105,6 +107,7 @@ export const AppraisalStatus = {
   PendingCompletion: 4,
   Rejected: 5,
   Cancelled: 6,
+  ToPay:20,
 };
 
 export const AppraisalStatusLabelMap = {
@@ -114,13 +117,13 @@ export const AppraisalStatusLabelMap = {
   [AppraisalStatus.PendingCompletion]: '待完善',
   [AppraisalStatus.Rejected]: '已退回',
   [AppraisalStatus.Cancelled]: '已取消',
+  [AppraisalStatus.ToPay]: '待支付',
 };
 
 export const AppraisalClass = {
   YinYuan: 1,
   GuQian: 2,
   ZaXiang: 4,
-  ZhiBi: 5,
   QuWu: 6,
 };
 
@@ -128,7 +131,6 @@ export const AppraisalClassLabelMap = {
   [AppraisalClass.YinYuan]: '银元',
   [AppraisalClass.GuQian]: '古钱',
   [AppraisalClass.ZaXiang]: '杂项',
-  [AppraisalClass.ZhiBi]: '纸币',
   [AppraisalClass.QuWu]: '趣物',
 };
 

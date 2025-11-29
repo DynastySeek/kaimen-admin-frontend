@@ -29,36 +29,35 @@ const userStore = useUserStore();
  * @returns {object} 格式化后的参数
  */
 function formatSearchParams(params) {
-  const [minPrice, maxPrice] = PriceRangeValueMap[params.expectedPrice] || [null, null];
+  const [minPrice, maxPrice] = PriceRangeValueMap[params.expected_price] || [null, null];
   return omit({
     ...params,
     minPrice,
     maxPrice,
-    userPhone: params.userPhone,
-    createStartTime: params.createTimeRange?.[0] ? formatDateTime(params.createTimeRange?.[0]) : null,
-    createEndTime: params.createTimeRange?.[1] ? formatDateTime(params.createTimeRange?.[1]) : null,
-  }, ['expectedPrice', 'createTimeRange']);
+    startDate: params.createTimeRange?.[0] ? formatDateTime(params.createTimeRange?.[0]) : null,
+    endDate: params.createTimeRange?.[1] ? formatDateTime(params.createTimeRange?.[1]) : null,
+  }, ['expected_price', 'createTimeRange']);
 }
 
 // 表格列定义
 const columns = computed(() => [
   { title: 'ID', key: 'id', width: 80 },
-  { title: '类型', key: 'buyer_type', width: 100, render: row => AppraisalClassLabelMap[row.buyer_type] || '-' },
-  { title: '描述', key: 'desc', width: 200, ellipsis: { tooltip: true } },
-  { title: '授权手机号', key: 'user_phone', width: 120, render: row => row.user_phone || '-', hidden: !userStore.isAdmin },
+  { title: '类型', key: 'mainCategory', width: 100, render: row => AppraisalClassLabelMap[row.mainCategory] || '-' },
+  { title: '描述', key: 'description', width: 200, ellipsis: { tooltip: true } },
+  { title: '授权手机号', key: 'userPhone', width: 120, render: row => row.userPhone || '-', hidden: !userStore.isAdmin },
   { title: '联系方式', key: 'phone', width: 120, render: row => row.phone || '-', hidden: !userStore.isAdmin },
-  { title: '期望价格', key: 'expected_price', width: 120, render: row => `${row.min_price} - ${row.max_price}` },
+  { title: '期望价格', key: 'expected_price', width: 120, render: row => `${row.minPrice} - ${row.maxPrice}` },
   {
     title: '创建时间',
-    key: 'created_at',
+    key: 'createdAt',
     width: 180,
-    render: row => formatDateTime(row.created_at),
+    render: ({createdAt}) => createdAt? formatDateTime(createdAt):'-',
   },
   {
     title: '更新时间',
-    key: 'updated_at',
+    key: 'updatedAt',
     width: 180,
-    render: row => formatDateTime(row.updated_at),
+    render: ({updatedAt}) => updatedAt? formatDateTime(updatedAt):'-',
   },
 ].filter(column => !column.hidden));
 
@@ -72,36 +71,42 @@ const searchFormItems = [
     span: 6,
   },
   {
-    prop: 'buyer_type',
+    prop: 'mainCategory',
     label: '类目',
-    type: 'selectDictionary',
-    name: 'AppraisalClass',
     placeholder: '请选择类目',
     span: 6,
+    type: 'select',
+    props: {
+    options: [
+      { label: '银元', value: '1' },
+      { label: '古钱', value: '2' },
+      { label: '杂项', value: '4' },
+    ],
+  },
   },
   {
-    prop: 'desc',
+    prop: 'keyword',
     label: '描述',
     type: 'input',
     placeholder: '请输入描述',
     span: 6,
   },
   {
-    prop: 'expectedPrice',
+    prop: 'expected_price',
     label: '心理价位',
     type: 'selectDictionary',
     name: 'PriceRange',
     placeholder: '请选择价格区间',
     span: 6,
   },
-  {
-    prop: 'userPhone',
-    label: '授权手机号',
-    type: 'input',
-    placeholder: '请输入授权手机号',
-    span: 6,
-    hidden: !userStore.isAdmin,
-  },
+  // {
+  //   prop: 'auth_phone',
+  //   label: '授权手机号',
+  //   type: 'input',
+  //   placeholder: '请输入授权手机号',
+  //   span: 6,
+  //   hidden: !userStore.isAdmin,
+  // },
   {
     prop: 'phone',
     label: '联系方式',
