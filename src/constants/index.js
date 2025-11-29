@@ -124,7 +124,6 @@ export const AppraisalClass = {
   YinYuan: 1,
   GuQian: 2,
   ZaXiang: 4,
-  ZhiBi: 5,
   QuWu: 6,
 };
 
@@ -132,7 +131,6 @@ export const AppraisalClassLabelMap = {
   [AppraisalClass.YinYuan]: '银元',
   [AppraisalClass.GuQian]: '古钱',
   [AppraisalClass.ZaXiang]: '杂项',
-  [AppraisalClass.ZhiBi]: '纸币',
   [AppraisalClass.QuWu]: '趣物',
 };
 

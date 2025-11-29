@@ -73,10 +73,16 @@ const searchFormItems = [
   {
     prop: 'mainCategory',
     label: '类目',
-    type: 'selectDictionary',
-    name: 'AppraisalClass',
     placeholder: '请选择类目',
     span: 6,
+    type: 'select',
+    props: {
+    options: [
+      { label: '银元', value: '1' },
+      { label: '古钱', value: '2' },
+      { label: '杂项', value: '4' },
+    ],
+  },
   },
   {
     prop: 'keyword',
