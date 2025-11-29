@@ -282,6 +282,10 @@ function handleEdit() {
 }
 
 function initFormData() {
+  if(props.data?.status==1){
+    // 只要是待鉴定那就不初始化
+    return 
+  }
   const { result, notes } = props.data?.results[0] || {};
   if (result) {
     formData.result = result;
