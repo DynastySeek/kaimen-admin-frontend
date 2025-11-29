@@ -1,5 +1,5 @@
 <template>
-  <n-space v-if="!isEditing&&props.data?.results?.[0]" vertical class="text-[12px]">
+  <n-space v-if="!isEditing" vertical class="text-[12px]">
     <div v-if="data?.status==6">
       -
     </div>
@@ -256,23 +256,23 @@ const resultOptions = computed(() => {
   ];
 });
 
-// watch(
-//   () => props.data?.status,
-//   (val) => {
-//     // last_appraisal_result 有值 
-//     isEditing.value = (props.data?.status==1)
-//   },
-//   { immediate: true },
-// );
-
-
 watch(
-  () => props.data?.results?.[0],
+  () => props.data?.status,
   (val) => {
-    isEditing.value = !val;
+    // last_appraisal_result 有值 
+    isEditing.value = (props.data?.status==1)
   },
   { immediate: true },
 );
+
+
+// watch(
+//   () => props.data?.results?.[0],
+//   (val) => {
+//     isEditing.value = !val;
+//   },
+//   { immediate: true },
+// );
 
 
 watch(() => props.data, initFormData, { immediate: true, deep: true });
