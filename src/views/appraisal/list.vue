@@ -126,6 +126,8 @@ const fechTotal =async () => {
 function formatSearchParams(params) {
   return omit({
     ...params,
+    orderByField:'updated_at',
+    order:'asc',
     ...(activeTab.value || {}),
     light:moneyTab.value,
     startCreateDate: params.createTimeRange?.[0] ? formatDateTime(params.createTimeRange?.[0]) : null,
