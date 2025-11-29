@@ -37,7 +37,7 @@
         <template v-if="[AppraisalResult.Doubt].includes(formData.result)">
           <div class="text-[#1560FA] font-bold">
             第二步：原因
-            {{ checkedRows?.[0]?.light === 1 ? '' : '(选填)' }} 
+            {{ isRequired ? '' : '(选填)' }} 
           </div>
           <!-- 原因选项 -->
           <n-checkbox-group v-model:value="formData.reasons" class="mb-2">
@@ -64,7 +64,7 @@
         <template v-else-if="[AppraisalResult.Rejected].includes(formData.result)">
           <div class="text-[#1560FA] font-bold">
             第二步：原因
-            {{ checkedRows?.[0]?.light === 1 ? '' : '(选填)' }} 
+            {{ isRequired ? '' : '(选填)' }} 
           </div>
           <!-- 原因选项 -->
           <n-checkbox-group v-model:value="formData.reasons" class="mb-2">
@@ -93,7 +93,7 @@
         <template v-else>
           <div class="text-[#1560FA] font-bold">
             第二步：评语
-            {{ checkedRows?.[0]?.light === 1 ? '' : '(选填)' }} 
+            {{ isRequired ? '' : '(选填)' }} 
           </div>
           <n-input
             v-model:value="formData.comment"
@@ -176,7 +176,8 @@ const doubtReasonOptions = [
 const rejectReasonOptions = [
   { label: '请勿上传与鉴定无关的图片或视频', value: '请勿上传与鉴定无关的图片或视频' },
 ];
-const isRequired = computed(() => props.checkedRows?.[0]?.light === 1);
+const isRequired = ref(false)
+
 const commentError = computed(() => {
   if (!isRequired.value) return '';
   if (formData.result === QuWuInterest.Interesting ||
@@ -212,6 +213,7 @@ const visible = computed({
 let isQuWu =ref(false)
 watch(() => props.checkedRows, (newVal) => {
   isQuWu.value =  newVal?.some(row => Number(row.mainCategory) == Number(AppraisalClass.QuWu))
+  isRequired.value = newVal?.some(row => row.light == 1)
 }, { deep: true, immediate: true })
 
 // const resultLabelMap = computed(() => (isQuWu.value ? QuWuInterestLabelMap : AppraisalResultLabelMap));
