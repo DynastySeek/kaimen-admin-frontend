@@ -739,7 +739,7 @@ function connectSocket() {
 
   // 会话关闭事件
   socket.value.on('conversation_closed', (data) => {
-    closeReason.value = data.data.close_reason=="user_disconnected"?`会话id:${data.data.conversation_id}用户主动关闭会话`:''
+    closeReason.value = data.data.close_reason=="user_disconnected"?`会话id:${data.data.conversation_id}用户主动关闭会话`:'会话已结束'
     if(closeReason.value){
       createMessage(closeReason.value)
     }
