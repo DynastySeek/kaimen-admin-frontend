@@ -5,17 +5,29 @@
       <n-space vertical :size="16">
         <n-space justify="space-between" align="center">
           <n-space>
-             <n-tag :type="isConnected ? 'success' : 'error'" size="large" @click="isConnected?disconnectSocket():connectSocket()">
+             <n-button round :type="isConnected ? 'info' : 'error'" @click="isConnected?disconnectSocket():connectSocket()">
               {{ isConnected ? '✅ 已上线,点击下线' : '❌ 未上线，请点击上线' }}
-             </n-tag>
-             <n-tag 
-              size="large"
-              type="success" 
+             </n-button>
+             <n-button 
+             round
+              type="info" 
               :disabled="!isConnected"
               @click="refreshAll"
             >
               🔄 刷新所有
-            </n-tag>
+            </n-button>
+            <n-badge :value="queueState.waitingQueue?.length" :max="99">
+              <n-button
+              round
+              type="info" 
+              :disabled="!isConnected||queueState.waitingQueue.length===0"
+              @click="closeAll"
+            >关闭所有会话</n-button>
+          </n-badge>
+          <n-icon size="40" @click="()=>globalSound=!globalSound">
+            <svg v-if="globalSound"  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" fill="currentColor"></path></svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24"><path d="M4.34 2.93L2.93 4.34L7.29 8.7L7 9H3v6h4l5 5v-6.59l4.18 4.18c-.65.49-1.38.88-2.18 1.11v2.06a8.94 8.94 0 0 0 3.61-1.75l2.05 2.05l1.41-1.41L4.34 2.93zM19 12c0 .82-.15 1.61-.41 2.34l1.53 1.53c.56-1.17.88-2.48.88-3.87c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zm-7-8l-1.88 1.88L12 7.76zm4.5 8A4.5 4.5 0 0 0 14 7.97v1.79l2.48 2.48c.01-.08.02-.16.02-.24z" fill="currentColor"></path></svg>
+          </n-icon>
           </n-space>
         </n-space>
       </n-space>
@@ -95,8 +107,6 @@
                 </n-space>
               </div>
             </n-tab-pane>
-
-
             <n-tab-pane name="active" tab="处理中">
               <template #tab>
                 <n-badge :value="queueState.activeConversations?.length" :max="99">
@@ -149,7 +159,7 @@
                             用户ID: {{ conv.user_id }}
                           </n-text>
                           <n-text depth="3" style="font-size: 12px;">
-                            客服: {{ conv.human_name || '未分配' }}
+                            <!-- 客服: {{ conv.human_name || '未分配' }} -->
                           </n-text>
                           <n-text depth="3" style="font-size: 12px;">
                             连接时间: {{ formatTime(conv.connected_at) }}
@@ -182,9 +192,9 @@
             <!-- 已结束会话标签 -->
             <n-tab-pane name="closed" tab="聊天记录">
               <template #tab>
-                <n-badge :value="queueState.closedConversations?.length" :max="99">
+                <!-- <n-badge :value="queueState.closedConversations?.length" :max="99"> -->
                   <span style="font-size: 12px;padding: 10px;">{{ '聊天记录' }}</span>        
-                </n-badge>
+                <!-- </n-badge> -->
                </template>
               <div style="padding: 12px;">
                 <n-space vertical :size="12">
@@ -226,13 +236,13 @@
                             用户ID: {{ conv.user_id }}
                           </n-text>
                           <n-text depth="3" style="font-size: 12px;">
-                            客服: {{ conv.human_name || '未分配' }}
+                            <!-- 客服: {{ conv.human_name || '未分配' }} -->
                           </n-text>
                           <n-text depth="3" style="font-size: 12px;">
                             关闭时间: {{ formatTime(conv.closed_at || conv.updated_at) }}
                           </n-text>
                           <n-text depth="3" style="font-size: 12px;">
-                            关闭原因: {{ conv.close_reason || '未知' }}
+                            关闭原因: {{ conv.close_reason=="close_reason"?'用户主动结束会话':'客服主动结束会话' }}
                           </n-text>
                           <n-button 
                             type="primary" 
@@ -371,10 +381,28 @@ import { onMounted, onUnmounted, ref, nextTick } from 'vue';
 import { CommonPage } from '@/components';
 import { useUserStore } from '@/stores';
 import { io } from 'socket.io-client';
- import dayjs from 'dayjs';
-import { fetchChatList } from "@/services";
-import { dataTableInjectionKey } from 'naive-ui/es/data-table/src/interface';
+import dayjs from 'dayjs';
+import { fetchChatList, closeAllConversation } from "@/services";
 import { reactive } from 'vue';
+import audio from "@/assets/new_message.mp3";
+import { useNotification } from 'naive-ui'
+const notification = useNotification()
+let globalSound = ref(true);
+function createMessage(text) {
+  notification["success"]({
+    content: '通知',
+    meta: text,
+    duration: 5000,
+    keepAliveOnHover: true
+  })
+}
+const notifyAudio = new Audio(audio);
+function playNotifySound(status) {
+  if(globalSound.value){
+    notifyAudio.currentTime = 0;
+    status?notifyAudio.play():notifyAudio.pause();
+  }
+}
 
 const userStore = useUserStore();
 // ==================== 服务配置 ====================
@@ -385,7 +413,7 @@ const APP_API_TOKEN = 'app-s8l0tNc5oPbHVJBeoLCXoPMg'; // API 认证 Token
 const socket = ref(null); // Socket.IO 实例
 const isConnected = ref(false); // WebSocket 连接状态
 const chatScrollbarRef = ref(null)
-
+const closeReason = ref(null);
 const baseInfo = reactive({
   currentUserId: null,
   currentConversationId:null,
@@ -461,6 +489,15 @@ async function callApi(endpoint, method = 'GET', body = null) {
    } catch (error) {
     console.error(`API调用失败: ${error.message}`);
     return { success: false, error: error.message };
+  }
+}
+
+async function closeAll() {
+  const result = await closeAllConversation()
+  if (result.success) {
+    $message.success('已结束所有会话')
+  } else {
+    console.error(`❌ 获取已结束会话失败: ${result.status}`);
   }
 }
 
@@ -670,6 +707,7 @@ function connectSocket() {
 
   // 新会话通知
   socket.value.on('new_conversation', (data) => {
+    playNotifySound(true)
     refreshQueue();
     refreshStats();
   });
@@ -681,8 +719,11 @@ function connectSocket() {
     // }
   });
 
+
+
   // 接收用户消息
   socket.value.on('user_message', (data) => {
+    playNotifySound(true);
     const msgData = data?.data || data || {};
     // 如果是当前会话的消息，添加到聊天列表
     if (msgData.conversation_id === baseInfo.currentConversationId) {
@@ -698,6 +739,10 @@ function connectSocket() {
 
   // 会话关闭事件
   socket.value.on('conversation_closed', (data) => {
+    closeReason.value = data.data.close_reason=="user_disconnected"?`会话id:${data.data.conversation_id}用户主动关闭会话`:''
+    if(closeReason.value){
+      createMessage(closeReason.value)
+    }
     refreshQueue();
     refreshStats();
     refreshActiveConversations();
@@ -711,6 +756,7 @@ function connectSocket() {
 
   // 断开连接
   socket.value.on('disconnect', (reason) => {
+    console.log('res',reason)
     isConnected.value = false;
     stopAutoRefresh();
   });
