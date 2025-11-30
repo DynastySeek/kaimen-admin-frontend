@@ -7,6 +7,8 @@
     :theme-overrides="appStore.naiveThemeOverrides"
   >
     <n-dialog-provider>
+      <n-message-provider>
+        <n-notification-provider>
       <router-view v-if="Layout" v-slot="{ Component, route: curRoute }">
         <component :is="Layout">
           <transition name="fade-slide" mode="out-in" appear>
@@ -21,6 +23,8 @@
           </transition>
         </component>
       </router-view>
+        </n-notification-provider>
+      </n-message-provider>
     </n-dialog-provider>
   </n-config-provider>
 </template>
