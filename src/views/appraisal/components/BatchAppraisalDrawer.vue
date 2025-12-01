@@ -56,6 +56,9 @@
               maxRows: 3,
             }"
             size="small"
+            maxlength="30"
+            show-count
+            clearable 
           />
           <div v-if="reasonError" class="text-red-500 text-[12px] mt-1">
             {{ reasonError }}
