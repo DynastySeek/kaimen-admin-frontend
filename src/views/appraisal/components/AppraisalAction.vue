@@ -79,6 +79,9 @@
           maxRows: 3,
         }"
         size="small"
+        maxlength="30"
+        show-count
+        clearable 
       />
       <!-- 原因错误提示 -->
       <div v-if="reasonError" class="text-red-500 text-[12px] mt-1">
@@ -114,6 +117,9 @@
           maxRows: 3,
         }"
         size="small"
+        maxlength="30"
+        show-count
+        clearable 
       />
       <div v-if="reasonError" class="text-red-500 text-[12px] mt-1">
         {{ reasonError }}
@@ -135,6 +141,9 @@
           maxRows: 3,
         }"
         size="small"
+        maxlength="200"
+        show-count
+        clearable 
       />
       <div v-if="commentError" class="text-red-500 text-[12px] mt-1">
         {{ commentError }}
@@ -194,10 +203,8 @@ const rejectReasonOptions = [
 ];
 
 const isRequired = computed(() => props.data?.light === 1);
-
 const commentError = computed(() => {
   if (!isRequired.value) return '';
-
   // 趣物兴趣类结果也需要评语
   if (formData.result === QuWuInterest.Interesting ||
       formData.result === QuWuInterest.Boring) {
@@ -211,10 +218,8 @@ const commentError = computed(() => {
 
   return '';
 });
-
 const reasonError = computed(() => {
   if (!isRequired.value) return '';
-
   if (formData.result === AppraisalResult.Doubt ||
       formData.result === AppraisalResult.Rejected ||
       formData.result === QuWuInterest.Doubt ||
