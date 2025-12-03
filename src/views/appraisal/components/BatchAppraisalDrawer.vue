@@ -36,7 +36,7 @@
           <div class="text-[#1560FA] font-bold">
             第二步：请选择藏品价值等级 
           </div>
-          <n-radio-group v-model:value="formData.level" class="mb-2">
+          <n-radio-group v-model:value="formData.grade" class="mb-2">
             <n-grid :y-gap="8" :cols="3">
               <n-gi v-for="option in levelOptions" :key="option.value">
                 <n-radio
@@ -227,7 +227,7 @@ const levelError = computed(() => {
   if (!isRequired.value) return '';
   if (formData.result === AppraisalResult.Authentic ||
       formData.result === QuWuInterest.Interesting) {
-    return formData.level ? '' : '请选择藏品价值等级';
+    return formData.grade ? '' : '请选择藏品价值等级';
   }
   return '';
 });
@@ -278,7 +278,7 @@ const formData = reactive({
   result: null,
   comment: '',
   reasons: [],
-  level: null,
+  grade: null,
 });
 
 // 提交状态
@@ -346,6 +346,7 @@ async function handleSubmit() {
       appraisalId: item.id,
       mainCategory: item.mainCategory,
       status: appraisal_status,
+      grade: Number(formData.grade),
     }));
     try {
       console.log('resultItems', resultItems)

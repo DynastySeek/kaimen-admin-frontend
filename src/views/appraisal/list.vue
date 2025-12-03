@@ -63,7 +63,7 @@ import { NButton, NSpace, NTag } from 'naive-ui';
 import { computed, h, ref, onMounted } from 'vue';
 import { getTempFileUrls } from '@/cloud';
 import { CommonPage, ProTable, SelectDictionary, VideoModal } from '@/components';
-import { AppraisalStatus, AppraisalStatusLabelMap, AppraisalBusinessTypeLabelMap } from '@/constants';
+import { AppraisalStatus, AppraisalStatusLabelMap, AppraisalBusinessTypeLabelMap,LevelLabelMap,LevelType } from '@/constants';
 import { fetchAppraisalList, fetchAppraisalUpdate,fetchUserInfoById } from '@/services';
 import { useUserStore } from '@/stores';
 import { formatDateTime } from '@/utils';
@@ -183,6 +183,15 @@ const searchFormItems = computed(() => [
     span: 6,
   },
   {
+    prop: 'grade',
+    label: '藏品价值等级',
+    type: 'selectDictionary',
+    name: 'LevelType',
+    placeholder: '请选择藏品价值等级',
+    span: 6,
+    hidden: !(activeTab?.value?.status==3||activeTab.value==null)
+  },
+  {
     prop: 'businessType',
     label: '鉴定类型',
     type: 'selectDictionary',
@@ -294,6 +303,15 @@ const columns = computed(() => [
         maxDisplay: 4,
       });
     },
+  },
+  {
+    title: '藏品价值等级',
+    key: 'grade',
+    width: 200,
+    render: (row) => {
+      return h('div', LevelLabelMap[row.grade]);
+    },
+    hidden: !(activeTab?.value?.status==3||activeTab.value==null)
   },
   {
     title: '类目',

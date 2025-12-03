@@ -71,6 +71,7 @@ import { fetchAppraisalFineList, fetchAppraisalUpdate } from '@/services';
 import BatchUpdateDrawer from './BatchUpdateDrawer.vue';
 import ImagePreview from './ImagePreview.vue';
 import dayjs from 'dayjs';
+import { LevelLabelMap } from '@/constants';
 import { onMounted } from 'vue';
 const proTableRef = ref();
 const batchAppraisalModalTitle = ref('重新评选');
@@ -169,7 +170,8 @@ const searchFormItems = computed(() => [
   label: '类目',
   type: 'select',
   placeholder: '请选择类目',
-  span: 18,
+  span: 6,
+  width:300,
   props: {
     options: [
       { label: '银元', value: '1' },
@@ -179,25 +181,32 @@ const searchFormItems = computed(() => [
     ],
   },
   value:'1',
-  width: 300,
 },
   {
     prop: 'appraisalId',
     label: '鉴定ID',
     type: 'input',
     placeholder: '请输入鉴定ID',
+    width:300,
     span: 6,
-    width: 300,
   },
   {
     prop: 'keyword',
     label: '描述',
     type: 'input',
+    span: 6,
+    width:300,
     placeholder: '请输入描述',
-    span: 8,
-    width: 300,
   },
- 
+  {
+    prop: 'grade',
+    label: '藏品价值等级',
+    type: 'selectDictionary',
+    name: 'LevelType',
+    placeholder: '请选择藏品价值等级',
+    width:300,
+    span: 6,
+  },
 ].filter(item => !item.hidden));
 
 // 计算选中的完整行数据
@@ -223,6 +232,14 @@ const columns = computed(() => [
         height: 68,
         maxDisplay: 4,
       });
+    },
+  },
+  {
+    title: '藏品价值等级',
+    key: 'grade',
+    width: 200,
+    render: (row) => {
+      return h('div', LevelLabelMap[row.grade]);
     },
   },
   {

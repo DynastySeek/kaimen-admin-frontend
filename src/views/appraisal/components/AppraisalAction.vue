@@ -53,7 +53,7 @@
         第二步：请选择藏品价值等级  
       </div>
       <!-- 原因选项 -->
-      <n-radio-group v-model:value="formData.level" class="mb-2">
+      <n-radio-group v-model:value="formData.grade" class="mb-2">
         <n-grid :y-gap="8" :cols="3">
           <n-gi
             v-for="option in levelOptions"
@@ -215,7 +215,7 @@ const formData = reactive({
   result: null,
   comment: '',
   reasons: [],
-  level: null,
+  grade: null,
 });
 const levelOptions =[{
   label: LevelLabelMap[LevelType.SLevel],
@@ -270,7 +270,7 @@ const levelError = computed(() => {
   if (!isRequired.value) return '';
   if (formData.result === AppraisalResult.Authentic ||
       formData.result === QuWuInterest.Interesting) {
-    return formData.level ? '' : '请选择藏品价值等级';
+    return formData.grade ? '' : '请选择藏品价值等级';
   }
   return '';
 });
@@ -384,7 +384,7 @@ async function handleSubmit() {
       appraisalId: props.data.id,
       result: Number(formData.result),
       comment: formData.comment,
-      userId: userStore.userInfo.user_id
+      userId: userStore.userInfo.user_id,
     };
     let appraisal_status = null;
     if (formData.result === AppraisalResult.Authentic) {
@@ -402,9 +402,9 @@ async function handleSubmit() {
         params.reasons = formData.reasons;
       }
     }
-
+    // 17543
     await fetchAppraisalResultAdd({ items: [params] });
-    await fetchAppraisalUpdate({items:[{ appraisalId: props.data.id, status: appraisal_status,mainCategory:props.data.mainCategory }]});
+    await fetchAppraisalUpdate({items:[{ appraisalId: props.data.id, status: appraisal_status,mainCategory:props.data.mainCategory, grade: Number(formData.grade) }]});
     emit('submit', params);
     $message.success('鉴定结果提交成功');
     resetForm();

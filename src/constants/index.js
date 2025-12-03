@@ -236,9 +236,9 @@ export const AppraisalBusinessTypeLabelMap = {
 };
 
 export const LevelType = {
-  SLevel: '1',
-  ALevel: '2',
-  NORMAL: '3',
+  SLevel: '2',
+  ALevel: '1',
+  NORMAL: '0',
 };
 
 export const LevelLabelMap = {

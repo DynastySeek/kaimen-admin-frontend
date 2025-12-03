@@ -33,7 +33,9 @@ import {
   UserType,
   UserTypeLabelMap,
   CleansingClass, 
-  CleansingClassLabelMap
+  CleansingClassLabelMap,
+  LevelType,
+  LevelLabelMap
 } from '@/constants';
 
 const props = defineProps({
@@ -78,6 +80,7 @@ const EnumMap = {
   PubStatus: [PubStatus, PubStatusLabelMap],
   PriceRange: [PriceRange, PriceRangeLabelMap],
   CleansingClass: [CleansingClass, CleansingClassLabelMap],
+  LevelType:[LevelType, LevelLabelMap]
 };
 
 /**
