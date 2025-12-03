@@ -262,10 +262,14 @@ const searchFormItems = computed(() => [
   },
 ].filter(item => !item.hidden));
 
+
 const columns = computed(() => [
   {
     type: 'selection',
     fixed: 'left',
+    disabled(row) {
+      return !(row.status==1 || row?.modifyDeadLine)
+    }
   },
   {
     title: '鉴定ID',
