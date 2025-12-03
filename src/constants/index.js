@@ -24,6 +24,11 @@ export const Permission = {
   ArticleMgt: 'ArticleMgt',
   ArticleList: 'ArticleList',
   ArticleDetail: 'ArticleDetail',
+  AppraisalClean:'AppraisalClean',
+  Daily:'Daily',
+  DailyList:'DailyList',
+  ExchangeList:'ExchangeList',
+  ChatList:'ChatList',
 };
 
 export const PermissionLabelMap = {
@@ -40,6 +45,11 @@ export const PermissionLabelMap = {
   [Permission.ArticleMgt]: '文章管理',
   [Permission.ArticleList]: '文章列表',
   [Permission.ArticleDetail]: '文章详情',
+  [Permission.AppraisalClean]: '洗护列表',
+  [Permission.Daily]: '每日精品评选列表',
+  [Permission.DailyList]: '评选列表',
+  [Permission.ExchangeList]: '兑换列表',
+  [Permission.ChatList]: 'AI客服对话列表',
 };
 
 export const Gender = {
@@ -133,6 +143,18 @@ export const AppraisalClassLabelMap = {
   [AppraisalClass.ZaXiang]: '杂项',
   [AppraisalClass.QuWu]: '趣物',
 };
+
+export const CleansingClass = {
+  process: 1,
+  completed: 2,
+  closed: 3,
+};
+export const CleansingClassLabelMap = {
+  [CleansingClass.process]: '进行中',
+  [CleansingClass.completed]: '已完成',
+  [CleansingClass.closed]: '已关闭',
+};
+
 
 export const AppraisalResult = {
   Authentic: '1',

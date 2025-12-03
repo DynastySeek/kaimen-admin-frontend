@@ -54,6 +54,18 @@ export const appraisalRoutes = [
           enable: true,
         },
       },
+      {
+        name: 'AppraisalClean',
+        path: '/appraisal/clean',
+        component: () => import('@/views/appraisal/cleansing-list.vue'),
+        meta: {
+          title: '洗护列表',
+          keepAlive: true,
+          code: Permission.AppraisalClean,
+          show: true,
+          enable: true,
+        },
+      },
     ],
   },
 ];

@@ -105,7 +105,6 @@ const checkedRowKeys = ref([]);
 const checkedRows = ref([]);
 // 用户信息缓存
 const userInfoCache = ref(new Map());
-
 const fechTotal =async () => {
   try {
    const data1 =  await  fetchAppraisalList({pageSize:1,page:1,light:1, status:1})
@@ -126,8 +125,8 @@ const fechTotal =async () => {
 function formatSearchParams(params) {
   return omit({
     ...params,
-    orderByField:'updated_at',
-    order:'asc',
+    // orderByField:'updated_at',
+    // order:'asc',
     ...(activeTab.value || {}),
     light:moneyTab.value,
     startCreateDate: params.createTimeRange?.[0] ? formatDateTime(params.createTimeRange?.[0]) : null,
@@ -354,7 +353,17 @@ const columns = computed(() => [
     title: '最后修改时间',
     key: 'updatedAt',
     width: 160,
-    render: ({ updatedAt }) =>updatedAt? formatDateTime(updatedAt):'-',
+    render: ({ updatedAt }) => updatedAt ? formatDateTime(updatedAt) : '-',
+    sorter: (row1, row2) => {
+    const t1 = row1.updatedAt ? new Date(row1.updatedAt).getTime() : 0
+    const t2 = row2.updatedAt ? new Date(row2.updatedAt).getTime() : 0
+    return t1 - t2
+  },
+  defaultSortOrder: 'ascend',
+  customNextSortOrder: (order) => {
+    if (order === 'ascend') return 'descend'
+    return 'ascend'
+  }
   },
   {
     title: '最后提交鉴定师',
