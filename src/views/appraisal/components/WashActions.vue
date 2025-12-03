@@ -17,7 +17,13 @@
             <span style="color: red">*</span>
             服务关闭原因
           </div>
-        <n-input v-model:value="closeReason" type="textarea" placeholder="请输入原因"/>
+        <n-input
+        v-model:value="closeReason"
+        type="textarea"
+        placeholder="请输入原因"
+        maxlength="30"
+        show-count
+        clearable />
         <div v-if="errorMsg" style="color: red; font-size: 12px;">
             {{ errorMsg }}
           </div>
