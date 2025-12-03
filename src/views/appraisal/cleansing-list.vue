@@ -104,7 +104,7 @@
       span: 6,
     },
     {
-      prop: 'keyword',
+      prop: 'description',
       label: '描述',
       type: 'input',
       placeholder: '请输入描述',
