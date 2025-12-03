@@ -48,7 +48,30 @@
         </n-gi>
       </n-grid>
     </n-space>
-
+    <template v-if="[AppraisalResult.Authentic, QuWuInterest.Interesting].includes(formData.result)">
+      <div class="text-[#1560FA] font-bold">
+        第二步：请选择藏品价值等级  
+      </div>
+      <!-- 原因选项 -->
+      <n-radio-group v-model:value="formData.level" class="mb-2">
+        <n-grid :y-gap="8" :cols="3">
+          <n-gi
+            v-for="option in levelOptions"
+            :key="option.value"
+          >
+            <n-radio
+              :value="option.value"
+              :label="option.label"
+              size="small"
+            />
+          </n-gi>
+        </n-grid>
+      </n-radio-group>
+      <!-- 原因错误提示 -->
+      <div v-if="levelError" class="text-red-500 text-[12px] mt-1">
+        {{ levelError }}
+      </div>
+    </template>
     <!-- 第二步：原因（选填） - 存疑状态 -->
     <template v-if="[AppraisalResult.Doubt, QuWuInterest.Doubt].includes(formData.result)">
       <div class="text-[#1560FA] font-bold">
@@ -129,7 +152,9 @@
     <!-- 第二步：评语 -->
     <template v-else>
       <div class="text-[#1560FA] font-bold">
-        第二步：评语
+        {{ 
+          [AppraisalResult.Authentic, QuWuInterest.Interesting].includes(formData.result)?"第三步:评语":"第二步:评语"
+         }}
         {{ data?.light === 1 ? '' : '(选填)' }} 
       </div>
       <n-input
@@ -152,7 +177,9 @@
 
     <!-- 第三步：确认操作 -->
     <div class="text-[#1560FA] font-bold">
-      第三步：确认操作
+      {{ 
+          [AppraisalResult.Authentic, QuWuInterest.Interesting].includes(formData.result)?" 第四步：确认操作":" 第三步：确认操作"
+      }}
     </div>
     <n-button
       type="primary"
@@ -171,7 +198,7 @@
 import { Edit } from '@vicons/carbon';
 import { isEmpty } from 'lodash-es';
 import { computed, reactive, ref, watch } from 'vue';
-import { AppraisalClass, AppraisalResult, AppraisalResultLabelMap, AppraisalStatus, QuWuInterest, QuWuInterestLabelMap } from '@/constants';
+import { AppraisalClass, AppraisalResult, AppraisalResultLabelMap, AppraisalStatus, QuWuInterest, QuWuInterestLabelMap, LevelType, LevelLabelMap } from '@/constants';
 import { fetchAppraisalResultAdd, fetchAppraisalUpdate } from '@/services';
 import { useUserStore } from '@/stores';
 const userStore = useUserStore();
@@ -188,8 +215,18 @@ const formData = reactive({
   result: null,
   comment: '',
   reasons: [],
+  level: null,
 });
-
+const levelOptions =[{
+  label: LevelLabelMap[LevelType.SLevel],
+  value: LevelType.SLevel,
+}, {
+  label: LevelLabelMap[LevelType.ALevel],
+  value: LevelType.ALevel,
+}, {
+  label: LevelLabelMap[LevelType.NORMAL],
+  value: LevelType.NORMAL,  
+}]
 const doubtReasonOptions = [
   { label: '需补充正面图片', value: '需补充正面图片' },
   { label: '需补充侧面图片', value: '需补充侧面图片' },
@@ -225,6 +262,15 @@ const reasonError = computed(() => {
       formData.result === QuWuInterest.Doubt ||
       formData.result === QuWuInterest.Rejected) {
     return formData.reasons.length ? '' : '请输入原因';
+  }
+  return '';
+});
+
+const levelError = computed(() => {
+  if (!isRequired.value) return '';
+  if (formData.result === AppraisalResult.Authentic ||
+      formData.result === QuWuInterest.Interesting) {
+    return formData.level ? '' : '请选择藏品价值等级';
   }
   return '';
 });
@@ -329,7 +375,9 @@ async function handleSubmit() {
   if (reasonError.value) {
     return;
   }
-
+  if(levelError.value) {
+    return
+  }
   isSubmitting.value = true;
   try {
     const params = {

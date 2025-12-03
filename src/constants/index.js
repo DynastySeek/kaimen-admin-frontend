@@ -234,3 +234,15 @@ export const AppraisalBusinessTypeLabelMap = {
   [AppraisalBusinessType.NORMAL]: '仅鉴定',
   [AppraisalBusinessType.SELL]: '我要卖',
 };
+
+export const LevelType = {
+  SLevel: '1',
+  ALevel: '2',
+  NORMAL: '3',
+};
+
+export const LevelLabelMap = {
+  [LevelType.SLevel]: 'S级珍品',
+  [LevelType.ALevel]: 'A级优品',
+  [LevelType.NORMAL]: '普品',
+};
