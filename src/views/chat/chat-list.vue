@@ -1,38 +1,5 @@
 <template>
   <CommonPage>
-    <!-- 顶部操作栏 -->
-   <n-card class="card-container">
-      <n-space vertical :size="16">
-        <n-space justify="space-between" align="center">
-          <n-space>
-             <n-button round :type="isConnected ? 'info' : 'error'" @click="isConnected?disconnectSocket():connectSocket()">
-              {{ isConnected ? '✅ 已上线,点击下线' : '❌ 未上线，请点击上线' }}
-             </n-button>
-             <n-button 
-             round
-              type="info" 
-              :disabled="!isConnected"
-              @click="refreshAll"
-            >
-              🔄 刷新所有
-            </n-button>
-            <n-badge :value="queueState.waitingQueue?.length" :max="99">
-              <n-button
-              round
-              type="info" 
-              :disabled="!isConnected||queueState.waitingQueue.length===0"
-              @click="closeAll"
-            >关闭所有会话</n-button>
-          </n-badge>
-          <n-icon size="40" @click="()=>globalSound=!globalSound">
-            <svg v-if="globalSound"  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" fill="currentColor"></path></svg>
-            <svg v-else xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24"><path d="M4.34 2.93L2.93 4.34L7.29 8.7L7 9H3v6h4l5 5v-6.59l4.18 4.18c-.65.49-1.38.88-2.18 1.11v2.06a8.94 8.94 0 0 0 3.61-1.75l2.05 2.05l1.41-1.41L4.34 2.93zM19 12c0 .82-.15 1.61-.41 2.34l1.53 1.53c.56-1.17.88-2.48.88-3.87c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zm-7-8l-1.88 1.88L12 7.76zm4.5 8A4.5 4.5 0 0 0 14 7.97v1.79l2.48 2.48c.01-.08.02-.16.02-.24z" fill="currentColor"></path></svg>
-          </n-icon>
-          </n-space>
-        </n-space>
-      </n-space>
-     </n-card>
-    <!-- 主体区域 -->
     <n-space vertical :size="16" style="margin-top: 16px;">
        <n-layout has-sider>
         <!-- 左侧：等待队列 + 活跃会话列表 -->
@@ -45,10 +12,36 @@
          :native-scrollbar="true"
          style="height: calc(100vh - 240px);"
         >
-          <n-tabs animated>
-            <!-- 等待队列标签 -->
-            <n-tab-pane name="queue" tab="新消息">
-              <template #tab>
+          <n-collapse animated >
+            <n-collapse-item  name="setting" title="设置">
+              <n-space  vertical :size="16">
+             <n-button round :type="isConnected ? 'info' : 'error'" @click="isConnected?disconnectSocket():connectSocket()">
+              {{ isConnected ? '✅ 已上线' : '❌ 未上线' }}
+             </n-button>
+             <n-button 
+             round
+              type="info" 
+              :disabled="!isConnected"
+              @click="refreshAll"
+            >
+              一键刷新
+            </n-button>
+            <n-badge :value="queueState.waitingQueue?.length" :max="99">
+              <n-button
+              round
+              type="info" 
+              :disabled="!isConnected||queueState.waitingQueue.length===0"
+              @click="closeAll"
+            >一键关闭会话</n-button>
+          </n-badge>
+          <n-button round
+          type="info"  @click="()=>globalSound=!globalSound">{{ globalSound ? "已开启声音" : "已关闭声音" }}</n-button>
+
+         
+          </n-space>
+            </n-collapse-item>
+            <n-collapse-item  name="queue" title="新消息">
+              <template #header>
                 <n-badge :value="queueState.waitingQueue?.length" :max="99">
                   <span style="font-size: 12px;padding: 10px;">  {{ '新消息' }}</span>
                 </n-badge>
@@ -106,9 +99,9 @@
                   </n-spin>
                 </n-space>
               </div>
-            </n-tab-pane>
-            <n-tab-pane name="active" tab="处理中">
-              <template #tab>
+            </n-collapse-item >
+            <n-collapse-item  name="active" title="处理中">
+              <template #header>
                 <n-badge :value="queueState.activeConversations?.length" :max="99">
                   <span style="font-size: 12px;padding: 10px;">{{ '处理中' }}</span> 
                 </n-badge>
@@ -187,11 +180,11 @@
                   </n-spin>
                 </n-space>
               </div>
-            </n-tab-pane>
+            </n-collapse-item >
 
             <!-- 已结束会话标签 -->
-            <n-tab-pane name="closed" tab="聊天记录">
-              <template #tab>
+            <n-collapse-item  name="closed" title="聊天记录">
+              <template #header>
                 <!-- <n-badge :value="queueState.closedConversations?.length" :max="99"> -->
                   <span style="font-size: 12px;padding: 10px;">{{ '聊天记录' }}</span>        
                 <!-- </n-badge> -->
@@ -258,8 +251,11 @@
                    </n-spin>
                 </n-space>
               </div>
-            </n-tab-pane>
-          </n-tabs>
+            </n-collapse-item >
+           
+          </n-collapse>
+   
+          
        </n-layout-sider>
         <!-- 右侧：聊天区域 -->
         <n-layout style="height: calc(100vh - 240px);">
@@ -388,6 +384,7 @@ import audio from "@/assets/new_message.mp3";
 import { useNotification } from 'naive-ui'
 const notification = useNotification()
 let globalSound = ref(true);
+const active = ref(false)
 function createMessage(text) {
   notification["success"]({
     content: '通知',
@@ -694,7 +691,7 @@ function connectSocket() {
         timestamp: Math.floor(Date.now() / 1000)
       }
     });
-    
+1
     // 开始自动刷新
     startAutoRefresh();
   });
