@@ -186,19 +186,25 @@
             <n-collapse-item  name="closed" title="聊天记录">
               <template #header>
                 <!-- <n-badge :value="queueState.closedConversations?.length" :max="99"> -->
-                  <span style="font-size: 12px;padding: 10px;">{{ '聊天记录' }}</span>        
+                  <span style="font-size: 12px;padding: 10px;">{{ '用户聊天记录' }}</span>        
                 <!-- </n-badge> -->
                </template>
               <div style="padding: 12px;">
+                <n-space style="margin: 20px;">
+                  <n-input v-model:value="searchKeyword" placeholder="用户id" />
+                  <n-button type="primary" @click="refreshClosedConversations">搜索</n-button>
+
+                </n-space>
+
                 <n-space vertical :size="12">
-                  <n-button 
+                  <!-- <n-button 
                     type="primary" 
                     block 
                     :disabled="!isConnected"
                     @click="refreshClosedConversations"
                   >
                     刷新已结束会话
-                  </n-button>
+                  </n-button> -->
                   
                   <n-spin :show="loadingState.loadingClosed">
                     <div v-if="queueState.closedConversations.length === 0" class="empty-state">
@@ -207,7 +213,7 @@
                     <n-space v-else vertical :size="12">
                       <n-card
                         v-for="conv in queueState.closedConversations"
-                        :key="conv.conversation_id"
+                        :key="conv.id"
                         size="small"
                         hoverable
                       >
@@ -223,25 +229,25 @@
                         </template>
                         <n-space vertical :size="8">
                           <n-text depth="3" style="font-size: 12px;">
-                            会话ID: {{ conv.conversation_id.slice(0, 8) }}...
+                            会话ID: {{ conv.id.slice(0, 8) }}...
                           </n-text>
                           <n-text depth="3" style="font-size: 12px;">
-                            用户ID: {{ conv.user_id }}
+                            用户ID: {{ searchKeyword }}
                           </n-text>
                           <n-text depth="3" style="font-size: 12px;">
                             <!-- 客服: {{ conv.human_name || '未分配' }} -->
                           </n-text>
                           <n-text depth="3" style="font-size: 12px;">
-                            关闭时间: {{ formatTime(conv.closed_at || conv.updated_at) }}
+                            <!-- 关闭时间: {{ formatTime(conv.closed_at || conv.updated_at) }} -->
                           </n-text>
                           <n-text depth="3" style="font-size: 12px;">
-                            关闭原因: {{ conv.close_reason=="close_reason"?'用户主动结束会话':'客服主动结束会话' }}
+                            <!-- 关闭原因: {{ conv.close_reason=="close_reason"?'用户主动结束会话':'客服主动结束会话' }} -->
                           </n-text>
                           <n-button 
                             type="primary" 
                             size="small"
                             block
-                            @click="isHistoryView = true;viewConversationHistory(conv.conversation_id,conv.user_id)"
+                            @click="isHistoryView = true;viewConversationHistory(conv.id,searchKeyword)"
                           >
                             查看聊天记录
                           </n-button>
@@ -299,7 +305,7 @@
                 </template>
                 <div class="chat-container">
                   <!-- 空状态提示 -->
-                  <div v-if="baseInfo.chatListData.length === 0 && !loadingState.loadingClosed" class="empty-state">
+                  <div v-if="baseInfo.chatListData.length === 0" class="empty-state">
                     <n-empty description="暂无聊天记录" />
                   </div>
             
@@ -552,16 +558,18 @@ async function refreshActiveConversations() {
  * 刷新已结束会话列表
  * 获取所有已关闭的历史会话
  */
+const searchKeyword = ref('');
 async function refreshClosedConversations() {
-  loadingState.loadingClosed = true;
-  const result = await callApi('/console/api/human-service/conversations?status=closed');
-  
+  // loadingState.loadingClosed = true;
+  const result = await callApi(`/v1/conversations?user=${searchKeyword.value}`);
+  console.log('1111', result.data.data);
   if (result.success) {
-    queueState.closedConversations = result.data.conversations || [];
+    queueState.closedConversations = result.data.data || [];
+    // loadingState.loadingClosed = false;
   } else {
     console.error(`❌ 获取已结束会话失败: ${result.status}`);
   }
-  loadingState.loadingClosed = false;
+
 }
 
 /**
@@ -573,7 +581,7 @@ async function refreshAll() {
     refreshStats(),
     refreshQueue(),
     refreshActiveConversations(),
-    refreshClosedConversations()
+    // refreshClosedConversations()
   ]);
 }
 
@@ -606,8 +614,8 @@ async function viewConversationHistory(conversationId, user) {
   baseInfo.chatListData = []
   // const conv = queueState.closedConversations.find(c => c.conversation_id === conversationId);
   // const userId = conv?.user_id || user || 'unknown';
-  // baseInfo.currentConversationId = conversationId;
-  // baseInfo.currentUserId = userId;
+  baseInfo.currentConversationId = conversationId;
+  baseInfo.currentUserId = user;
   // 从API获取历史聊天记录
   try {
     loadingState.loadingClosed = true;
@@ -616,7 +624,7 @@ async function viewConversationHistory(conversationId, user) {
       user_id: user,
     });
     baseInfo.chatListData = result?.data||[];
-  
+  console.log('2222', baseInfo.chatListData);
    } catch (error) {
     console.error('❌ 获取历史记录失败:', error);
     baseInfo.chatListData = [];
@@ -743,7 +751,7 @@ function connectSocket() {
     refreshQueue();
     refreshStats();
     refreshActiveConversations();
-    refreshClosedConversations();
+    // refreshClosedConversations();
   });
 
   // 错误处理
@@ -826,7 +834,7 @@ function closeConversationById(conversationId) {
     refreshActiveConversations();
     refreshQueue();
     refreshStats();
-    refreshClosedConversations();
+    // refreshClosedConversations();
   }, 500);
 }
 
