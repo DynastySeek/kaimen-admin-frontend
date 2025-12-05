@@ -268,11 +268,11 @@
       width: 300,
       fixed: 'right',
       render: (row) => {
-        if(row.status==CleansingClass.completed){
+        if(row?.status==CleansingClass.completed){
             return h('span','-')
         }
-        else if(row.status==CleansingClass.closed){
-            return h('span',`原因：${row.result}`) }
+        else if(row?.status==CleansingClass.closed){
+            return h('span',`原因：${row?.result}`) }
         else {
             return h(WashActions, {
                 row,
