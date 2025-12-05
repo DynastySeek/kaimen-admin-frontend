@@ -313,7 +313,7 @@ const columns = computed(() => [
     render: (row) => {
       return h('div', LevelLabelMap[row.grade]);
     },
-    hidden: !(activeTab?.value?.status==3||activeTab.value==null)
+    hidden: !(activeTab?.value?.status==3&&activeTab.value.resultList==AppraisalResult.Authentic||activeTab.value==null)
   },
   {
     title: '类目',
