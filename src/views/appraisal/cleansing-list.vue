@@ -272,7 +272,7 @@
             return h('span','-')
         }
         else if(row.status==CleansingClass.closed){
-            return h('span',`原因：${row.reason}`) }
+            return h('span',`原因：${row.result}`) }
         else {
             return h(WashActions, {
                 row,
