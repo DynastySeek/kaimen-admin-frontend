@@ -375,7 +375,6 @@ const columns = computed(() => [
         return t1 - t2
       },
     customNextSortOrder: (order) => {
-      console.log('111122', order);
       return order === 'ascend' ? 'descend' : 'ascend'
     }
   },
@@ -384,18 +383,14 @@ const columns = computed(() => [
     key: 'updatedAt',
     width: 160,
     render: ({ updatedAt }) => updatedAt ? formatDateTime(updatedAt) : '-',
-    sorter: {
-      compare: (row1, row2) => {
+    sorter:(row1, row2) => {
          const t1 = row1.updatedAt ? new Date(row1.updatedAt).getTime() : 0
          const t2 = row2.updatedAt ? new Date(row2.updatedAt).getTime() : 0
          return t1 - t2
-      },
     },
     customNextSortOrder: (order) => {
-        if (order === 'ascend')
-          return 'descend'
-        return 'ascend'
-      }
+      return order === 'ascend' ? 'descend' : 'ascend'
+        }
   },
   {
     title: '最后提交鉴定师',
