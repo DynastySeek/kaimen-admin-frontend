@@ -311,7 +311,11 @@ const columns = computed(() => [
     key: 'grade',
     width: 200,
     render: (row) => {
-      return h('div', LevelLabelMap[row.grade]);
+      if(row?.result==1) {
+        return h('div', LevelLabelMap[row.grade]);
+      } else{
+      return '-';
+    }
     },
     hidden: !(activeTab?.value?.status==3&&activeTab.value.resultList==AppraisalResult.Authentic||activeTab.value==null)
   },
