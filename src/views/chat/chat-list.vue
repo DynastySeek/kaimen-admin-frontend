@@ -149,7 +149,7 @@
                             会话ID: {{ conv.conversation_id.slice(0, 8) }}...
                           </n-text>
                           <n-text depth="3" style="font-size: 12px;">
-                            用户ID: {{ conv.user_id }}
+                            <!-- 用户ID: {{ conv.user_id }} -->
                           </n-text>
                           <n-text depth="3" style="font-size: 12px;">
                             <!-- 客服: {{ conv.human_name || '未分配' }} -->
@@ -192,7 +192,7 @@
               <div style="padding: 12px;">
                 <n-space style="margin: 20px;">
                   <n-input v-model:value="searchKeyword" placeholder="用户id" />
-                  <n-button type="primary" @click="refreshClosedConversations">搜索</n-button>
+                  <n-button type="primary" @click="queueState.closedConversations=[];refreshClosedConversations()">搜索</n-button>
 
                 </n-space>
 
@@ -253,6 +253,9 @@
                           </n-button>
                         </n-space>
                       </n-card>
+                      <div v-if="hasmore" style="width: 100%;display: flex;justify-content: center;">
+                        <n-button type="info" @click="refreshClosedConversations(queueState.closedConversations[queueState.closedConversations.length-1].id)">加载更多</n-button>
+                      </div>
                     </n-space>
                    </n-spin>
                 </n-space>
@@ -346,6 +349,7 @@
                    </div>
                  </div>
                </div>
+
              </div>
               </n-spin>
             </n-scrollbar>
@@ -384,10 +388,11 @@ import { CommonPage } from '@/components';
 import { useUserStore } from '@/stores';
 import { io } from 'socket.io-client';
 import dayjs from 'dayjs';
-import { fetchChatList, closeAllConversation } from "@/services";
+import { fetchChatList, closeAllConversation, userConversatioList } from "@/services";
 import { reactive } from 'vue';
 import audio from "@/assets/new_message.mp3";
 import { useNotification } from 'naive-ui'
+import { has } from 'lodash-es';
 const notification = useNotification()
 let globalSound = ref(true);
 const active = ref(false)
@@ -559,12 +564,20 @@ async function refreshActiveConversations() {
  * 获取所有已关闭的历史会话
  */
 const searchKeyword = ref('');
+const hasmore = ref(true);
+const lastid = ref(null);
 async function refreshClosedConversations() {
-  loadingState.loadingClosed = true;
-  const result = await callApi(`/v1/conversations?user=${searchKeyword.value}`);
-  if (result.success) {
-    queueState.closedConversations = result.data.data || [];
-    loadingState.loadingClosed = false;
+  // loadingState.loadingClosed = true;
+  const params = {
+    user: searchKeyword.value,
+    last_id: lastid.value
+  }
+  const result = await userConversatioList(params);
+  if (result) {
+    queueState.closedConversations = [...queueState.closedConversations, ...result.data] || [];
+    lastid.value = result.data[result.data?.length-1]?.id;
+    hasmore.value = result.has_more;
+    // loadingState.loadingClosed = false;
   } else {
     console.error(`❌ 获取已结束会话失败: ${result.status}`);
   }
