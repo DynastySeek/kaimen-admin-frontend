@@ -63,7 +63,7 @@ import { NButton, NSpace, NTag } from 'naive-ui';
 import { computed, h, ref, onMounted } from 'vue';
 import { getTempFileUrls } from '@/cloud';
 import { CommonPage, ProTable, SelectDictionary, VideoModal } from '@/components';
-import { AppraisalStatus, AppraisalStatusLabelMap, AppraisalBusinessTypeLabelMap,LevelLabelMap,LevelType } from '@/constants';
+import { AppraisalStatus, AppraisalStatusLabelMap, AppraisalBusinessTypeLabelMap,LevelLabelMap,LevelType, AppraisalResultLabelMap,AppraisalResult } from '@/constants';
 import { fetchAppraisalList, fetchAppraisalUpdate,fetchUserInfoById } from '@/services';
 import { useUserStore } from '@/stores';
 import { formatDateTime } from '@/utils';
@@ -76,8 +76,8 @@ const tabs = [
   { label: '全部', value: null },
   { label: '待鉴定', value: { status: AppraisalStatus.PendingAppraisal } },
   { label: '待用户完善', value: { status: AppraisalStatus.PendingCompletion } },
-  { label: '已完成，鉴定为真', value: { status: AppraisalStatus.Completed, resultList: AppraisalStatus.PendingAppraisal } },
-  { label: '已完成，鉴定为伪', value: { status: AppraisalStatus.Completed, resultList: AppraisalStatus.InProgress } },
+  { label: '已完成，鉴定为真', value: { status: AppraisalStatus.Completed, resultList: AppraisalResult.Authentic } },
+  { label: '已完成，鉴定为伪', value: { status: AppraisalStatus.Completed, resultList: AppraisalResult.Fake } },
   { label: '已驳回', value: { status: AppraisalStatus.Rejected } },
   { label: '已取消', value: { status: AppraisalStatus.Cancelled } },
 ];
@@ -187,7 +187,7 @@ const searchFormItems = computed(() => [
     name: 'LevelType',
     placeholder: '请选择藏品价值等级',
     span: 6,
-    hidden: !(activeTab?.value?.status==3||activeTab.value==null)
+    hidden: !(activeTab?.value?.status==3&&activeTab.value.resultList==AppraisalResult.Authentic||activeTab.value==null)
   },
   {
     prop: 'businessType',
