@@ -162,12 +162,13 @@
     {
       title: '图片',
       key: 'images',
+      width: 420,
       render: (row) => {
         return h(ImagePreview, {
           images: row.pictures.map(item=>item.url),
           width: 110,
           height: 68,
-          maxDisplay: 4,
+          maxDisplay: 3,
         });
       },
     },
@@ -204,7 +205,7 @@
 
     {
       title: '授权登录手机号',
-      key: 'userPhone',
+      key: 'authPhone',
       width: 140,
       hidden: !userStore.isAdmin,
     },
@@ -267,13 +268,19 @@
       width: 300,
       fixed: 'right',
       render: (row) => {
-        return h(WashActions, {
-            row,
-            onEdit: handleEdit,
-            onClose: handleClose
-        })
-  }
-
+        if(row.status==CleansingClass.completed){
+            return h('span','-')
+        }
+        else if(row.status==CleansingClass.closed){
+            return h('span',row.result) }
+        else {
+            return h(WashActions, {
+                row,
+                onEdit: handleEdit,
+                onClose: handleClose
+            })
+        }
+    }
     },
   ].filter(column => !column.hidden));
   

@@ -370,6 +370,16 @@ const columns = computed(() => [
     key: 'createdAt',
     width: 160,
     render: ({ createdAt }) =>createdAt ? formatDateTime(createdAt):'-',
+    sorter: (row1, row2) => {
+    const t1 = row1.createdAt ? new Date(row1.createdAt).getTime() : 0
+    const t2 = row2.createdAt ? new Date(row2.createdAt).getTime() : 0
+    return t1 - t2
+  },
+  defaultSortOrder: 'ascend',
+  customNextSortOrder: (order) => {
+    if (order === 'ascend') return 'descend'
+    return 'ascend'
+  }
   },
   {
     title: '最后修改时间',

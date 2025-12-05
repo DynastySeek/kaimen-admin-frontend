@@ -224,7 +224,6 @@ const commentError = computed(() => {
 });
 
 const levelError = computed(() => {
-  if (!isRequired.value) return '';
   if (formData.result === AppraisalResult.Authentic ||
       formData.result === QuWuInterest.Interesting) {
     return formData.grade ? '' : '请选择藏品价值等级';
