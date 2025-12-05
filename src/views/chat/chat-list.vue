@@ -560,12 +560,11 @@ async function refreshActiveConversations() {
  */
 const searchKeyword = ref('');
 async function refreshClosedConversations() {
-  // loadingState.loadingClosed = true;
+  loadingState.loadingClosed = true;
   const result = await callApi(`/v1/conversations?user=${searchKeyword.value}`);
-  console.log('1111', result.data.data);
   if (result.success) {
     queueState.closedConversations = result.data.data || [];
-    // loadingState.loadingClosed = false;
+    loadingState.loadingClosed = false;
   } else {
     console.error(`❌ 获取已结束会话失败: ${result.status}`);
   }
