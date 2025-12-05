@@ -125,8 +125,6 @@ const fechTotal =async () => {
 function formatSearchParams(params) {
   return omit({
     ...params,
-    // orderByField:'updated_at',
-    // order:'asc',
     ...(activeTab.value || {}),
     light:moneyTab.value,
     startCreateDate: params.createTimeRange?.[0] ? formatDateTime(params.createTimeRange?.[0]) : null,
@@ -370,31 +368,30 @@ const columns = computed(() => [
     key: 'createdAt',
     width: 160,
     render: ({ createdAt }) =>createdAt ? formatDateTime(createdAt):'-',
-    sorter: (row1, row2) => {
-    const t1 = row1.createdAt ? new Date(row1.createdAt).getTime() : 0
-    const t2 = row2.createdAt ? new Date(row2.createdAt).getTime() : 0
-    return t1 - t2
-  },
-  defaultSortOrder: 'ascend',
-  customNextSortOrder: (order) => {
-    return order === 'ascend' ? 'descend' : 'ascend'
-  }
+    defaultSortOrder: 'ascend',
+    sorter:{
+      compare: (row1, row2) => {
+         const t1 = row1.createdAt ? new Date(row1.createdAt).getTime() : 0
+         const t2 = row2.createdAt ? new Date(row2.createdAt).getTime() : 0
+         return t1 - t2
+      },
+      multiple:2,
+    }
   },
   {
     title: '最后修改时间',
     key: 'updatedAt',
     width: 160,
     render: ({ updatedAt }) => updatedAt ? formatDateTime(updatedAt) : '-',
-  //   sorter: (row1, row2) => {
-  //   const t1 = row1.updatedAt ? new Date(row1.updatedAt).getTime() : 0
-  //   const t2 = row2.updatedAt ? new Date(row2.updatedAt).getTime() : 0
-  //   return t1 - t2
-  // },
-  defaultSortOrder: 'ascend',
-  // customNextSortOrder: (order) => {
-  //   if (order === 'ascend') return 'descend'
-  //   return 'ascend'
-  // }
+    defaultSortOrder: 'ascend',
+    sorter: {
+      compare: (row1, row2) => {
+         const t1 = row1.updatedAt ? new Date(row1.updatedAt).getTime() : 0
+         const t2 = row2.updatedAt ? new Date(row2.updatedAt).getTime() : 0
+         return t1 - t2
+      },
+      multiple:1,
+  },
   },
   {
     title: '最后提交鉴定师',
