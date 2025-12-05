@@ -369,13 +369,14 @@ const columns = computed(() => [
     width: 160,
     render: ({ createdAt }) =>createdAt ? formatDateTime(createdAt):'-',
     defaultSortOrder: 'ascend',
-    sorter:{
-      compare: (row1, row2) => {
-         const t1 = row1.createdAt ? new Date(row1.createdAt).getTime() : 0
-         const t2 = row2.createdAt ? new Date(row2.createdAt).getTime() : 0
-         return t1 - t2
+    sorter: (row1, row2) => {
+        const t1 = row1.createdAt ? new Date(row1.createdAt).getTime() : 0
+        const t2 = row2.createdAt ? new Date(row2.createdAt).getTime() : 0
+        return t1 - t2
       },
-      multiple:2,
+    customNextSortOrder: (order) => {
+      console.log('111122', order);
+      return order === 'ascend' ? 'descend' : 'ascend'
     }
   },
   {
@@ -383,15 +384,18 @@ const columns = computed(() => [
     key: 'updatedAt',
     width: 160,
     render: ({ updatedAt }) => updatedAt ? formatDateTime(updatedAt) : '-',
-    defaultSortOrder: 'ascend',
     sorter: {
       compare: (row1, row2) => {
          const t1 = row1.updatedAt ? new Date(row1.updatedAt).getTime() : 0
          const t2 = row2.updatedAt ? new Date(row2.updatedAt).getTime() : 0
          return t1 - t2
       },
-      multiple:1,
-  },
+    },
+    customNextSortOrder: (order) => {
+        if (order === 'ascend')
+          return 'descend'
+        return 'ascend'
+      }
   },
   {
     title: '最后提交鉴定师',

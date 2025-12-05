@@ -38,6 +38,7 @@
   :virtual-scroll="virtualScroll"
   :max-height="virtualScroll ? maxHeight : undefined"
   @update:checked-row-keys="handleCheckedRowKeysChange"
+  
   />
   </div>
   <n-flex class="mt-10" justify="end">
