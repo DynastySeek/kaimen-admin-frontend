@@ -149,7 +149,7 @@
                             会话ID: {{ conv.conversation_id.slice(0, 8) }}...
                           </n-text>
                           <n-text depth="3" style="font-size: 12px;">
-                            <!-- 用户ID: {{ conv.user_id }} -->
+                            用户ID: {{ conv.user_id }}
                           </n-text>
                           <n-text depth="3" style="font-size: 12px;">
                             <!-- 客服: {{ conv.human_name || '未分配' }} -->
@@ -186,25 +186,19 @@
             <n-collapse-item  name="closed" title="聊天记录">
               <template #header>
                 <!-- <n-badge :value="queueState.closedConversations?.length" :max="99"> -->
-                  <span style="font-size: 12px;padding: 10px;">{{ '用户聊天记录' }}</span>        
+                  <span style="font-size: 12px;padding: 10px;">{{ '聊天记录' }}</span>        
                 <!-- </n-badge> -->
                </template>
               <div style="padding: 12px;">
-                <n-space style="margin: 20px;">
-                  <n-input v-model:value="searchKeyword" placeholder="用户id" />
-                  <n-button type="primary" @click="queueState.closedConversations=[];refreshClosedConversations()">搜索</n-button>
-
-                </n-space>
-
                 <n-space vertical :size="12">
-                  <!-- <n-button 
+                  <n-button 
                     type="primary" 
                     block 
                     :disabled="!isConnected"
                     @click="refreshClosedConversations"
                   >
                     刷新已结束会话
-                  </n-button> -->
+                  </n-button>
                   
                   <n-spin :show="loadingState.loadingClosed">
                     <div v-if="queueState.closedConversations.length === 0" class="empty-state">
@@ -213,7 +207,7 @@
                     <n-space v-else vertical :size="12">
                       <n-card
                         v-for="conv in queueState.closedConversations"
-                        :key="conv.id"
+                        :key="conv.conversation_id"
                         size="small"
                         hoverable
                       >
@@ -229,33 +223,30 @@
                         </template>
                         <n-space vertical :size="8">
                           <n-text depth="3" style="font-size: 12px;">
-                            会话ID: {{ conv.id.slice(0, 8) }}...
+                            会话ID: {{ conv.conversation_id.slice(0, 8) }}...
                           </n-text>
                           <n-text depth="3" style="font-size: 12px;">
-                            用户ID: {{ searchKeyword }}
+                            用户ID: {{ conv.user_id }}
                           </n-text>
                           <n-text depth="3" style="font-size: 12px;">
                             <!-- 客服: {{ conv.human_name || '未分配' }} -->
                           </n-text>
                           <n-text depth="3" style="font-size: 12px;">
-                            <!-- 关闭时间: {{ formatTime(conv.closed_at || conv.updated_at) }} -->
+                            关闭时间: {{ formatTime(conv.closed_at || conv.updated_at) }}
                           </n-text>
                           <n-text depth="3" style="font-size: 12px;">
-                            <!-- 关闭原因: {{ conv.close_reason=="close_reason"?'用户主动结束会话':'客服主动结束会话' }} -->
+                            关闭原因: {{ conv.close_reason=="close_reason"?'用户主动结束会话':'客服主动结束会话' }}
                           </n-text>
                           <n-button 
                             type="primary" 
                             size="small"
                             block
-                            @click="isHistoryView = true;viewConversationHistory(conv.id,searchKeyword)"
+                            @click="isHistoryView = true;viewConversationHistory(conv.conversation_id,conv.user_id)"
                           >
                             查看聊天记录
                           </n-button>
                         </n-space>
                       </n-card>
-                      <div v-if="hasmore" style="width: 100%;display: flex;justify-content: center;">
-                        <n-button type="info" @click="refreshClosedConversations(queueState.closedConversations[queueState.closedConversations.length-1].id)">加载更多</n-button>
-                      </div>
                     </n-space>
                    </n-spin>
                 </n-space>
@@ -308,7 +299,7 @@
                 </template>
                 <div class="chat-container">
                   <!-- 空状态提示 -->
-                  <div v-if="baseInfo.chatListData.length === 0" class="empty-state">
+                  <div v-if="baseInfo.chatListData.length === 0 && !loadingState.loadingClosed" class="empty-state">
                     <n-empty description="暂无聊天记录" />
                   </div>
             
@@ -349,7 +340,6 @@
                    </div>
                  </div>
                </div>
-
              </div>
               </n-spin>
             </n-scrollbar>
@@ -388,11 +378,10 @@ import { CommonPage } from '@/components';
 import { useUserStore } from '@/stores';
 import { io } from 'socket.io-client';
 import dayjs from 'dayjs';
-import { fetchChatList, closeAllConversation, userConversatioList } from "@/services";
+import { fetchChatList, closeAllConversation } from "@/services";
 import { reactive } from 'vue';
 import audio from "@/assets/new_message.mp3";
 import { useNotification } from 'naive-ui'
-import { has } from 'lodash-es';
 const notification = useNotification()
 let globalSound = ref(true);
 const active = ref(false)
@@ -563,25 +552,16 @@ async function refreshActiveConversations() {
  * 刷新已结束会话列表
  * 获取所有已关闭的历史会话
  */
-const searchKeyword = ref('');
-const hasmore = ref(true);
-const lastid = ref(null);
 async function refreshClosedConversations() {
-  // loadingState.loadingClosed = true;
-  const params = {
-    user: searchKeyword.value,
-    last_id: lastid.value
-  }
-  const result = await userConversatioList(params);
-  if (result) {
-    queueState.closedConversations = [...queueState.closedConversations, ...result.data] || [];
-    lastid.value = result.data[result.data?.length-1]?.id;
-    hasmore.value = result.has_more;
-    // loadingState.loadingClosed = false;
+  loadingState.loadingClosed = true;
+  const result = await callApi('/console/api/human-service/conversations?status=closed');
+  
+  if (result.success) {
+    queueState.closedConversations = result.data.conversations || [];
   } else {
     console.error(`❌ 获取已结束会话失败: ${result.status}`);
   }
-
+  loadingState.loadingClosed = false;
 }
 
 /**
@@ -593,7 +573,7 @@ async function refreshAll() {
     refreshStats(),
     refreshQueue(),
     refreshActiveConversations(),
-    // refreshClosedConversations()
+    refreshClosedConversations()
   ]);
 }
 
@@ -636,7 +616,7 @@ async function viewConversationHistory(conversationId, user) {
       user_id: user,
     });
     baseInfo.chatListData = result?.data||[];
-  console.log('2222', baseInfo.chatListData);
+  
    } catch (error) {
     console.error('❌ 获取历史记录失败:', error);
     baseInfo.chatListData = [];
@@ -763,7 +743,7 @@ function connectSocket() {
     refreshQueue();
     refreshStats();
     refreshActiveConversations();
-    // refreshClosedConversations();
+    refreshClosedConversations();
   });
 
   // 错误处理
@@ -846,7 +826,7 @@ function closeConversationById(conversationId) {
     refreshActiveConversations();
     refreshQueue();
     refreshStats();
-    // refreshClosedConversations();
+    refreshClosedConversations();
   }, 500);
 }
 
