@@ -325,8 +325,7 @@ async function handleBatchAppraisalSubmit(submitData) {
         }
       }
     });
-    console.log('updateData', updateData)
-  //  await fetchAppraisalUpdate({items:updateData});
+   await fetchAppraisalUpdate({items:updateData});
     // TODO: 调用实际批量更新接口
     $message.success('更新成功');
     proTableRef.value?.refresh();
