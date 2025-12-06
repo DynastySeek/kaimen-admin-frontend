@@ -330,10 +330,10 @@
                    <div class="chat-meta">
                       <n-avatar round size="medium" class="avatar-ai">
                         {{ 
-                        message.from_source=='api'?'AI':userStore.userInfo.nickname?.slice(0,1)
+                        message.from_source=='api'?'AI':'客服'
                         }}
                      </n-avatar>
-                     <span class="chat-name">{{  message.from_source=='api'?'AI':userStore.userInfo.nickname}}</span>
+                     <span class="chat-name">{{  message.from_source=='api'?'AI':'客服'}}</span>
                       <span class="chat-time">{{ formatTimestamp(message.created_at) }}</span>
                    </div>
                    <div class="chat-bubble ai">
