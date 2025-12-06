@@ -7,12 +7,14 @@
          bordered
          show-trigger
          collapse-mode="width"
-          :collapsed-width="0"
-          :width="360"
+         :collapsed-width="0"
+         :width="360"
          :native-scrollbar="true"
          style="height: calc(100vh - 240px);"
         >
-          <n-collapse animated >
+          <n-collapse animated @item-header-click="(item)=>{
+            expandedName = item.name
+            }">
             <n-collapse-item  name="setting" title="设置">
               <n-space  vertical :size="16">
              <n-button round :type="isConnected ? 'info' : 'error'" @click="isConnected?disconnectSocket():connectSocket()">
@@ -36,11 +38,9 @@
           </n-badge>
           <n-button round
           type="info"  @click="()=>globalSound=!globalSound">{{ globalSound ? "已开启声音" : "已关闭声音" }}</n-button>
-
-         
           </n-space>
             </n-collapse-item>
-            <n-collapse-item  name="queue" title="新消息">
+            <n-collapse-item  name="message" title="新消息">
               <template #header>
                 <n-badge :value="queueState.waitingQueue?.length" :max="99">
                   <span style="font-size: 12px;padding: 10px;">  {{ '新消息' }}</span>
@@ -100,7 +100,7 @@
                 </n-space>
               </div>
             </n-collapse-item >
-            <n-collapse-item  name="active" title="处理中">
+            <n-collapse-item name="connect" title="处理中">
               <template #header>
                 <n-badge :value="queueState.activeConversations?.length" :max="99">
                   <span style="font-size: 12px;padding: 10px;">{{ '处理中' }}</span> 
@@ -116,7 +116,6 @@
                   >
                     刷新活跃会话
                   </n-button>
-                  
                   <n-spin :show="loadingState.loadingActive">
                     <div v-if="queueState.activeConversations.length === 0" class="empty-state">
                       <n-empty description="暂无活跃会话" />
@@ -180,15 +179,12 @@
                   </n-spin>
                 </n-space>
               </div>
-            </n-collapse-item >
-
+            </n-collapse-item>
             <!-- 已结束会话标签 -->
-            <n-collapse-item  name="closed" title="聊天记录">
+            <n-collapse-item  name="chat" title="聊天记录">
               <template #header>
-                <!-- <n-badge :value="queueState.closedConversations?.length" :max="99"> -->
-                  <span style="font-size: 12px;padding: 10px;">{{ '聊天记录' }}</span>        
-                <!-- </n-badge> -->
-               </template>
+                <span style="font-size: 12px;padding: 10px;">{{ '聊天记录' }}</span>        
+              </template>
               <div style="padding: 12px;">
                 <n-space vertical :size="12">
                   <n-button 
@@ -199,7 +195,6 @@
                   >
                     刷新已结束会话
                   </n-button>
-                  
                   <n-spin :show="loadingState.loadingClosed">
                     <div v-if="queueState.closedConversations.length === 0" class="empty-state">
                       <n-empty description="暂无已结束的会话" />
@@ -252,17 +247,27 @@
                 </n-space>
               </div>
             </n-collapse-item >
-           
-          </n-collapse>
-   
-          
+            <n-collapse-item  name="user" title="用户聊天记录">
+              <template #header>
+                <span style="font-size: 12px;padding: 10px;">{{ '用户聊天记录' }}</span>        
+              </template>
+              <div style="padding: 12px;">
+                <n-space vertical :size="12">
+                  <n-space style="margin: 20px;">
+                  <n-input v-model:value="searchKeyword" placeholder="用户id" />
+                  <n-button type="primary" @click="refreshUserConversations('init')">搜索</n-button>
+                </n-space>
+                </n-space>
+              </div>
+            </n-collapse-item >
+          </n-collapse> 
        </n-layout-sider>
         <!-- 右侧：聊天区域 -->
         <n-layout style="height: calc(100vh - 240px);">
-          <n-card v-if="!baseInfo.currentConversationId" style="height: 100%;">
+          <n-card v-if="!baseInfo.currentConversationId&&expandedName!=='user'" style="height: 100%;">
             <n-empty description="请从左侧选择或接受一个会话" />
           </n-card>
-          <div v-else style="height: 100%; display: flex; flex-direction: column;">
+          <div  style="height: 100%; display: flex; flex-direction: column;">
             <!-- 当前会话信息 -->
             <n-card size="small" style="margin-bottom: 12px;">
               <n-space align="center" justify="space-between">
@@ -274,14 +279,14 @@
                     </n-tag>
                   </n-space>
                   <n-text depth="3" style="font-size: 12px;">
-                    会话ID: {{ baseInfo.currentConversationId }}
+                    {{ baseInfo.currentConversationId && `会话ID: ${baseInfo.currentConversationId}` }}
                   </n-text>
                   <n-text depth="3" style="font-size: 12px;">
                     用户ID: {{ baseInfo.currentUserId }}
                   </n-text>
                 </n-space>
                 <n-button 
-                  v-if="!isHistoryView"
+                  v-if="!isHistoryView&&expandedName!=='user'"
                   type="error" 
                   :disabled="baseInfo.isConversationClosed "
                   @click="closeConversation(baseInfo.currentConversationId)"
@@ -290,7 +295,6 @@
                 </n-button>
               </n-space>
             </n-card>
-
             <!-- 聊天消息区域 -->
             <n-scrollbar class="chat-scroll"  ref="chatScrollbarRef" c style="flex: 1;" >
               <n-spin :show="loadingState.loadingClosed && isHistoryView" size="large">
@@ -302,7 +306,6 @@
                   <div v-if="baseInfo.chatListData.length === 0 && !loadingState.loadingClosed" class="empty-state">
                     <n-empty description="暂无聊天记录" />
                   </div>
-            
                   <!-- 聊天消息列表 -->
                <div
                  v-for="(message, index) in baseInfo.chatListData"
@@ -340,6 +343,9 @@
                    </div>
                  </div>
                </div>
+               <div v-if="hasmore&&expandedName==='user'" style="width: 100%;display: flex;justify-content: center;">
+                <n-button type="tertiary" @click="refreshUserConversations">加载更多</n-button>
+              </div>
              </div>
               </n-spin>
             </n-scrollbar>
@@ -378,7 +384,7 @@ import { CommonPage } from '@/components';
 import { useUserStore } from '@/stores';
 import { io } from 'socket.io-client';
 import dayjs from 'dayjs';
-import { fetchChatList, closeAllConversation } from "@/services";
+import { fetchChatList, closeAllConversation, userConversatioList} from "@/services";
 import { reactive } from 'vue';
 import audio from "@/assets/new_message.mp3";
 import { useNotification } from 'naive-ui'
@@ -400,7 +406,7 @@ function playNotifySound(status) {
     status?notifyAudio.play():notifyAudio.pause();
   }
 }
-
+const expandedName = ref();
 const userStore = useUserStore();
 // ==================== 服务配置 ====================
 const SERVER_URL = 'https://agent.kaimen.site'; // WebSocket 服务器地址
@@ -430,7 +436,8 @@ const message = ref(''); // 消息输入框内容
 const queueState = reactive({
   waitingQueue:[],
   activeConversations:[],
-  closedConversations:[]
+  closedConversations:[],
+  userConversations:[]
 })
 // const waitingQueue = ref([]); // 等待队列列表
 // const activeConversations = ref([]); // 活跃会话列表
@@ -560,6 +567,32 @@ async function refreshClosedConversations() {
     queueState.closedConversations = result.data.conversations || [];
   } else {
     console.error(`❌ 获取已结束会话失败: ${result.status}`);
+  }
+  loadingState.loadingClosed = false;
+}
+const searchKeyword = ref('');
+const hasmore = ref(false);
+const lastTimeRange = ref(null)
+async function refreshUserConversations(init) {
+  if(init==='init'){
+    baseInfo.chatListData = [];
+    lastTimeRange.value = null;
+    hasmore.value = false;
+  }
+  isHistoryView.value = true
+  baseInfo.userInfo =  searchKeyword.value
+  loadingState.loadingClosed = true
+  baseInfo.currentUserId= searchKeyword.value
+  const params = {
+    user: searchKeyword.value,
+    last_conversation_updated_at: lastTimeRange.value?.conversation_updated_at,
+    last_message_created_at: lastTimeRange.value?.created_at,
+  }
+  const result = await userConversatioList(params);
+  if (result) {
+    baseInfo.chatListData=[...baseInfo.chatListData, ...result.data] || [];
+    lastTimeRange.value = result.data[result.data.length-1];
+    hasmore.value = result.has_more;
   }
   loadingState.loadingClosed = false;
 }
