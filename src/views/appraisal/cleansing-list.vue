@@ -259,22 +259,17 @@
       key: 'status',
       width: 120,
       render: (row) => {
-        if (row.status <= 0) return '—';
-
-const typeMap = {
-  [CleansingClass.process]: 'info',
-  [CleansingClass.completed]: 'success',
-  [CleansingClass.closed]: 'default'
-};
-
-return h(
-  NTag,
-  { type: typeMap[row.status] || 'default' },
-  { default: () => CleansingClassLabelMap[row.status] || '—' }
-);
-
-        
-       
+        if (row.status <= 0) return '-';
+        const typeMap = {
+            [CleansingClass.process]: 'info',
+            [CleansingClass.completed]: 'success',
+            [CleansingClass.closed]: 'default'
+        };
+        return h(
+            NTag,
+            { type: typeMap[row.status] || 'default' },
+            { default: () => CleansingClassLabelMap[row.status] || '-' }
+        );
       },
     },
     {
