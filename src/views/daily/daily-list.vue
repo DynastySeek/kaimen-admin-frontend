@@ -26,6 +26,8 @@
       @update:checked-row-keys="handleCheckedRowKeysChange"
       :virtual-scroll="true"
       :max-height="650"
+      @handle-reset="handleReset"
+      @update:checked-row="handleCheckedRowsChange"
     >
       <template #header>
         <NSpace>
@@ -55,7 +57,7 @@
       v-model:show="batchAppraisalModalVisible"
       :checked-row-keys="checkedRowKeys"
       :checked-rows="checkedRows"
-      @update:checked-row-keys="keys => checkedRowKeys = keys"
+      @update:checked-row="row => checkedRows = row"
       @submit="handleBatchAppraisalSubmit"
     />
   </CommonPage>
@@ -64,7 +66,7 @@
 <script setup>
 import { cloneDeep, omit, filter } from 'lodash-es';
 import { NButton, NIcon, NSpace, NTag } from 'naive-ui';
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, nextTick } from 'vue';
 import { getTempFileUrls } from '@/cloud';
 import { CommonPage, ProTable, VideoModal } from '@/components';;
 import { fetchAppraisalFineList, fetchAppraisalUpdate } from '@/services';
@@ -120,7 +122,7 @@ async function formatResponseList(list) {
     return list;
   }
  
-  checkedRowKeys.value = []
+  // checkedRowKeys.value = []
   try {
     const clonedList = cloneDeep(list);
     const allCloudImages = clonedList?.reduce((acc, d) => acc.concat(d.images || []), []).filter(v => v.startsWith('cloud://'));
@@ -177,7 +179,7 @@ const searchFormItems = computed(() => [
       { label: '银元', value: '1' },
       { label: '古钱', value: '2' },
       { label: '杂项', value: '4' },
-      { label: '趣物', value: '5' },
+      { label: '趣物', value: '6' },
     ],
   },
   value:'1',
@@ -262,12 +264,23 @@ const columns = computed(() => [
  * 
  * 处理选中行变化，限制最多选5个
  */
-watch([checkedRowKeys, tableData], () => {
+watch([checkedRows], () => {
   // if(checkedRowKeys.value.length > 0){
-  const temp = tableData.value.filter(row => checkedRowKeys.value.includes(row.id));
-  checkedRows.value = temp.filter(item => item != null);
-  
+  checkedRowKeys.value = checkedRows.value.map(item => item.id);
 });
+
+function handleCheckedRowsChange(rows, meta) {
+  const { row } = meta
+  if (meta.action === 'check') {
+    if (!checkedRows.value.some(item => item.id === row.id)) {
+    checkedRows.value.push(row)
+  }
+} else {
+  // 取消勾选：按 id 删除 rows 中的项
+  checkedRows.value = checkedRows.value.filter(item => item.id !== row.id)
+}
+
+}
 function handleTotalDataChange(payload) {
   totalData.value = payload?.done ?? 0;
 }
@@ -282,44 +295,70 @@ function handleCheckedRowKeysChange(temp,rows, meta) {
   // 如果是最后一个
   checkedRowKeys.value = keys;
 }
-let originFineclass = []
-function handleBatchUpdate() {
-  proTableRef.value?.reload(); 
-  originFineclass = tableData.value.filter(item => item.tags === 1)
-    isEditing.value = !isEditing.value;
-    batchAppraisalModalTitle.value = isEditing.value ? "取消重新评选" : "重新评选"
-    if(!isEditing.value) {
-      batchAppraisalModalVisible.value = false;
-    }
-    formatResponseList(tableData.value)
-}
+// let originFineclass = []
+// function handleBatchUpdate() {
+//   proTableRef.value?.reload(); 
+//   originFineclass = tableData.value.filter(item => item.tags === 1)
+//     isEditing.value = !isEditing.value;
+//     batchAppraisalModalTitle.value = isEditing.value ? "取消重新评选" : "重新评选"
+//     if(!isEditing.value) {
+//       batchAppraisalModalVisible.value = false;
+//     }
+//     formatResponseList(tableData.value)
+// }
 
 async function handleBatchAppraisalSubmit(submitData) {
   // 精品有200个 需要比较 如果原来有 则将fine_class 设置为1 如果原来没有 则添加到精品中
-  const result = [
-  ...submitData,
-  ...originFineclass
-    .filter(originItem => !submitData.some(submitItem => submitItem.id === originItem.id))
-    .map(item => ({ ...item, tags: -1 }))
-];
+  // const result = [
+  // ...submitData
+  // ...originFineclass
+  //   .filter(originItem => !submitData.some(submitItem => submitItem.id === originItem.id))
+  //   .map(item => ({ ...item, tags: -1 }))
+// ];
   try {
-    const updateData =Array.from(result) ?.map(item => {
+    const updateData =Array.from(submitData) ?.map(item => {
       if(item) {
         return {
         appraisalId: item.id,
-        tags:item.tags=== -1? 0: 1,
-        fineTips: item.tags=== -1? 0: String(item.fineTips)
+        tags: 1,
+        fineTips: String(item.fineTips)
         }
       }
     });
-   await fetchAppraisalUpdate({items:updateData});
+    console.log('updateData', updateData)
+  //  await fetchAppraisalUpdate({items:updateData});
     // TODO: 调用实际批量更新接口
     $message.success('更新成功');
     proTableRef.value?.refresh();
     checkedRowKeys.value = [];
+    checkedRows.value = [];
   } catch (error) {
     console.error('更新失败:', error);
   }
+}
+
+function handleReset() {
+  // 保存需要保留的字段值（selectedDate 和 mainCategory）
+  const searchForm = proTableRef.value?.searchForm;
+  if (!searchForm) return;
+  const savedSelectedDate = searchForm.selectedDate;
+  const savedMainCategory = searchForm.mainCategory;
+  // 等待 ProTable 完成默认重置后，恢复需要保留的字段，并只重置指定的三个字段
+  nextTick(() => {
+    if (searchForm) {
+      // 恢复需要保留的字段
+      searchForm.selectedDate = savedSelectedDate;
+      searchForm.mainCategory = savedMainCategory;
+      
+      // 只重置指定的三个字段
+      searchForm.appraisalId = null;
+      searchForm.keyword = null;
+      searchForm.grade = null;
+      
+      // 触发搜索
+      proTableRef.value?.refresh();
+    }
+  });
 }
 
 </script>
