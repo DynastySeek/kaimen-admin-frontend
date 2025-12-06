@@ -259,20 +259,20 @@
       key: 'status',
       width: 120,
       render: (row) => {
-        if(row.status>0) {
-            const statusConfig = {
-          [CleansingClass.process]: { type: 'info' },
-          [CleansingClass.completed]: { type: 'success' },
-          [CleansingClass.closed]: { type: 'default' },
-        };
-        return h(NTag, {
-          type: statusConfig[row.status]?.type || 'default',
-        }, {
-          default: () => CleansingClassLabelMap[row.status] || '—',
-        }); 
-        } else {
-            return h('span', '—');
-        }
+        if (row.status <= 0) return '—';
+
+const typeMap = {
+  [CleansingClass.process]: 'info',
+  [CleansingClass.completed]: 'success',
+  [CleansingClass.closed]: 'default'
+};
+
+return h(
+  NTag,
+  { type: typeMap[row.status] || 'default' },
+  { default: () => CleansingClassLabelMap[row.status] || '—' }
+);
+
         
        
       },
