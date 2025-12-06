@@ -259,7 +259,8 @@
       key: 'status',
       width: 120,
       render: (row) => {
-        const statusConfig = {
+        if(row.status>0) {
+            const statusConfig = {
           [CleansingClass.process]: { type: 'info' },
           [CleansingClass.completed]: { type: 'success' },
           [CleansingClass.closed]: { type: 'default' },
@@ -267,8 +268,13 @@
         return h(NTag, {
           type: statusConfig[row.status]?.type || 'default',
         }, {
-          default: () => CleansingClassLabelMap[row.status] || '未知',
-        });
+          default: () => CleansingClassLabelMap[row.status] || '—',
+        }); 
+        } else {
+            return h('span', '—');
+        }
+        
+       
       },
     },
     {
