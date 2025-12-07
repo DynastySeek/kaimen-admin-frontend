@@ -33,7 +33,7 @@
 import { darkTheme, dateZhCN, zhCN } from 'naive-ui';
 import { PageMissing } from '@/components';
 import { useAppStore, useTabStore } from '@/stores';
-
+console.log('dev', import.meta.env.VITE_NODE_ENV )
 const layouts = new Map();
 function getLayout(name) {
   // 利用map将加载过的layout缓存起来，防止重新加载layout导致页面闪烁
