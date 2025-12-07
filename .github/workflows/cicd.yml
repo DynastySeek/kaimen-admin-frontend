@@ -38,6 +38,19 @@ jobs:
             type=sha,prefix={{branch}}-
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/develop' }}
 
+      - name: Set build mode
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/develop" ]; then
+            echo "BUILD_MODE=dev" >> $GITHUB_ENV
+            echo "Build mode set to: dev"
+          elif [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "BUILD_MODE=prod" >> $GITHUB_ENV
+            echo "Build mode set to: prod"
+          else
+            echo "BUILD_MODE=dev" >> $GITHUB_ENV
+            echo "Build mode set to: dev (default)"
+          fi
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -46,7 +59,7 @@ jobs:
           push: true
           no-cache: true
           build-args: |
-            BUILD_MODE=dev
+            BUILD_MODE=${{ env.BUILD_MODE }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
