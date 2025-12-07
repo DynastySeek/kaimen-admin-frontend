@@ -41,3 +41,14 @@ export const fetchAppraisalUpdate = data => alovaInstance.Post('/appraisal/updat
  * @returns {Promise<object>} 批量添加结果
  */
 export const fetchAppraisalResultAdd = data => alovaInstance.Post('/appraisal/result/add', data);
+/**
+ * 获取洗护列表
+ * @param {object} params - 查询参数
+ * @param {number} params.page - 页码，默认1
+ * @param {number} params.pageSize - 每页数量，默认20
+ * @returns {Promise<object>} 洗护列表
+ */
+export const fetchWashList = params => alovaInstance.Get('/v1/wash/getWashlist', { params });
+
+export const fetchWashUpate = data => alovaInstance.Post('/v1/wash/batchUpdate', data);
+

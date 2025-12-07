@@ -91,14 +91,14 @@ const searchFormItems = [
     placeholder: '请输入描述',
     span: 6,
   },
-  {
-    prop: 'expected_price',
-    label: '心理价位',
-    type: 'selectDictionary',
-    name: 'PriceRange',
-    placeholder: '请选择价格区间',
-    span: 6,
-  },
+  // {
+  //   prop: 'expected_price',
+  //   label: '心理价位',
+  //   type: 'selectDictionary',
+  //   name: 'PriceRange',
+  //   placeholder: '请选择价格区间',
+  //   span: 6,
+  // },
   // {
   //   prop: 'auth_phone',
   //   label: '授权手机号',

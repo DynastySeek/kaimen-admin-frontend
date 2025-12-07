@@ -31,7 +31,7 @@
           </div>
           <div class="appraisal-item1">
             <label> 描述</label>
-            <div>{{ row.description }}</div> 
+            <div>{{ row?.description }}</div> 
           </div>
           <div class="appraisal-item1">
             <label class="required">奖励</label>
@@ -182,8 +182,8 @@ watch(
     console.log('props.checkedRows', props.checkedRows)
     // 初始化新项的描述为空
     newRows.forEach((row) => {
-      if (!(row.id in itemDescriptions)) {
-        itemDescriptions[row.id] = row.description || '';
+      if (!(row?.id in itemDescriptions)) {
+        itemDescriptions[row?.id] = row?.description || '';
       }
     });
     // 清理已删除项的描述
@@ -202,14 +202,10 @@ watch(
  */
 function handleDelete(row) {
   // 从选中的行中移除该项
-  const index = props.checkedRowKeys.indexOf(row.id);
-  if (index > -1) {
-    const newKeys = [...props.checkedRowKeys];
-    newKeys.splice(index, 1);
-    emit('update:checked-row-keys', newKeys);
-    // 删除对应的描述
-    delete itemDescriptions[row.id];
-  }
+  const newRows = props.checkedRows.filter(item => item.id !== row.id);
+  emit('update:checked-row', newRows);
+  delete itemDescriptions[row.id];
+  
 }
 
 /**

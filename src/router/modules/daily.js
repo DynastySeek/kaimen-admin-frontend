@@ -1,3 +1,4 @@
+import { Permission } from '@/constants';
 
 /**
  * 每日精品评选
@@ -15,6 +16,7 @@ export const daily = [
       show: true,
       enable: true,
       order: 4,
+      code: Permission.Daily,
     },
      children: [
         {
@@ -26,6 +28,7 @@ export const daily = [
             keepAlive: true,
             show: true,
             enable: true,
+            code: Permission.DailyList,
           }
         },
 
@@ -38,6 +41,7 @@ export const daily = [
             keepAlive: true,
             show: true,
             enable: true,
+            code: Permission.Daily,
           }
         },
     ]

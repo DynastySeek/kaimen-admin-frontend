@@ -63,7 +63,7 @@ import { NButton, NSpace, NTag } from 'naive-ui';
 import { computed, h, ref, onMounted } from 'vue';
 import { getTempFileUrls } from '@/cloud';
 import { CommonPage, ProTable, SelectDictionary, VideoModal } from '@/components';
-import { AppraisalStatus, AppraisalStatusLabelMap, AppraisalBusinessTypeLabelMap } from '@/constants';
+import { AppraisalStatus, AppraisalStatusLabelMap, AppraisalBusinessTypeLabelMap,LevelLabelMap,LevelType, AppraisalResultLabelMap,AppraisalResult } from '@/constants';
 import { fetchAppraisalList, fetchAppraisalUpdate,fetchUserInfoById } from '@/services';
 import { useUserStore } from '@/stores';
 import { formatDateTime } from '@/utils';
@@ -76,8 +76,8 @@ const tabs = [
   { label: '全部', value: null },
   { label: '待鉴定', value: { status: AppraisalStatus.PendingAppraisal } },
   { label: '待用户完善', value: { status: AppraisalStatus.PendingCompletion } },
-  { label: '已完成，鉴定为真', value: { status: AppraisalStatus.Completed, resultList: AppraisalStatus.PendingAppraisal } },
-  { label: '已完成，鉴定为伪', value: { status: AppraisalStatus.Completed, resultList: AppraisalStatus.InProgress } },
+  { label: '已完成，鉴定为真', value: { status: AppraisalStatus.Completed, resultList: AppraisalResult.Authentic } },
+  { label: '已完成，鉴定为伪', value: { status: AppraisalStatus.Completed, resultList: AppraisalResult.Fake } },
   { label: '已驳回', value: { status: AppraisalStatus.Rejected } },
   { label: '已取消', value: { status: AppraisalStatus.Cancelled } },
 ];
@@ -105,7 +105,6 @@ const checkedRowKeys = ref([]);
 const checkedRows = ref([]);
 // 用户信息缓存
 const userInfoCache = ref(new Map());
-
 const fechTotal =async () => {
   try {
    const data1 =  await  fetchAppraisalList({pageSize:1,page:1,light:1, status:1})
@@ -126,9 +125,8 @@ const fechTotal =async () => {
 function formatSearchParams(params) {
   return omit({
     ...params,
-    orderByField:'updated_at',
-    order:'asc',
     ...(activeTab.value || {}),
+    resultList: params.grade!==null?1:null,
     light:moneyTab.value,
     startCreateDate: params.createTimeRange?.[0] ? formatDateTime(params.createTimeRange?.[0]) : null,
     endCreateDate: params.createTimeRange?.[1] ? formatDateTime(params.createTimeRange?.[1]) : null,
@@ -182,6 +180,15 @@ const searchFormItems = computed(() => [
     type: 'input',
     placeholder: '请输入鉴定ID',
     span: 6,
+  },
+  {
+    prop: 'grade',
+    label: '藏品价值等级',
+    type: 'selectDictionary',
+    name: 'LevelType',
+    placeholder: '请选择藏品价值等级',
+    span: 6,
+    hidden: !(activeTab?.value?.status==3&&activeTab.value.resultList==AppraisalResult.Authentic||activeTab.value==null)
   },
   {
     prop: 'businessType',
@@ -254,10 +261,14 @@ const searchFormItems = computed(() => [
   },
 ].filter(item => !item.hidden));
 
+
 const columns = computed(() => [
   {
     type: 'selection',
     fixed: 'left',
+    disabled(row) {
+      return !(row.status==1 || row?.modifyDeadLine)
+    }
   },
   {
     title: '鉴定ID',
@@ -295,6 +306,19 @@ const columns = computed(() => [
         maxDisplay: 4,
       });
     },
+  },
+  {
+    title: '藏品价值等级',
+    key: 'grade',
+    width: 200,
+    render: (row) => {
+      if(row?.result==1) {
+        return h('div', LevelLabelMap[row.grade]);
+      } else{
+      return '-';
+    }
+    },
+    hidden: !(activeTab?.value?.status==3&&activeTab.value.resultList==AppraisalResult.Authentic||activeTab.value==null)
   },
   {
     title: '类目',
@@ -349,12 +373,29 @@ const columns = computed(() => [
     key: 'createdAt',
     width: 160,
     render: ({ createdAt }) =>createdAt ? formatDateTime(createdAt):'-',
+    defaultSortOrder: 'ascend',
+    sorter: (row1, row2) => {
+      const t1 = row1.createdAt ? new Date(row1.createdAt).getTime() : 0
+      const t2 = row2.createdAt ? new Date(row2.createdAt).getTime() : 0
+      return t1 - t2
+    },
+    customNextSortOrder: (order) => {
+      return order === 'ascend' ? 'descend' : 'ascend'
+    }
   },
   {
     title: '最后修改时间',
     key: 'updatedAt',
     width: 160,
-    render: ({ updatedAt }) =>updatedAt? formatDateTime(updatedAt):'-',
+    render: ({ updatedAt }) => updatedAt ? formatDateTime(updatedAt) : '-',
+    sorter:(row1, row2) => {
+      const t1 = row1.updatedAt ? new Date(row1.updatedAt).getTime() : 0
+      const t2 = row2.updatedAt ? new Date(row2.updatedAt).getTime() : 0
+      return t1 - t2
+    },
+    customNextSortOrder: (order) => {
+      return order === 'ascend' ? 'descend' : 'ascend'
+    }
   },
   {
     title: '最后提交鉴定师',

@@ -24,6 +24,11 @@ export const Permission = {
   ArticleMgt: 'ArticleMgt',
   ArticleList: 'ArticleList',
   ArticleDetail: 'ArticleDetail',
+  AppraisalClean:'AppraisalClean',
+  Daily:'Daily',
+  DailyList:'DailyList',
+  ExchangeList:'ExchangeList',
+  ChatList:'ChatList',
 };
 
 export const PermissionLabelMap = {
@@ -40,6 +45,11 @@ export const PermissionLabelMap = {
   [Permission.ArticleMgt]: '文章管理',
   [Permission.ArticleList]: '文章列表',
   [Permission.ArticleDetail]: '文章详情',
+  [Permission.AppraisalClean]: '洗护列表',
+  [Permission.Daily]: '每日精品评选列表',
+  [Permission.DailyList]: '评选列表',
+  [Permission.ExchangeList]: '兑换列表',
+  [Permission.ChatList]: 'AI客服对话列表',
 };
 
 export const Gender = {
@@ -134,6 +144,18 @@ export const AppraisalClassLabelMap = {
   [AppraisalClass.QuWu]: '趣物',
 };
 
+export const CleansingClass = {
+  process: 1,
+  completed: 2,
+  closed: 3,
+};
+export const CleansingClassLabelMap = {
+  [CleansingClass.process]: '进行中',
+  [CleansingClass.completed]: '已完成',
+  [CleansingClass.closed]: '已关闭',
+};
+
+
 export const AppraisalResult = {
   Authentic: '1',
   Fake: '2',
@@ -211,4 +233,16 @@ export const AppraisalBusinessType = {
 export const AppraisalBusinessTypeLabelMap = {
   [AppraisalBusinessType.NORMAL]: '仅鉴定',
   [AppraisalBusinessType.SELL]: '我要卖',
+};
+
+export const LevelType = {
+  SLevel: '2',
+  ALevel: '1',
+  NORMAL: '0',
+};
+
+export const LevelLabelMap = {
+  [LevelType.SLevel]: 'S级珍品',
+  [LevelType.ALevel]: 'A级优品',
+  [LevelType.NORMAL]: '普品',
 };

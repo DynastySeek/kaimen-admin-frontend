@@ -38,6 +38,7 @@
   :virtual-scroll="virtualScroll"
   :max-height="virtualScroll ? maxHeight : undefined"
   @update:checked-row-keys="handleCheckedRowKeysChange"
+  
   />
   </div>
   <n-flex class="mt-10" justify="end">
@@ -122,7 +123,7 @@ const props = defineProps({
    },
   });
   
-const emit = defineEmits(['update:checked-row-keys', 'update:checked-row', 'update:total-data', 'update:total']);
+const emit = defineEmits(['update:checked-row-keys', 'update:checked-row', 'update:total-data', 'update:total', 'handle-reset']);
   
   const searchForm = reactive({});
   const tableData = ref([]);
@@ -206,18 +207,26 @@ const emit = defineEmits(['update:checked-row-keys', 'update:checked-row', 'upda
   }
   
   function handleReset() {
-   props.searchFormItems.forEach((item) => {
-     const defaultValue = item.value !== undefined ? item.value : null;
-     searchForm[item.prop] = defaultValue;
-   });
-   handleSearch();
+    // 触发 handle-reset 事件，让父组件可以自定义重置逻辑
+    // 如果事件处理函数返回 false，则跳过默认重置
+    const result = emit('handle-reset');
+    const shouldSkipDefault = Array.isArray(result) && result.includes(false);
+    
+    if (!shouldSkipDefault) {
+      // 默认重置所有字段
+      props.searchFormItems.forEach((item) => {
+        const defaultValue = item.value !== undefined ? item.value : null;
+        searchForm[item.prop] = defaultValue;
+      });
+      handleSearch();
+    }
   }
   
 function handleCheckedRowKeysChange(keys,rows, meta) {
- const keySet = new Set(keys);
- const selectedRows = tableData.value.filter(item => keySet.has(props.rowKey(item)));
+//  const keySet = new Set(keys);
+//  const selectedRows = tableData.value.filter(item => keySet.has(props.rowKey(item)));
  emit('update:checked-row-keys', keys,rows, meta);
- emit('update:checked-row', selectedRows);
+ emit('update:checked-row', rows,meta);
 }
   
   defineExpose({

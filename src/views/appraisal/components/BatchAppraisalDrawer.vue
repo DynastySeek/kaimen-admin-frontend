@@ -32,7 +32,24 @@
             </n-button>
           </n-gi>
         </n-grid>
-
+        <template v-if="[AppraisalResult.Authentic, QuWuInterest.Interesting].includes(formData.result)">
+          <div class="text-[#1560FA] font-bold">
+            第二步：请选择藏品价值等级 
+          </div>
+          <n-radio-group v-model:value="formData.grade" class="mb-2">
+            <n-grid :y-gap="8" :cols="3">
+              <n-gi v-for="option in levelOptions" :key="option.value">
+                <n-radio
+                :value="option.value"
+                :label="option.label"
+                size="small"/>
+              </n-gi>
+            </n-grid>
+          </n-radio-group>
+          <div v-if="levelError" class="text-red-500 text-[12px] mt-1">
+            {{ levelError }}
+          </div>
+        </template>
         <!-- 第二步：原因（选填） - 存疑状态 -->
         <template v-if="[AppraisalResult.Doubt].includes(formData.result)">
           <div class="text-[#1560FA] font-bold">
@@ -56,6 +73,9 @@
               maxRows: 3,
             }"
             size="small"
+            maxlength="30"
+            show-count
+            clearable 
           />
           <div v-if="reasonError" class="text-red-500 text-[12px] mt-1">
             {{ reasonError }}
@@ -83,16 +103,20 @@
               maxRows: 3,
             }"
             size="small"
+            maxlength="30"
+            show-count
+            clearable 
           />
           <div v-if="reasonError" class="text-red-500 text-[12px] mt-1">
         {{ reasonError }}
       </div>
         </template>
-
         <!-- 第二步：评语 -->
         <template v-else>
           <div class="text-[#1560FA] font-bold">
-            第二步：评语
+            {{ 
+          [AppraisalResult.Authentic, QuWuInterest.Interesting].includes(formData.result)?"第三步:评语":"第二步:评语"
+         }}
             {{ isRequired ? '' : '(选填)' }} 
           </div>
           <n-input
@@ -104,18 +128,17 @@
               maxRows: 3,
             }"
             size="small"
+            maxlength="200"
+            show-count
+            clearable 
           />
-          <div v-if="commentError" class="text-red-500 text-[12px] mt-1">
-        {{ commentError }}
-      </div>
+          <div v-if="commentError" class="text-red-500 text-[12px] mt-1">{{ commentError }}</div>
         </template>
-
         <!-- 选中的数据信息 -->
         <div class="text-[12px] text-[#666]">
           已选中 {{ checkedRowKeys.length }} 条数据
         </div>
       </n-space>
-
       <template #footer>
         <n-space>
           <n-button @click="handleCancel">
@@ -137,7 +160,7 @@
 
 <script setup>
 import { computed, reactive, ref, watch } from 'vue';
-import { AppraisalClass,AppraisalResult, AppraisalResultLabelMap, AppraisalStatus, QuWuInterest, QuWuInterestLabelMap } from '@/constants';
+import { AppraisalClass,AppraisalResult, AppraisalResultLabelMap, AppraisalStatus, QuWuInterest, QuWuInterestLabelMap, LevelType, LevelLabelMap } from '@/constants';
 import { fetchAppraisalResultAdd, fetchAppraisalUpdate } from '@/services';
 
 const props = defineProps({
@@ -162,7 +185,16 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:show', 'submit']);
-
+const levelOptions =[{
+  label: LevelLabelMap[LevelType.SLevel],
+  value: LevelType.SLevel,
+}, {
+  label: LevelLabelMap[LevelType.ALevel],
+  value: LevelType.ALevel,
+}, {
+  label: LevelLabelMap[LevelType.NORMAL],
+  value: LevelType.NORMAL,  
+}]
 // 原因选项配置
 const doubtReasonOptions = [
   { label: '需补充正面图片', value: '需补充正面图片' },
@@ -188,10 +220,16 @@ const commentError = computed(() => {
       formData.result === AppraisalResult.Fake) {
     return formData.comment.trim() ? '' : '请输入评语';
   }
-
   return '';
 });
 
+const levelError = computed(() => {
+  if (formData.result === AppraisalResult.Authentic ||
+      formData.result === QuWuInterest.Interesting) {
+    return formData.grade ? '' : '请选择藏品价值等级';
+  }
+  return '';
+});
 const reasonError = computed(() => {
   if (!isRequired.value) return '';
 
@@ -239,6 +277,7 @@ const formData = reactive({
   result: null,
   comment: '',
   reasons: [],
+  grade: null,
 });
 
 // 提交状态
@@ -268,19 +307,18 @@ async function handleSubmit() {
   if (!formData.result) {
     return;
   }
-
   if (commentError.value) {
     return;
   }
-
   // 校验原因
   if (reasonError.value) {
     return;
   }
+  if(levelError.value) {
+    return;
+  }
   isSubmitting.value = true;
-
   try {
-
     // 构建批量鉴定结果数据
     const resultItems = props.checkedRows.map(item => ({
       appraisalId: item.id,
@@ -307,6 +345,7 @@ async function handleSubmit() {
       appraisalId: item.id,
       mainCategory: item.mainCategory,
       status: appraisal_status,
+      grade: Number(formData.grade),
     }));
     try {
       console.log('resultItems', resultItems)

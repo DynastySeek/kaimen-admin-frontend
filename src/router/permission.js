@@ -35,12 +35,12 @@ export function createPermissionGuard(router) {
     }
 
     // 检查 ExchangeList 路由权限：只有超级管理员可以访问
-    if (to.name === 'ExchangeList') {
-      const isSuperAdmin = userStore.userInfo?.role === Role.SuperAdmin;
-      if (!isSuperAdmin) {
-         return { name: '403', query: { path: to.fullPath } };
-      }
-    }
+    // if (to.name === 'ExchangeList') {
+    //   const isSuperAdmin = userStore.userInfo?.role === Role.SuperAdmin;
+    //   if (!isSuperAdmin) {
+    //      return { name: '403', query: { path: to.fullPath } };
+    //   }
+    // }
 
     const routes = router.getRoutes();
     if (routes.find(route => route.name === to.name)) {
