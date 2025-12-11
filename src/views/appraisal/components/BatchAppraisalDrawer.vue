@@ -249,9 +249,15 @@ const visible = computed({
   set: value => emit('update:show', value),
 });
 let isQuWu =ref(false)
+
+watch(() => props.checkedRowKeys, (newVal) => {
+  console.log('checkedRowKeys', props.checkedRowKeys)
+}, { deep: true, immediate: true })
+
 watch(() => props.checkedRows, (newVal) => {
-  isQuWu.value =  newVal?.some(row => Number(row.mainCategory) == Number(AppraisalClass.QuWu))
-  isRequired.value = newVal?.some(row => row.light == 1)
+  console.log('newVal', props.checkedRows)
+  isQuWu.value =  newVal?.some(row => Number(row?.mainCategory) == Number(AppraisalClass?.QuWu))
+  isRequired.value = newVal?.some(row => row?.light == 1)
 }, { deep: true, immediate: true })
 
 // const resultLabelMap = computed(() => (isQuWu.value ? QuWuInterestLabelMap : AppraisalResultLabelMap));
@@ -319,14 +325,15 @@ async function handleSubmit() {
   }
   isSubmitting.value = true;
   try {
+    console.log('props.checkedRows', props.checkedRows)
     // 构建批量鉴定结果数据
     const resultItems = props.checkedRows.map(item => ({
-      appraisalId: item.id,
+      appraisalId: item?.id,
       result: Number(formData.result),
       comment: formData.comment,
       reason: formData.reasons,
       customReason: '',
-      userId: item.userId,
+      userId: item?.userId,
     }));
 
     // 构建批量状态更新数据
@@ -340,15 +347,16 @@ async function handleSubmit() {
     } else if (formData.result === AppraisalResult.Rejected) {
       appraisal_status = AppraisalStatus.Rejected;
     }
-
+  
     const updateItems = props.checkedRows.map(item => ({
-      appraisalId: item.id,
-      mainCategory: item.mainCategory,
+      appraisalId: item?.id,
+      mainCategory: item?.mainCategory,
       status: appraisal_status,
       grade: Number(formData.grade),
     }));
+   
+  
     try {
-      console.log('resultItems', resultItems)
       await fetchAppraisalResultAdd({ items: resultItems });
     } catch (error) {
       console.error('批量更新鉴定状态失败:', error);

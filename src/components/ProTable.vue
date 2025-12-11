@@ -34,7 +34,7 @@
   :loading="loading"
   :scroll-x="1400"
   :row-key="rowKey"
-  :checked-row-keys="checkedRowKeys"
+  :checked-row-keys="computedCheckedRowKeys"
   :virtual-scroll="virtualScroll"
   :max-height="virtualScroll ? maxHeight : undefined"
   @update:checked-row-keys="handleCheckedRowKeysChange"
@@ -128,11 +128,27 @@ const emit = defineEmits(['update:checked-row-keys', 'update:checked-row', 'upda
   const searchForm = reactive({});
   const tableData = ref([]);
   
+  // 缓存选中的行键和行数据（跨页面保持）
+  const checkedRowKeysCache = ref(new Set());
+  const checkedRowCache = ref(new Map()); // 使用 Map 存储 rowKey -> rowData 的映射
+  
   const computedSearchFormItems = computed(() => {
    return props.searchFormItems.map(item => ({
      ...item,
      span: item.span || 6,
    }));
+  });
+  
+  // 计算当前页面应该显示的选中行键（只显示当前页面的选中项）
+  const computedCheckedRowKeys = computed(() => {
+    const currentPageKeys = [];
+    tableData.value.forEach((row) => {
+      const key = props.rowKey(row);
+      if (checkedRowKeysCache.value.has(key)) {
+        currentPageKeys.push(key);
+      }
+    });
+    return currentPageKeys;
   });
   
   // 初始化搜索表单
@@ -190,7 +206,37 @@ const emit = defineEmits(['update:checked-row-keys', 'update:checked-row', 'upda
     }
 
     tableData.value = tableList;
+    
+    // 数据更新后，从缓存中恢复当前页面的选中状态
+    restoreCheckedRowsFromCache();
   });
+  
+  /**
+   * 从缓存中恢复当前页面的选中状态
+   */
+  function restoreCheckedRowsFromCache() {
+    const currentPageKeys = [];
+    const currentPageRows = [];
+    
+    // 遍历当前页面的数据，检查哪些在缓存中
+    tableData.value.forEach((row) => {
+      const key = props.rowKey(row);
+      if (checkedRowKeysCache.value.has(key)) {
+        currentPageKeys.push(key);
+        // 优先使用缓存中的行数据，如果没有则使用当前行的数据
+        const cachedRow = checkedRowCache.value.get(key);
+        currentPageRows.push(cachedRow || row);
+      }
+    });
+    
+    // 合并当前页面的选中状态和缓存中其他页面的选中状态
+    const allCheckedKeys = Array.from(checkedRowKeysCache.value);
+    const allCheckedRows = Array.from(checkedRowCache.value.values());
+    
+    // 触发更新事件，通知父组件
+    emit('update:checked-row-keys', allCheckedKeys, allCheckedRows, { source: 'restore' });
+    emit('update:checked-row', allCheckedRows, { source: 'restore' });
+  }
   
   function handlePageChange(newPage) {
    page.value = newPage;
@@ -218,20 +264,89 @@ const emit = defineEmits(['update:checked-row-keys', 'update:checked-row', 'upda
         const defaultValue = item.value !== undefined ? item.value : null;
         searchForm[item.prop] = defaultValue;
       });
+      // 重置时清空选中缓存
+      clearCheckedCache();
       handleSearch();
     }
   }
   
-function handleCheckedRowKeysChange(keys,rows, meta) {
-//  const keySet = new Set(keys);
-//  const selectedRows = tableData.value.filter(item => keySet.has(props.rowKey(item)));
- emit('update:checked-row-keys', keys,rows, meta);
- emit('update:checked-row', rows,meta);
+  /**
+   * 清空选中缓存
+   */
+  function clearCheckedCache() {
+    checkedRowKeysCache.value.clear();
+    checkedRowCache.value.clear();
+    emit('update:checked-row-keys', [], [], { source: 'clear' });
+    emit('update:checked-row', [], { source: 'clear' });
+  }
+  
+function handleCheckedRowKeysChange(keys, rows, meta) {
+  // 更新缓存
+  const keySet = new Set(keys);
+  
+  // 更新 checkedRowKeysCache：添加新选中的，移除取消选中的
+  // 先移除当前页面中不在 keys 中的项
+  tableData.value.forEach((row) => {
+    const key = props.rowKey(row);
+    if (!keySet.has(key) && checkedRowKeysCache.value.has(key)) {
+      // 取消选中：从缓存中移除
+      checkedRowKeysCache.value.delete(key);
+      checkedRowCache.value.delete(key);
+    } else if (keySet.has(key)) {
+      // 选中：添加到缓存（使用当前页面的最新数据）
+      checkedRowKeysCache.value.add(key);
+      checkedRowCache.value.set(key, row);
+    }
+  });
+  
+  // 如果传入了 rows 参数，使用它来更新缓存（确保使用最新的行数据）
+  if (rows && Array.isArray(rows) && rows.length > 0) {
+    rows.forEach((row) => {
+      const key = props.rowKey(row);
+      if (keySet.has(key)) {
+        checkedRowKeysCache.value.add(key);
+        checkedRowCache.value.set(key, row);
+      }
+    });
+  }
+  
+  // 合并所有页面的选中状态（包括当前页面和其他页面的缓存）
+  const allCheckedKeys = Array.from(checkedRowKeysCache.value);
+  const allCheckedRows = Array.from(checkedRowCache.value.values());
+  
+  // 触发更新事件
+  emit('update:checked-row-keys', allCheckedKeys, allCheckedRows, meta);
+  emit('update:checked-row', allCheckedRows, meta);
 }
+  
+  // 监听外部传入的 checkedRowKeys 变化，同步到缓存（用于外部清空等操作）
+  watch(
+    () => props.checkedRowKeys,
+    (newKeys) => {
+      if (newKeys && newKeys.length === 0 && checkedRowKeysCache.value.size > 0) {
+        // 如果外部传入空数组，清空缓存
+        clearCheckedCache();
+      } else if (newKeys && newKeys.length > 0) {
+        // 如果外部传入新的选中项，更新缓存（但不覆盖已有的）
+        const newKeySet = new Set(newKeys);
+        newKeySet.forEach((key) => {
+          if (!checkedRowKeysCache.value.has(key)) {
+            checkedRowKeysCache.value.add(key);
+          }
+        });
+      }
+    },
+    { immediate: true }
+  );
   
   defineExpose({
    refresh: fetchList,
    reload,
    searchForm,
+   clearCheckedCache, // 暴露清空缓存的方法
+   getCheckedCache: () => ({
+     keys: Array.from(checkedRowKeysCache.value),
+     rows: Array.from(checkedRowCache.value.values())
+   }), // 暴露获取缓存的方法
   });
   </script>

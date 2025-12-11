@@ -123,7 +123,6 @@ const fechTotal =async () => {
  */
 
 function formatSearchParams(params) {
-  console.log('params', params)
   return omit({
     ...params,
     ...(activeTab.value || {}),
