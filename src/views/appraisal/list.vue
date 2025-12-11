@@ -123,10 +123,12 @@ const fechTotal =async () => {
  */
 
 function formatSearchParams(params) {
+ const grade = activeTab?.value?.status==3&&activeTab.value.resultList==AppraisalResult.Authentic||activeTab.value==null?params.grade:null;
   return omit({
     ...params,
     ...(activeTab.value || {}),
-    resultList: params.grade?1:activeTab.value?.resultList,
+    grade:grade,
+    resultList: grade?1:activeTab.value?.resultList,
     light:moneyTab.value,
     startCreateDate: params.createTimeRange?.[0] ? formatDateTime(params.createTimeRange?.[0]) : null,
     endCreateDate: params.createTimeRange?.[1] ? formatDateTime(params.createTimeRange?.[1]) : null,
