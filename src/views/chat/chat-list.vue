@@ -296,7 +296,7 @@
               </n-space>
             </n-card>
             <!-- 聊天消息区域 -->
-            <n-scrollbar class="chat-scroll"  ref="chatScrollbarRef" c style="flex: 1;" >
+            <n-scrollbar class="chat-scroll"  ref="chatScrollbarRef"  style="flex: 1;" >
               <n-spin :show="loadingState.loadingClosed && isHistoryView" size="large">
                 <template #description>
                   正在加载历史聊天记录...
