@@ -356,16 +356,16 @@ async function handleSubmit() {
     }));
    
 
-    // try {
-    //   await fetchAppraisalResultAdd({ items: resultItems });
-    // } catch (error) {
-    //   console.error('批量更新鉴定状态失败:', error);
-    // }
-    // try {
-    //   await fetchAppraisalUpdate({items:updateItems});
-    // } catch (error) {
-    //   console.error('批量更新鉴定状态失败:', error);
-    // }
+    try {
+      await fetchAppraisalResultAdd({ items: resultItems });
+    } catch (error) {
+      console.error('批量更新鉴定状态失败:', error);
+    }
+    try {
+      await fetchAppraisalUpdate({items:updateItems});
+    } catch (error) {
+      console.error('批量更新鉴定状态失败:', error);
+    }
    
     // 批量更新鉴定状态
   
