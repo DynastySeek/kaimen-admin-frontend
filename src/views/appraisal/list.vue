@@ -123,7 +123,6 @@ const fechTotal =async () => {
  */
 
 function formatSearchParams(params) {
-  console.log(params)
  const grade = activeTab?.value?.status==3&&activeTab.value.resultList==AppraisalResult.Authentic||activeTab.value==null?params.grade:null;
   return omit({
     ...params,
