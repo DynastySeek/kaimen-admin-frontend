@@ -34,7 +34,7 @@
   :loading="loading"
   :scroll-x="1400"
   :row-key="rowKey"
-  :checked-row-keys="computedCheckedRowKeys"
+  :checked-row-keys="Array.from(checkedRowKeysCache)"
   :virtual-scroll="virtualScroll"
   :max-height="virtualScroll ? maxHeight : undefined"
   @update:checked-row-keys="handleCheckedRowKeysChange"
@@ -138,19 +138,6 @@ const emit = defineEmits(['update:checked-row-keys', 'update:checked-row', 'upda
      span: item.span || 6,
    }));
   });
-  
-  // 计算当前页面应该显示的选中行键（只显示当前页面的选中项）
-  const computedCheckedRowKeys = computed(() => {
-    const currentPageKeys = [];
-    tableData.value.forEach((row) => {
-      const key = props.rowKey(row);
-      if (checkedRowKeysCache.value.has(key)) {
-        currentPageKeys.push(key);
-      }
-    });
-    return currentPageKeys;
-  });
-  
   // 初始化搜索表单
   function initSearchForm() {
    props.searchFormItems.forEach((item) => {
