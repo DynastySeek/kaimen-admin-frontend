@@ -126,7 +126,7 @@ function formatSearchParams(params) {
   return omit({
     ...params,
     ...(activeTab.value || {}),
-    resultList: params.grade!==null?1:null,
+    resultList: params.grade?1:activeTab.value?.resultList,
     light:moneyTab.value,
     startCreateDate: params.createTimeRange?.[0] ? formatDateTime(params.createTimeRange?.[0]) : null,
     endCreateDate: params.createTimeRange?.[1] ? formatDateTime(params.createTimeRange?.[1]) : null,

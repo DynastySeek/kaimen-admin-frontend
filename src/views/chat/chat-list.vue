@@ -296,7 +296,7 @@
               </n-space>
             </n-card>
             <!-- 聊天消息区域 -->
-            <n-scrollbar class="chat-scroll"  ref="chatScrollbarRef" c style="flex: 1;" >
+            <n-scrollbar class="chat-scroll"  ref="chatScrollbarRef"  style="flex: 1;"  @scroll="handleScroll" @touchstart="handleTouchStart" @touchmove="handleTouchMove" @touchend="handleTouchEnd" @mouseup="handleMouseUp" @mousemove="handleMouseMove" @mousedown="handleMouseDown">
               <n-spin :show="loadingState.loadingClosed && isHistoryView" size="large">
                 <template #description>
                   正在加载历史聊天记录...
@@ -310,6 +310,7 @@
                <div
                  v-for="(message, index) in baseInfo.chatListData"
                  :key="message.id || index"
+                 :id="`message-${index}`"
                  class="chat-entry"
                >
                    <div v-if="message.query" class="chat-message user">
@@ -343,9 +344,9 @@
                    </div>
                  </div>
                </div>
-               <div v-if="hasmore&&expandedName==='user'" style="width: 100%;display: flex;justify-content: center;">
+               <!-- <div v-if="hasmore&&expandedName==='user'" style="width: 100%;display: flex;justify-content: center;">
                 <n-button type="tertiary" @click="refreshUserConversations">加载更多</n-button>
-              </div>
+              </div> -->
              </div>
               </n-spin>
             </n-scrollbar>
@@ -559,6 +560,41 @@ async function refreshActiveConversations() {
  * 刷新已结束会话列表
  * 获取所有已关闭的历史会话
  */
+function handleTouchStart(event) {
+  console.log('touchstart', event)
+}
+function handleTouchMove(event) {
+  console.log('touchmove', event)
+}
+function handleTouchEnd(event) {
+  console.log('touchend', event)
+}
+let startY = 0 
+let endY = 0
+
+function handleMouseUp(event) {
+  endY = event?.clientY;
+  if(endY - startY> 20){
+    refreshUserConversations()
+  }
+}
+function handleMouseMove(params) {
+  // console.log('handleMouseMove', event)
+}
+function handleMouseDown(event) {
+  console.log('handleMouseDown', event?.clientY)
+  startY = event?.clientY;
+  console.log('mousedown', event)
+}
+ function handleScroll(event) {
+  const scrollContent = event.target
+  // console.log(event, scrollContent)
+  if(scrollContent.scrollTop<10){
+    // refreshUserConversations()
+    console.log('加载更多')
+  }
+  // console.log(event.target.scrollTop)
+ }
 async function refreshClosedConversations() {
   loadingState.loadingClosed = true;
   const result = await callApi('/console/api/human-service/conversations?status=closed');
@@ -571,13 +607,17 @@ async function refreshClosedConversations() {
   loadingState.loadingClosed = false;
 }
 const searchKeyword = ref('');
-const hasmore = ref(false);
-const lastTimeRange = ref(null)
+const hasmore = ref(true);
+let lastTimeRange = null
 async function refreshUserConversations(init) {
   if(init==='init'){
     baseInfo.chatListData = [];
-    lastTimeRange.value = null;
-    hasmore.value = false;
+    lastTimeRange = null;
+    hasmore.value = true;
+  }
+  if(!hasmore.value) {
+    $message.success('已经加载全部历史聊天记录')
+    return
   }
   isHistoryView.value = true
   baseInfo.userInfo =  searchKeyword.value
@@ -585,14 +625,19 @@ async function refreshUserConversations(init) {
   baseInfo.currentUserId= searchKeyword.value
   const params = {
     user: searchKeyword.value,
-    last_conversation_updated_at: lastTimeRange.value?.conversation_updated_at,
-    last_message_created_at: lastTimeRange.value?.created_at,
+    last_conversation_updated_at: lastTimeRange?.conversation_updated_at,
+    last_message_created_at: lastTimeRange?.created_at,
   }
   const result = await userConversatioList(params);
   if (result) {
-    baseInfo.chatListData=[...baseInfo.chatListData, ...result.data] || [];
-    lastTimeRange.value = result.data[result.data.length-1];
+    lastTimeRange = result.data[result.data.length-1];
+    const temp = result.data.reverse()
+    baseInfo.chatListData=[...temp,...baseInfo.chatListData, ] || [];
     hasmore.value = result.has_more;
+    if(!result.has_more) {
+      $message.success('已经加载全部历史聊天记录')
+    } 
+    scrollToIndex(result.data.length-1)
   }
   loadingState.loadingClosed = false;
 }
@@ -616,13 +661,25 @@ async function refreshAll() {
  * 滚动聊天区域到底部
  * 用于在加载历史记录或添加新消息后自动滚动到底部
  */
+ function scrollToIndex(index) {
+  nextTick(() => {
+    requestAnimationFrame(() => {
+      // const scrollContent = document.querySelector('.n-scrollbar-content')
+      chatScrollbarRef.value?.scrollTo({
+          top: document.getElementById(`message-${index}`).offsetTop || 10000,
+          // behavior: 'smooth'
+        })
+    });
+  });
+}
+
 function scrollToBottom(event) {
   nextTick(() => {
     requestAnimationFrame(() => {
       const scrollContent = document.querySelector('.n-scrollbar-content')
       chatScrollbarRef.value?.scrollTo({
           top:scrollContent.scrollHeight || 10000,
-          behavior: 'smooth'
+          // behavior: 'smooth'
         })
     });
   });
