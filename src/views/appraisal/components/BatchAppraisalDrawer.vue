@@ -255,7 +255,6 @@ watch(() => props.checkedRowKeys, (newVal) => {
 }, { deep: true, immediate: true })
 
 watch(() => props.checkedRows, (newVal) => {
-  console.log('newVal', props.checkedRows)
   isQuWu.value =  newVal?.some(row => Number(row?.mainCategory) == Number(AppraisalClass?.QuWu))
   isRequired.value = newVal?.some(row => row?.light == 1)
 }, { deep: true, immediate: true })
