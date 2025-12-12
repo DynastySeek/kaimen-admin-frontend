@@ -251,7 +251,6 @@ const visible = computed({
 let isQuWu =ref(false)
 
 watch(() => props.checkedRowKeys, (newVal) => {
-  console.log('checkedRowKeys', props.checkedRowKeys)
 }, { deep: true, immediate: true })
 
 watch(() => props.checkedRows, (newVal) => {
@@ -355,16 +354,16 @@ async function handleSubmit() {
     }));
    
 
-    try {
-      await fetchAppraisalResultAdd({ items: resultItems });
-    } catch (error) {
-      console.error('批量更新鉴定状态失败:', error);
-    }
-    try {
-      await fetchAppraisalUpdate({items:updateItems});
-    } catch (error) {
-      console.error('批量更新鉴定状态失败:', error);
-    }
+    // try {
+    //   await fetchAppraisalResultAdd({ items: resultItems });
+    // } catch (error) {
+    //   console.error('批量更新鉴定状态失败:', error);
+    // }
+    // try {
+    //   await fetchAppraisalUpdate({items:updateItems});
+    // } catch (error) {
+    //   console.error('批量更新鉴定状态失败:', error);
+    // }
    
     // 批量更新鉴定状态
   
