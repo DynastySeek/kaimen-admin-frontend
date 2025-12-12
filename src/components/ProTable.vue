@@ -236,7 +236,7 @@ const emit = defineEmits(['update:checked-row-keys', 'update:checked-row', 'upda
     console.log(props.rowKey(meta.row))
     // 更新或添加新的选中行数据
     keys.forEach(key => {
-      console.log('rows')
+      console.log('rowssss')
       const row = rows.find(row => row && (props.rowKey(row)=== key));
       if (row) {
         checkedRowsCache.value.set(key, row);
