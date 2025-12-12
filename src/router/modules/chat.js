@@ -17,4 +17,17 @@ export const chat = [
     },
     component: () => import('@/views/chat/chat-list.vue'),
   },
+  {
+    name: 'chat1',
+    path: '/chat/chat',
+    meta: {
+      title: '新版AI客服对话列表',
+      icon: 'i-fe:chat',
+      show: true,
+      enable: true,
+      order: 4,
+      code: Permission.ChatList,
+    },
+    component: () => import('@/views/chat/chat-chat.vue'),
+  },
 ];
