@@ -179,7 +179,6 @@ const isSubmitting = ref(false);
 watch(
   () => props.checkedRows,
   (newRows) => {
-    console.log('props.checkedRows', props.checkedRows)
     // 初始化新项的描述为空
     newRows.forEach((row) => {
       if (!(row?.id in itemDescriptions)) {

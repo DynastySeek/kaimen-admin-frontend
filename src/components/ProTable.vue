@@ -34,7 +34,7 @@
   :loading="loading"
   :scroll-x="1400"
   :row-key="rowKey"
-  :checked-row-keys="Array.from(checkedRowKeysCache)"
+  :checked-row-keys="checkedRowKeys"
   :virtual-scroll="virtualScroll"
   :max-height="virtualScroll ? maxHeight : undefined"
   @update:checked-row-keys="handleCheckedRowKeysChange"
@@ -128,16 +128,13 @@ const emit = defineEmits(['update:checked-row-keys', 'update:checked-row', 'upda
   const searchForm = reactive({});
   const tableData = ref([]);
   
-  // 缓存选中的行键和行数据（跨页面保持）
-  const checkedRowKeysCache = ref(new Set());
-  const checkedRowCache = ref(new Map()); // 使用 Map 存储 rowKey -> rowData 的映射
-  
   const computedSearchFormItems = computed(() => {
    return props.searchFormItems.map(item => ({
      ...item,
      span: item.span || 6,
    }));
   });
+  
   // 初始化搜索表单
   function initSearchForm() {
    props.searchFormItems.forEach((item) => {
@@ -193,37 +190,7 @@ const emit = defineEmits(['update:checked-row-keys', 'update:checked-row', 'upda
     }
 
     tableData.value = tableList;
-    
-    // 数据更新后，从缓存中恢复当前页面的选中状态
-    restoreCheckedRowsFromCache();
   });
-  
-  /**
-   * 从缓存中恢复当前页面的选中状态
-   */
-  function restoreCheckedRowsFromCache() {
-    const currentPageKeys = [];
-    const currentPageRows = [];
-    
-    // 遍历当前页面的数据，检查哪些在缓存中
-    tableData.value.forEach((row) => {
-      const key = props.rowKey(row);
-      if (checkedRowKeysCache.value.has(key)) {
-        currentPageKeys.push(key);
-        // 优先使用缓存中的行数据，如果没有则使用当前行的数据
-        const cachedRow = checkedRowCache.value.get(key);
-        currentPageRows.push(cachedRow || row);
-      }
-    });
-    
-    // 合并当前页面的选中状态和缓存中其他页面的选中状态
-    const allCheckedKeys = Array.from(checkedRowKeysCache.value);
-    const allCheckedRows = Array.from(checkedRowCache.value.values());
-    
-    // 触发更新事件，通知父组件
-    emit('update:checked-row-keys', allCheckedKeys, allCheckedRows, { source: 'restore' });
-    emit('update:checked-row', allCheckedRows, { source: 'restore' });
-  }
   
   function handlePageChange(newPage) {
    page.value = newPage;
@@ -251,89 +218,40 @@ const emit = defineEmits(['update:checked-row-keys', 'update:checked-row', 'upda
         const defaultValue = item.value !== undefined ? item.value : null;
         searchForm[item.prop] = defaultValue;
       });
-      // 重置时清空选中缓存
-      clearCheckedCache();
       handleSearch();
     }
   }
+  // checkedRows 缓存，使用 Map 存储 key -> row 的映射
+  const checkedRowsCache = ref(new Map());
   
-  /**
-   * 清空选中缓存
-   */
-  function clearCheckedCache() {
-    checkedRowKeysCache.value.clear();
-    checkedRowCache.value.clear();
-    emit('update:checked-row-keys', [], [], { source: 'clear' });
-    emit('update:checked-row', [], { source: 'clear' });
-  }
-  
-function handleCheckedRowKeysChange(keys, rows, meta) {
-  // 更新缓存
-  const keySet = new Set(keys);
-  
-  // 更新 checkedRowKeysCache：添加新选中的，移除取消选中的
-  // 先移除当前页面中不在 keys 中的项
-  tableData.value.forEach((row) => {
-    const key = props.rowKey(row);
-    if (!keySet.has(key) && checkedRowKeysCache.value.has(key)) {
-      // 取消选中：从缓存中移除
-      checkedRowKeysCache.value.delete(key);
-      checkedRowCache.value.delete(key);
-    } else if (keySet.has(key)) {
-      // 选中：添加到缓存（使用当前页面的最新数据）
-      checkedRowKeysCache.value.add(key);
-      checkedRowCache.value.set(key, row);
-    }
-  });
-  
-  // 如果传入了 rows 参数，使用它来更新缓存（确保使用最新的行数据）
-  if (rows && Array.isArray(rows) && rows.length > 0) {
-    rows.forEach((row) => {
-      const key = props.rowKey(row);
-      if (keySet.has(key)) {
-        checkedRowKeysCache.value.add(key);
-        checkedRowCache.value.set(key, row);
+  function handleCheckedRowKeysChange(keys, rows, meta) {
+    // 更新 checkedRows 缓存
+    // 先清除不在当前 keys 中的缓存项
+    console.log('checkedRowsCache',keys, rows, checkedRowsCache.value)
+    checkedRowsCache.value.forEach((_, key) => {
+      if (!keys.includes(key)) {
+        checkedRowsCache.value.delete(key);
       }
     });
-  }
-  
-  // 合并所有页面的选中状态（包括当前页面和其他页面的缓存）
-  const allCheckedKeys = Array.from(checkedRowKeysCache.value);
-  const allCheckedRows = Array.from(checkedRowCache.value.values());
-  
-  // 触发更新事件
-  emit('update:checked-row-keys', allCheckedKeys, allCheckedRows, meta);
-  emit('update:checked-row', allCheckedRows, meta);
-}
-  
-  // 监听外部传入的 checkedRowKeys 变化，同步到缓存（用于外部清空等操作）
-  watch(
-    () => props.checkedRowKeys,
-    (newKeys) => {
-      if (newKeys && newKeys.length === 0 && checkedRowKeysCache.value.size > 0) {
-        // 如果外部传入空数组，清空缓存
-        clearCheckedCache();
-      } else if (newKeys && newKeys.length > 0) {
-        // 如果外部传入新的选中项，更新缓存（但不覆盖已有的）
-        const newKeySet = new Set(newKeys);
-        newKeySet.forEach((key) => {
-          if (!checkedRowKeysCache.value.has(key)) {
-            checkedRowKeysCache.value.add(key);
-          }
-        });
+    console.log(props.rowKey(meta.row))
+    // 更新或添加新的选中行数据
+    keys.forEach(key => {
+      console.log('rowssss')
+      const row = rows.find(row => row && (props.rowKey(row)=== key));
+      if (row) {
+        checkedRowsCache.value.set(key, row);
       }
-    },
-    { immediate: true }
-  );
+    });
+    // 根据 keys 生成 checkedRows 数组
+    const checkedRows = keys.map(key => checkedRowsCache.value.get(key)).filter(Boolean);
+    // 触发事件，不影响原本的 checked-row-keys 逻辑
+    emit('update:checked-row-keys', keys, checkedRows,meta);
+    emit('update:checked-row', checkedRows,meta);
+  }
   
   defineExpose({
    refresh: fetchList,
    reload,
    searchForm,
-   clearCheckedCache, // 暴露清空缓存的方法
-   getCheckedCache: () => ({
-     keys: Array.from(checkedRowKeysCache.value),
-     rows: Array.from(checkedRowCache.value.values())
-   }), // 暴露获取缓存的方法
   });
   </script>

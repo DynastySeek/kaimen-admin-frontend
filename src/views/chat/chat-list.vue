@@ -296,7 +296,7 @@
               </n-space>
             </n-card>
             <!-- 聊天消息区域 -->
-            <n-scrollbar class="chat-scroll"  ref="chatScrollbarRef"  style="flex: 1;"  @scroll="handleScroll" @touchstart="handleTouchStart" @touchmove="handleTouchMove" @touchend="handleTouchEnd" @mouseup="handleMouseUp" @mousemove="handleMouseMove" @mousedown="handleMouseDown">
+            <n-scrollbar class="chat-scroll"  ref="chatScrollbarRef"  style="flex: 1;" @mouseup="handleMouseUp" @mousedown="handleMouseDown">
               <n-spin :show="loadingState.loadingClosed && isHistoryView" size="large">
                 <template #description>
                   正在加载历史聊天记录...
@@ -560,15 +560,6 @@ async function refreshActiveConversations() {
  * 刷新已结束会话列表
  * 获取所有已关闭的历史会话
  */
-function handleTouchStart(event) {
-  console.log('touchstart', event)
-}
-function handleTouchMove(event) {
-  console.log('touchmove', event)
-}
-function handleTouchEnd(event) {
-  console.log('touchend', event)
-}
 let startY = 0 
 let endY = 0
 
@@ -578,23 +569,9 @@ function handleMouseUp(event) {
     refreshUserConversations()
   }
 }
-function handleMouseMove(params) {
-  // console.log('handleMouseMove', event)
-}
 function handleMouseDown(event) {
-  console.log('handleMouseDown', event?.clientY)
   startY = event?.clientY;
-  console.log('mousedown', event)
 }
- function handleScroll(event) {
-  const scrollContent = event.target
-  // console.log(event, scrollContent)
-  if(scrollContent.scrollTop<10){
-    // refreshUserConversations()
-    console.log('加载更多')
-  }
-  // console.log(event.target.scrollTop)
- }
 async function refreshClosedConversations() {
   loadingState.loadingClosed = true;
   const result = await callApi('/console/api/human-service/conversations?status=closed');
@@ -843,7 +820,6 @@ function connectSocket() {
 
   // 断开连接
   socket.value.on('disconnect', (reason) => {
-    console.log('res',reason)
     isConnected.value = false;
     stopAutoRefresh();
   });

@@ -251,11 +251,9 @@ const visible = computed({
 let isQuWu =ref(false)
 
 watch(() => props.checkedRowKeys, (newVal) => {
-  console.log('checkedRowKeys', props.checkedRowKeys)
 }, { deep: true, immediate: true })
 
 watch(() => props.checkedRows, (newVal) => {
-  console.log('newVal', props.checkedRows)
   isQuWu.value =  newVal?.some(row => Number(row?.mainCategory) == Number(AppraisalClass?.QuWu))
   isRequired.value = newVal?.some(row => row?.light == 1)
 }, { deep: true, immediate: true })
@@ -356,16 +354,16 @@ async function handleSubmit() {
     }));
    
 
-    try {
-      await fetchAppraisalResultAdd({ items: resultItems });
-    } catch (error) {
-      console.error('批量更新鉴定状态失败:', error);
-    }
-    try {
-      await fetchAppraisalUpdate({items:updateItems});
-    } catch (error) {
-      console.error('批量更新鉴定状态失败:', error);
-    }
+    // try {
+    //   await fetchAppraisalResultAdd({ items: resultItems });
+    // } catch (error) {
+    //   console.error('批量更新鉴定状态失败:', error);
+    // }
+    // try {
+    //   await fetchAppraisalUpdate({items:updateItems});
+    // } catch (error) {
+    //   console.error('批量更新鉴定状态失败:', error);
+    // }
    
     // 批量更新鉴定状态
   
