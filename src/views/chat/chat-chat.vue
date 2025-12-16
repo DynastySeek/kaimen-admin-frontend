@@ -907,7 +907,7 @@
     console.log('baseInfo.currentConversationId',baseInfo.currentConversationId)
     const messageToSend = message.value.trim() || text ;
     // console.log('messageToSend',messageToSend)
-    // if (!messageToSend ) return;
+    if (!messageToSend ) return;
     console.log('messageToSend',messageToSend)
     addMessageToChatList({
       query: '',
