@@ -865,7 +865,7 @@ function connectSocket() {
     console.log('user_message', data)
     playNotifySound(true);
     const msgData = data?.data || data || {};
-    
+    createMessage(`收到来自会话 ${msgData.conversation_id.slice(0, 8)}... 的新消息`);
     // 如果当前没有会话，但收到消息，自动切换到该会话
     if (!baseInfo.currentConversationId && msgData.conversation_id) {
       console.log('收到新会话消息，自动切换到会话:', msgData.conversation_id)
@@ -897,7 +897,6 @@ function connectSocket() {
       });
     } else if (msgData.conversation_id) {
       // 如果不是当前会话的消息，显示通知
-      createMessage(`收到来自会话 ${msgData.conversation_id.slice(0, 8)}... 的新消息`);
       // 刷新活跃会话列表
       refreshActiveConversations();
     }
