@@ -387,6 +387,7 @@
   import { reactive } from 'vue';
   import audio from "@/assets/new_message.mp3";
   import { useNotification } from 'naive-ui'
+import { ConnectionSend } from '@vicons/carbon';
   const notification = useNotification()
   let globalSound = ref(true);
   const active = ref(false)
@@ -513,7 +514,7 @@
   
     loadingState.loadingQueue = true;
     const result = await queueChatList();
-    console.log('result', result)
+    // console.log('result', result)
     if (result) {
       queueState.waitingQueue = result.queue || [];
     } else {
@@ -747,6 +748,7 @@
   
     // 上线确认
     socket.value.on('human_online_ack', (data) => {
+      console.log('human_online_ack', data, baseInfo.currentConversationId)
       isConnected.value = true;
       refreshAll();
     });
@@ -760,6 +762,7 @@
     });
       // 接受会话确认
       socket.value.on('accept_conversation_ack', (data) => {
+        console.log('accept_conversation_ack', data)
         refreshQueue();
         refreshStats();
         refreshActiveConversations();
@@ -787,6 +790,7 @@
   
     // 会话关闭事件
     socket.value.on('conversation_closed', (data) => {
+      console.log('conversation_closed', data)
       closeReason.value = data.data.close_reason=="user_disconnected"?`会话id:${data.data.conversation_id}用户主动关闭会话`:'会话已结束'
       if(closeReason.value){
         createMessage(closeReason.value)
@@ -804,6 +808,7 @@
   
     // 断开连接
     socket.value.on('disconnect', (reason) => {
+      console.log('disconnect', reason)
       isConnected.value = false;
       stopAutoRefresh();
     });
@@ -1037,7 +1042,7 @@
    * 组件卸载时断开 WebSocket 连接
    */
   onUnmounted(() => {
-    disconnectSocket();
+    // disconnectSocket();
   });
    </script>
    
