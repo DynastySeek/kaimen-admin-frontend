@@ -157,7 +157,6 @@
                             </n-text>
                             <n-space>
                               <n-button 
-                                v-if="conv.conversation_id !== baseInfo.currentConversationId"
                                 type="info" 
                                 size="small"
                                 @click="isHistoryView = false;switchToConversation(conv.conversation_id, conv.user_id)"
@@ -852,13 +851,13 @@
    */
   function switchToConversation(conversationId, userId) {
     if (!socket.value?.connected || !isConnected.value) return;
-    socket.value.emit('accept_conversation', {
-      type: 'accept_conversation',
-      data: {
-        conversation_id: conversationId,
-        timestamp: Math.floor(Date.now() / 1000)
-      }
-    });
+    // socket.value.emit('accept_conversation', {
+    //   type: 'accept_conversation',
+    //   data: {
+    //     conversation_id: conversationId,
+    //     timestamp: Math.floor(Date.now() / 1000)
+    //   }
+    // });
     baseInfo.currentConversationId = conversationId;
     baseInfo.currentUserId = userId;
     viewConversationHistory(conversationId, userId);
