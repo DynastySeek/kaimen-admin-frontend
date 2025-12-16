@@ -834,24 +834,16 @@
         timestamp: Math.floor(Date.now() / 1000)
       }
     })
-    console.log('temp',temp)
     // then(res=>{
       console.log('用户接入')
-      socket.value.emit('human_message', {
-      type: 'human_message',
-      data: {
-        conversation_id: conversationId,
-        message_content: '您好，很高兴为您服务，请问有什么可以帮您？',
-        message_type: 'text',
-        timestamp: Math.floor(Date.now() / 1000)
-      }
-    });
-    // })
-    console.log(temp)
     // 第一次进入聊天窗口
     baseInfo.currentConversationId = conversationId;
     baseInfo.currentUserId = userId;
     viewConversationHistory(conversationId,userId)
+    // if(temp){
+    //   console.log(temp)
+    //   sendMessage('您好，很高兴为您服务，请问有什么可以帮您？')
+    // }
   }
   
   /**
@@ -912,25 +904,27 @@
    * 通过 WebSocket 发送客服消息并更新本地聊天列表
    */
   function sendMessage(text) {
-    if (!baseInfo.currentConversationId) return;
-    if (!socket.value?.connected || !isConnected.value) return;
-  
-    const messageToSend = message.value.trim();
-    if (!messageToSend) return;
-    
+    // if (!baseInfo.currentConversationId) return;
+    // if (!socket.value?.connected || !isConnected.value) return;
+    // 
+    console.log('baseInfo.currentConversationId',baseInfo.currentConversationId)
+    const messageToSend = message.value.trim() || text ;
+    // console.log('messageToSend',messageToSend)
+    // if (!messageToSend ) return;
+    console.log('messageToSend',messageToSend)
     addMessageToChatList({
       query: '',
-      answer: messageToSend,
+      answer: messageToSend  ,
       created_at: Math.floor(Date.now() / 1000),
       id: `msg_${Date.now()}`,
       isUser: false
     });
-  
+  console.log('human_message')
     socket.value.emit('human_message', {
       type: 'human_message',
       data: {
         conversation_id: baseInfo.currentConversationId,
-        message_content: messageToSend||text,
+        message_content:  messageToSend,
         message_type: 'text',
         timestamp: Math.floor(Date.now() / 1000)
       }
