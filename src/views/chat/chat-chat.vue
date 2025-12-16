@@ -841,7 +841,7 @@
       type: 'human_message',
       data: {
         conversation_id: conversationId,
-        message_content: '您好,人工客服已接入，请问需要什么帮助？',
+        message_content: '您好，很高兴为您服务，请问有什么可以帮您？',
         message_type: 'text',
         timestamp: Math.floor(Date.now() / 1000)
       }
