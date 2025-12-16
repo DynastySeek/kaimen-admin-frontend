@@ -741,16 +741,21 @@ import { ConnectionSend } from '@vicons/carbon';
           timestamp: Math.floor(Date.now() / 1000)
         }
       });
-  1
+      
       // 开始自动刷新
       startAutoRefresh();
     });
   
     // 上线确认
-    socket.value.on('human_online_ack', (data) => {
+    socket.value.on('human_online_ack', async (data) => {
       console.log('human_online_ack', data, baseInfo.currentConversationId)
       isConnected.value = true;
-      refreshAll();
+      await refreshAll();
+      // 刷新后，如果有活跃会话且当前没有会话，自动切换到第一个活跃会话
+      if (!baseInfo.currentConversationId && queueState.activeConversations.length > 0) {
+        const firstActive = queueState.activeConversations[0];
+        await switchToConversation(firstActive.conversation_id, firstActive.user_id);
+      }
     });
   
     // 新会话通知
@@ -772,12 +777,29 @@ import { ConnectionSend } from '@vicons/carbon';
   
   
     // 接收用户消息
-    socket.value.on('user_message', (data) => {
+    socket.value.on('user_message', async (data) => {
       console.log('user_message', data)
       playNotifySound(true);
       const msgData = data?.data || data || {};
+      const conversationId = msgData.conversation_id;
+      
+      // 如果当前没有会话，或者会话ID不匹配，尝试自动切换到该会话
+      if (!baseInfo.currentConversationId || conversationId !== baseInfo.currentConversationId) {
+        // 检查是否是活跃会话
+        let activeConv = queueState.activeConversations.find(c => c.conversation_id === conversationId);
+        if (!activeConv) {
+          // 如果不是活跃会话，刷新活跃会话列表后再检查
+          await refreshActiveConversations();
+          activeConv = queueState.activeConversations.find(c => c.conversation_id === conversationId);
+        }
+        if (activeConv) {
+          // 自动切换到该会话，等待切换完成
+          await switchToConversation(conversationId, activeConv.user_id);
+        }
+      }
+      
       // 如果是当前会话的消息，添加到聊天列表
-      if (msgData.conversation_id === baseInfo.currentConversationId) {
+      if (conversationId === baseInfo.currentConversationId) {
         addMessageToChatList({
           query: msgData.content || msgData.message_content || '',
           answer: '',
@@ -791,9 +813,17 @@ import { ConnectionSend } from '@vicons/carbon';
     // 会话关闭事件
     socket.value.on('conversation_closed', (data) => {
       console.log('conversation_closed', data)
-      closeReason.value = data.data.close_reason=="user_disconnected"?`会话id:${data.data.conversation_id}用户主动关闭会话`:'会话已结束'
+      const closedConversationId = data.data?.conversation_id;
+      closeReason.value = data.data.close_reason=="user_disconnected"?`会话id:${closedConversationId}用户主动关闭会话`:'会话已结束'
       if(closeReason.value){
         createMessage(closeReason.value)
+      }
+      // 如果关闭的是当前会话，清空当前会话状态
+      if (closedConversationId === baseInfo.currentConversationId) {
+        baseInfo.currentConversationId = null;
+        baseInfo.currentUserId = null;
+        baseInfo.chatListData = [];
+        baseInfo.isConversationClosed = true;
       }
       refreshQueue();
       refreshStats();
@@ -811,6 +841,29 @@ import { ConnectionSend } from '@vicons/carbon';
       console.log('disconnect', reason)
       isConnected.value = false;
       stopAutoRefresh();
+      // 注意：不断开连接，保持会话状态，等待自动重连
+    });
+  
+    // 重连成功
+    socket.value.on('reconnect', async (attemptNumber) => {
+      console.log('reconnect', attemptNumber)
+      // 重连成功后，如果当前有会话，确保会话状态正确
+      if (baseInfo.currentConversationId) {
+        // 刷新活跃会话列表，确保会话仍然存在
+        await refreshActiveConversations();
+        const activeConv = queueState.activeConversations.find(
+          c => c.conversation_id === baseInfo.currentConversationId
+        );
+        if (activeConv) {
+          // 会话仍然活跃，重新加载历史记录
+          await viewConversationHistory(baseInfo.currentConversationId, baseInfo.currentUserId);
+        } else {
+          // 会话已不存在，清空当前会话
+          baseInfo.currentConversationId = null;
+          baseInfo.currentUserId = null;
+          baseInfo.chatListData = [];
+        }
+      }
     });
   
     // 连接错误
@@ -853,18 +906,19 @@ import { ConnectionSend } from '@vicons/carbon';
    * @param {string} conversationId - 会话ID
    * @param {string} userId - 用户ID
    */
-  function switchToConversation(conversationId, userId) {
+  async function switchToConversation(conversationId, userId) {
     if (!socket.value?.connected || !isConnected.value) return;
-    socket.value.emit('accept_conversation', {
-      type: 'accept_conversation',
-      data: {
-        conversation_id: conversationId,
-        timestamp: Math.floor(Date.now() / 1000)
-      }
-    });
+    // socket.value.emit('accept_conversation', {
+    //   type: 'accept_conversation',
+    //   data: {
+    //     conversation_id: conversationId,
+    //     timestamp: Math.floor(Date.now() / 1000)
+    //   }
+    // });
     baseInfo.currentConversationId = conversationId;
     baseInfo.currentUserId = userId;
-    viewConversationHistory(conversationId, userId);
+    isHistoryView.value = false; // 确保不是历史视图模式
+    await viewConversationHistory(conversationId, userId);
     setTimeout(() => refreshActiveConversations(), 500);
   }
   
