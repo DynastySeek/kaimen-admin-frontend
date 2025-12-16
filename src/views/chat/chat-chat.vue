@@ -384,10 +384,11 @@ import { useUserStore } from '@/stores';
 import { io } from 'socket.io-client';
 import dayjs from 'dayjs';
 import {  userChatAllHistoryList, conversationChatHistoryList,queueChatList, statsChatList, conversationsChatList, closeChatAllConversation} from "@/services";
-import { reactive } from 'vue';
+import { reactive, watch } from 'vue';
 import audio from "@/assets/new_message.mp3";
 import { useNotification } from 'naive-ui'
 import { ConnectionSend } from '@vicons/carbon';
+import { lStorage } from '@/utils/modules/storage';
 const notification = useNotification()
 let globalSound = ref(true);
 const active = ref(false)
@@ -446,6 +447,73 @@ const loadingState = reactive({
 })
 // ==================== 定时器 ====================
 let autoRefreshInterval = null; // 自动刷新定时器
+
+// ==================== 会话持久化 ====================
+const CHAT_SESSION_KEY = 'chat_current_session'; // localStorage key
+
+/**
+ * 保存当前会话到 localStorage
+ */
+function saveCurrentSession() {
+  if (baseInfo.currentConversationId && baseInfo.currentUserId && !baseInfo.isConversationClosed) {
+    const sessionData = {
+      conversationId: baseInfo.currentConversationId,
+      userId: baseInfo.currentUserId,
+      timestamp: Date.now()
+    };
+    lStorage.set(CHAT_SESSION_KEY, sessionData);
+    console.log('保存会话到本地存储:', sessionData);
+  } else {
+    // 如果没有活跃会话，清除存储
+    lStorage.remove(CHAT_SESSION_KEY);
+  }
+}
+
+/**
+ * 从 localStorage 恢复会话
+ */
+function restoreSessionFromStorage() {
+  try {
+    const sessionData = lStorage.get(CHAT_SESSION_KEY);
+    if (sessionData && sessionData.conversationId && sessionData.userId) {
+      // 检查会话是否过期（超过24小时则清除）
+      const now = Date.now();
+      const sessionAge = now - (sessionData.timestamp || 0);
+      const maxAge = 24 * 60 * 60 * 1000; // 24小时
+      
+      if (sessionAge < maxAge) {
+        console.log('从本地存储恢复会话:', sessionData);
+        baseInfo.currentConversationId = sessionData.conversationId;
+        baseInfo.currentUserId = sessionData.userId;
+        baseInfo.isConversationClosed = false;
+        return true;
+      } else {
+        console.log('会话已过期，清除本地存储');
+        lStorage.remove(CHAT_SESSION_KEY);
+      }
+    }
+  } catch (error) {
+    console.error('恢复会话失败:', error);
+    lStorage.remove(CHAT_SESSION_KEY);
+  }
+  return false;
+}
+
+/**
+ * 清除会话存储
+ */
+function clearSessionStorage() {
+  lStorage.remove(CHAT_SESSION_KEY);
+}
+
+// 监听会话状态变化，自动保存
+watch(
+  () => [baseInfo.currentConversationId, baseInfo.currentUserId, baseInfo.isConversationClosed],
+  () => {
+    saveCurrentSession();
+  },
+  { deep: true }
+);
 
 // ==================== API 调用函数 ====================
 
@@ -726,12 +794,14 @@ function connectSocket() {
     transports: ['websocket', 'polling'],
     reconnection: true,
     reconnectionDelay: 1000,
-    reconnectionAttempts: 5,
+    reconnectionDelayMax: 5000,
+    reconnectionAttempts: Infinity, // 无限重连，除非主动断开
     timeout: 20000,
   });
 
   // 连接成功
   socket.value.on('connect', () => {
+    console.log('WebSocket 连接成功')
     // 发送客服上线
     socket.value.emit('human_online', {
       type: 'human_online',
@@ -741,9 +811,22 @@ function connectSocket() {
         timestamp: Math.floor(Date.now() / 1000)
       }
     });
-1
     // 开始自动刷新
     startAutoRefresh();
+  });
+
+  // 重连成功
+  socket.value.on('reconnect', (attemptNumber) => {
+    console.log('WebSocket 重连成功，重连次数:', attemptNumber)
+    // 重连后重新发送上线通知
+    socket.value.emit('human_online', {
+      type: 'human_online',
+      data: {
+        human_id: userStore.userInfo.user_id,
+        human_name: userStore.userInfo.nickname,
+        timestamp: Math.floor(Date.now() / 1000)
+      }
+    });
   });
 
   // 上线确认
@@ -751,6 +834,12 @@ function connectSocket() {
     console.log('human_online_ack', data, baseInfo.currentConversationId)
     isConnected.value = true;
     refreshAll();
+    
+    // 如果有当前会话，自动恢复会话
+    if (baseInfo.currentConversationId && baseInfo.currentUserId && !baseInfo.isConversationClosed) {
+      console.log('恢复会话:', baseInfo.currentConversationId)
+      restoreCurrentSession();
+    }
   });
 
   // 新会话通知
@@ -771,11 +860,32 @@ function connectSocket() {
 
 
 
-  // 接收用户消息
+  // 接收用户消息（始终监听，即使断线重连后也能接收）
   socket.value.on('user_message', (data) => {
     console.log('user_message', data)
     playNotifySound(true);
     const msgData = data?.data || data || {};
+    
+    // 如果当前没有会话，但收到消息，自动切换到该会话
+    if (!baseInfo.currentConversationId && msgData.conversation_id) {
+      console.log('收到新会话消息，自动切换到会话:', msgData.conversation_id)
+      // 先恢复会话
+      if (socket.value?.connected && isConnected.value) {
+        socket.value.emit('accept_conversation', {
+          type: 'accept_conversation',
+          data: {
+            conversation_id: msgData.conversation_id,
+            timestamp: Math.floor(Date.now() / 1000)
+          }
+        });
+      }
+      baseInfo.currentConversationId = msgData.conversation_id;
+      baseInfo.currentUserId = msgData.user_id || baseInfo.currentUserId;
+      baseInfo.isConversationClosed = false;
+      // 加载会话历史
+      viewConversationHistory(msgData.conversation_id, baseInfo.currentUserId);
+    }
+    
     // 如果是当前会话的消息，添加到聊天列表
     if (msgData.conversation_id === baseInfo.currentConversationId) {
       addMessageToChatList({
@@ -785,13 +895,26 @@ function connectSocket() {
         id: `msg_${Date.now()}`,
         isUser: true
       });
+    } else if (msgData.conversation_id) {
+      // 如果不是当前会话的消息，显示通知
+      createMessage(`收到来自会话 ${msgData.conversation_id.slice(0, 8)}... 的新消息`);
+      // 刷新活跃会话列表
+      refreshActiveConversations();
     }
   });
 
   // 会话关闭事件
   socket.value.on('conversation_closed', (data) => {
     console.log('conversation_closed', data)
-    closeReason.value = data.data.close_reason=="user_disconnected"?`会话id:${data.data.conversation_id}用户主动关闭会话`:'会话已结束'
+    const closedConversationId = data.data?.conversation_id;
+    
+    // 如果关闭的是当前会话，清除状态
+    if (closedConversationId === baseInfo.currentConversationId) {
+      baseInfo.isConversationClosed = true;
+      clearSessionStorage();
+    }
+    
+    closeReason.value = data.data.close_reason=="user_disconnected"?`会话id:${closedConversationId}用户主动关闭会话`:'会话已结束'
     if(closeReason.value){
       createMessage(closeReason.value)
     }
@@ -808,19 +931,78 @@ function connectSocket() {
 
   // 断开连接
   socket.value.on('disconnect', (reason) => {
-    console.log('disconnect', reason)
+    console.log('WebSocket 断开连接，原因:', reason)
     isConnected.value = false;
     stopAutoRefresh();
+    
+    // 如果是主动断开（如用户点击下线），才清除会话状态
+    // 否则保持会话状态，等待重连后恢复
+    if (reason === 'io client disconnect' || reason === 'io server disconnect') {
+      // 主动断开，清除状态
+      console.log('主动断开连接，清除会话状态')
+      baseInfo.currentConversationId = null;
+      baseInfo.currentUserId = null;
+      baseInfo.chatListData = [];
+    } else {
+      // 网络问题导致的断开，保持会话状态等待重连
+      console.log('网络断开，保持会话状态等待重连')
+    }
   });
 
   // 连接错误
   socket.value.on('connect_error', (error) => {
     console.error('❌ [Human] Connection error:', error);
     isConnected.value = false;
+    // 连接错误时不清除会话状态，等待重连
+  });
+
+  // 重连尝试
+  socket.value.on('reconnect_attempt', (attemptNumber) => {
+    console.log('正在尝试重连，第', attemptNumber, '次')
+  });
+
+  // 重连失败
+  socket.value.on('reconnect_failed', () => {
+    console.error('❌ 重连失败，将继续尝试重连')
+    // 即使重连失败，也继续尝试（因为设置了无限重连）
   });
 }
 
 // ==================== 会话操作函数 ====================
+
+/**
+ * 恢复当前会话（发送 accept_conversation 并加载历史）
+ */
+async function restoreCurrentSession() {
+  if (!socket.value?.connected || !isConnected.value) {
+    console.log('WebSocket 未连接，无法恢复会话');
+    return;
+  }
+  
+  if (!baseInfo.currentConversationId || !baseInfo.currentUserId) {
+    console.log('没有可恢复的会话');
+    return;
+  }
+  
+  console.log('恢复会话:', baseInfo.currentConversationId, baseInfo.currentUserId);
+  
+  // 发送 accept_conversation 恢复会话
+  socket.value.emit('accept_conversation', {
+    type: 'accept_conversation',
+    data: {
+      conversation_id: baseInfo.currentConversationId,
+      timestamp: Math.floor(Date.now() / 1000)
+    }
+  });
+  
+  // 加载会话历史
+  await viewConversationHistory(baseInfo.currentConversationId, baseInfo.currentUserId);
+  
+  // 刷新活跃会话列表
+  setTimeout(() => {
+    refreshActiveConversations();
+  }, 500);
+}
 
 /**
  * 从等待队列接受会话
@@ -842,6 +1024,16 @@ function acceptConversationFromQueue(conversationId, userId) {
   baseInfo.currentConversationId = conversationId;
   baseInfo.currentUserId = userId;
   viewConversationHistory(conversationId,userId)
+
+  socket.value.emit('human_message', {
+    type: 'human_message',
+    data: {
+      conversation_id: baseInfo.currentConversationId,
+      message_content:  "您好，很高兴为您服务，请问有什么可以帮您？",
+      message_type: 'text',
+      timestamp: Math.floor(Date.now() / 1000)
+    }
+  });
   // if(temp){
   //   console.log(temp)
   //   sendMessage('您好，很高兴为您服务，请问有什么可以帮您？')
@@ -897,6 +1089,8 @@ function closeConversationById(conversationId) {
 function closeConversation(conversationId) {
   closeConversationById(conversationId);
   baseInfo.isConversationClosed = true;
+  // 清除本地存储的会话
+  clearSessionStorage();
 }
 
 // ==================== 消息处理函数 ====================
@@ -1002,7 +1196,7 @@ function stopAutoRefresh() {
 
 /**
  * 断开 WebSocket 连接
- * 发送下线通知并清理所有状态
+ * 发送下线通知并清理所有状态（仅用于主动断开）
  */
 function disconnectSocket() {
   if (!socket.value) return;
@@ -1017,15 +1211,19 @@ function disconnectSocket() {
       });
     }
     
+    // 主动断开连接，禁用自动重连
     socket.value.disconnect();
   } catch (e) {
     console.warn('断开连接失败:', e);
   } finally {
     socket.value = null;
     isConnected.value = false;
-    baseInfo.currentConversationId = '';
-    baseInfo.currentUserId = '';
+    baseInfo.currentConversationId = null;
+    baseInfo.currentUserId = null;
+    baseInfo.chatListData = [];
     stopAutoRefresh();
+    // 清除本地存储的会话
+    clearSessionStorage();
   }
 }
 
@@ -1035,7 +1233,18 @@ function disconnectSocket() {
  * 组件挂载时自动连接 WebSocket
  */
 onMounted(() => {
+  // 先从本地存储恢复会话状态
+  const hasRestored = restoreSessionFromStorage();
+  console.log('页面加载，恢复会话状态:', hasRestored);
+  
+  // 连接 WebSocket
   connectSocket();
+  
+  // 如果恢复了会话，等待连接成功后再恢复会话
+  if (hasRestored) {
+    // 监听连接成功事件，在 human_online_ack 中会自动恢复会话
+    // 这里不需要额外处理，因为 human_online_ack 中已经调用了 restoreCurrentSession
+  }
 });
 
 /**
