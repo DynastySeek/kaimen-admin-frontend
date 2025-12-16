@@ -787,6 +787,7 @@ function connectSocket() {
 
   // 接收用户消息
   socket.value.on('user_message', (data) => {
+    console.log('user_message',data)
     playNotifySound(true);
     const msgData = data?.data || data || {};
     // 如果是当前会话的消息，添加到聊天列表

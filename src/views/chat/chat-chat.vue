@@ -755,6 +755,7 @@
   
     // 新会话通知
     socket.value.on('new_conversation', (data) => {
+      console.log('new_conversation', data)
       playNotifySound(true)
       refreshQueue();
       refreshStats();
@@ -771,6 +772,7 @@
   
     // 接收用户消息
     socket.value.on('user_message', (data) => {
+      console.log('user_message', data)
       playNotifySound(true);
       const msgData = data?.data || data || {};
       // 如果是当前会话的消息，添加到聊天列表
@@ -823,14 +825,29 @@
    * @param {string} userId - 用户ID
    */
   function acceptConversationFromQueue(conversationId, userId) {
+
     if (!socket.value?.connected || !isConnected.value) return;
-    socket.value.emit('accept_conversation', {
+    let temp = socket.value.emit('accept_conversation', {
       type: 'accept_conversation',
       data: {
         conversation_id: conversationId,
         timestamp: Math.floor(Date.now() / 1000)
       }
+    })
+    console.log('temp',temp)
+    // then(res=>{
+      console.log('用户接入')
+      socket.value.emit('human_message', {
+      type: 'human_message',
+      data: {
+        conversation_id: conversationId,
+        message_content: '您好,人工客服已接入，请问需要什么帮助？',
+        message_type: 'text',
+        timestamp: Math.floor(Date.now() / 1000)
+      }
     });
+    // })
+    console.log(temp)
     // 第一次进入聊天窗口
     baseInfo.currentConversationId = conversationId;
     baseInfo.currentUserId = userId;
@@ -894,7 +911,7 @@
    * 发送消息给用户
    * 通过 WebSocket 发送客服消息并更新本地聊天列表
    */
-  function sendMessage() {
+  function sendMessage(text) {
     if (!baseInfo.currentConversationId) return;
     if (!socket.value?.connected || !isConnected.value) return;
   
@@ -913,7 +930,7 @@
       type: 'human_message',
       data: {
         conversation_id: baseInfo.currentConversationId,
-        message_content: messageToSend,
+        message_content: messageToSend||text,
         message_type: 'text',
         timestamp: Math.floor(Date.now() / 1000)
       }
