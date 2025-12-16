@@ -855,13 +855,13 @@ import { ConnectionSend } from '@vicons/carbon';
    */
   function switchToConversation(conversationId, userId) {
     if (!socket.value?.connected || !isConnected.value) return;
-    // socket.value.emit('accept_conversation', {
-    //   type: 'accept_conversation',
-    //   data: {
-    //     conversation_id: conversationId,
-    //     timestamp: Math.floor(Date.now() / 1000)
-    //   }
-    // });
+    socket.value.emit('accept_conversation', {
+      type: 'accept_conversation',
+      data: {
+        conversation_id: conversationId,
+        timestamp: Math.floor(Date.now() / 1000)
+      }
+    });
     baseInfo.currentConversationId = conversationId;
     baseInfo.currentUserId = userId;
     viewConversationHistory(conversationId, userId);
