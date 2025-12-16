@@ -833,7 +833,6 @@
       }
     })
     // then(res=>{
-      console.log('用户接入')
     // 第一次进入聊天窗口
     baseInfo.currentConversationId = conversationId;
     baseInfo.currentUserId = userId;
