@@ -900,12 +900,12 @@
    * 发送消息给用户
    * 通过 WebSocket 发送客服消息并更新本地聊天列表
    */
-  function sendMessage(text) {
+  function sendMessage() {
     // if (!baseInfo.currentConversationId) return;
     // if (!socket.value?.connected || !isConnected.value) return;
     // 
     console.log('baseInfo.currentConversationId',baseInfo.currentConversationId)
-    const messageToSend = message.value.trim() || text ;
+    const messageToSend = message.value.trim() ;
     // console.log('messageToSend',messageToSend)
     if (!messageToSend ) return;
     console.log('messageToSend',messageToSend)
