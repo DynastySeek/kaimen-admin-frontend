@@ -32,7 +32,6 @@
                 <n-button
                 round
                 type="info" 
-                :disabled="!isConnected||queueState.waitingQueue.length===0"
                 @click="closeAll"
               >一键关闭会话</n-button>
             </n-badge>
