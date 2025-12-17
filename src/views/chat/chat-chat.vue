@@ -448,6 +448,9 @@ const loadingState = reactive({
 // ==================== 定时器 ====================
 let autoRefreshInterval = null; // 自动刷新定时器
 
+// ==================== 会话订阅管理 ====================
+const subscribedConversations = new Set(); // 已订阅的会话ID集合，用于避免重复发送 accept_conversation
+
 // ==================== 会话持久化 ====================
 const CHAT_SESSION_KEY = 'chat_current_session'; // localStorage key
 
@@ -594,6 +597,7 @@ async function refreshQueue() {
 /**
  * 刷新活跃会话列表
  * 获取所有正在进行中的客服会话
+ * 并为每个会话自动发送 accept_conversation，确保能接收所有消息
  */
 async function refreshActiveConversations() {
   loadingState.loadingActive = true;
@@ -601,6 +605,36 @@ async function refreshActiveConversations() {
   
   if (result) {
     queueState.activeConversations = result.conversations || [];
+    
+    // 为所有活跃会话发送 accept_conversation，确保能接收消息
+    if (socket.value?.connected && isConnected.value) {
+      const conversations = result.conversations || [];
+      conversations.forEach((conv) => {
+        const conversationId = conv.conversation_id;
+        
+        // 如果还没有订阅过这个会话，则发送 accept_conversation
+        if (conversationId && !subscribedConversations.has(conversationId)) {
+          console.log('自动订阅会话以接收消息:', conversationId);
+          socket.value.emit('accept_conversation', {
+            type: 'accept_conversation',
+            data: {
+              conversation_id: conversationId,
+              timestamp: Math.floor(Date.now() / 1000)
+            }
+          });
+          subscribedConversations.add(conversationId);
+        }
+      });
+      
+      // 清理已关闭的会话订阅（不在活跃列表中的会话）
+      const activeIds = new Set(conversations.map(c => c.conversation_id));
+      subscribedConversations.forEach((id) => {
+        if (!activeIds.has(id)) {
+          console.log('移除已关闭会话的订阅:', id);
+          subscribedConversations.delete(id);
+        }
+      });
+    }
   } else {
     console.error(`❌ 获取活跃会话失败: ${result.status}`);
   }
@@ -833,6 +867,10 @@ function connectSocket() {
   socket.value.on('human_online_ack', (data) => {
     console.log('human_online_ack', data, baseInfo.currentConversationId)
     isConnected.value = true;
+    
+    // 清空之前的订阅记录，重新订阅所有活跃会话
+    subscribedConversations.clear();
+    
     refreshAll();
     
     // 如果有当前会话，自动恢复会话
@@ -865,11 +903,15 @@ function connectSocket() {
     console.log('user_message', data)
     playNotifySound(true);
     const msgData = data?.data || data || {};
-    createMessage(`收到来自会话 ${msgData.conversation_id.slice(0, 8)}... 的新消息`);
-    // 如果当前没有会话，但收到消息，自动切换到该会话
-    if (!baseInfo.currentConversationId && msgData.conversation_id) {
-      console.log('收到新会话消息，自动切换到会话:', msgData.conversation_id)
-      // 先恢复会话
+    
+    if (!msgData.conversation_id) {
+      console.warn('收到无效的 user_message，缺少 conversation_id');
+      return;
+    }
+    
+    // 确保该会话已订阅（防止遗漏）
+    if (!subscribedConversations.has(msgData.conversation_id)) {
+      console.log('收到未订阅会话的消息，自动订阅:', msgData.conversation_id);
       if (socket.value?.connected && isConnected.value) {
         socket.value.emit('accept_conversation', {
           type: 'accept_conversation',
@@ -878,7 +920,13 @@ function connectSocket() {
             timestamp: Math.floor(Date.now() / 1000)
           }
         });
+        subscribedConversations.add(msgData.conversation_id);
       }
+    }
+    
+    // 如果当前没有会话，但收到消息，自动切换到该会话
+    if (!baseInfo.currentConversationId && msgData.conversation_id) {
+      console.log('收到新会话消息，自动切换到会话:', msgData.conversation_id)
       baseInfo.currentConversationId = msgData.conversation_id;
       baseInfo.currentUserId = msgData.user_id || baseInfo.currentUserId;
       baseInfo.isConversationClosed = false;
@@ -896,8 +944,8 @@ function connectSocket() {
         isUser: true
       });
     } else if (msgData.conversation_id) {
-      // 如果不是当前会话的消息，显示通知
-      // 刷新活跃会话列表
+      // 如果不是当前会话的消息，显示通知并刷新活跃会话列表
+      createMessage(`收到来自会话 ${msgData.conversation_id.slice(0, 8)}... 的新消息`);
       refreshActiveConversations();
     }
   });
@@ -906,6 +954,12 @@ function connectSocket() {
   socket.value.on('conversation_closed', (data) => {
     console.log('conversation_closed', data)
     const closedConversationId = data.data?.conversation_id;
+    
+    // 移除已关闭会话的订阅
+    if (closedConversationId) {
+      subscribedConversations.delete(closedConversationId);
+      console.log('移除已关闭会话的订阅:', closedConversationId);
+    }
     
     // 如果关闭的是当前会话，清除状态
     if (closedConversationId === baseInfo.currentConversationId) {
@@ -986,13 +1040,16 @@ async function restoreCurrentSession() {
   console.log('恢复会话:', baseInfo.currentConversationId, baseInfo.currentUserId);
   
   // 发送 accept_conversation 恢复会话
-  socket.value.emit('accept_conversation', {
-    type: 'accept_conversation',
-    data: {
-      conversation_id: baseInfo.currentConversationId,
-      timestamp: Math.floor(Date.now() / 1000)
-    }
-  });
+  if (!subscribedConversations.has(baseInfo.currentConversationId)) {
+    socket.value.emit('accept_conversation', {
+      type: 'accept_conversation',
+      data: {
+        conversation_id: baseInfo.currentConversationId,
+        timestamp: Math.floor(Date.now() / 1000)
+      }
+    });
+    subscribedConversations.add(baseInfo.currentConversationId);
+  }
   
   // 加载会话历史
   await viewConversationHistory(baseInfo.currentConversationId, baseInfo.currentUserId);
@@ -1011,14 +1068,19 @@ async function restoreCurrentSession() {
 function acceptConversationFromQueue(conversationId, userId) {
 
   if (!socket.value?.connected || !isConnected.value) return;
-  let temp = socket.value.emit('accept_conversation', {
-    type: 'accept_conversation',
-    data: {
-      conversation_id: conversationId,
-      timestamp: Math.floor(Date.now() / 1000)
-    }
-  })
-  // then(res=>{
+  
+  // 发送 accept_conversation
+  if (!subscribedConversations.has(conversationId)) {
+    socket.value.emit('accept_conversation', {
+      type: 'accept_conversation',
+      data: {
+        conversation_id: conversationId,
+        timestamp: Math.floor(Date.now() / 1000)
+      }
+    });
+    subscribedConversations.add(conversationId);
+  }
+  
   // 第一次进入聊天窗口
   baseInfo.currentConversationId = conversationId;
   baseInfo.currentUserId = userId;
@@ -1033,10 +1095,6 @@ function acceptConversationFromQueue(conversationId, userId) {
       timestamp: Math.floor(Date.now() / 1000)
     }
   });
-  // if(temp){
-  //   console.log(temp)
-  //   sendMessage('您好，很高兴为您服务，请问有什么可以帮您？')
-  // }
 }
 
 /**
@@ -1046,13 +1104,19 @@ function acceptConversationFromQueue(conversationId, userId) {
  */
 function switchToConversation(conversationId, userId) {
   if (!socket.value?.connected || !isConnected.value) return;
-  socket.value.emit('accept_conversation', {
-    type: 'accept_conversation',
-    data: {
-      conversation_id: conversationId,
-      timestamp: Math.floor(Date.now() / 1000)
-    }
-  });
+  
+  // 确保会话已订阅
+  if (!subscribedConversations.has(conversationId)) {
+    socket.value.emit('accept_conversation', {
+      type: 'accept_conversation',
+      data: {
+        conversation_id: conversationId,
+        timestamp: Math.floor(Date.now() / 1000)
+      }
+    });
+    subscribedConversations.add(conversationId);
+  }
+  
   baseInfo.currentConversationId = conversationId;
   baseInfo.currentUserId = userId;
   viewConversationHistory(conversationId, userId);
@@ -1223,6 +1287,8 @@ function disconnectSocket() {
     stopAutoRefresh();
     // 清除本地存储的会话
     clearSessionStorage();
+    // 清空订阅记录
+    subscribedConversations.clear();
   }
 }
 
