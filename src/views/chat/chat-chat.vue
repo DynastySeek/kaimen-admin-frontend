@@ -1,6 +1,7 @@
 <template>
   <CommonPage>
     <n-space vertical :size="16" style="margin-top: 16px;">
+      <n-space>💡 提示: 请点击页面任意位置以解锁提示音播放</n-space>
        <n-layout has-sider>
         <!-- 左侧：等待队列 + 活跃会话列表 -->
          <n-layout-sider
@@ -414,11 +415,161 @@ function createMessage(text) {
     keepAliveOnHover: true
   })
 }
-const notifyAudio = new Audio(audio);
-function playNotifySound(status) {
-  if(globalSound.value){
+// 音频对象，每次播放时重新创建以确保刷新后也能正常播放
+let notifyAudio = null;
+let audioUnlocked = false; // 音频是否已解锁（通过用户交互）
+
+/**
+ * 初始化音频对象
+ */
+function initAudio() {
+  try {
+    notifyAudio = new Audio(audio);
+    notifyAudio.preload = 'auto';
+    
+    // 监听音频加载事件
+    notifyAudio.addEventListener('canplaythrough', () => {
+      console.log('音频已加载完成，可以播放');
+      // 如果已解锁，尝试立即播放一次以保持解锁状态
+      if (audioUnlocked) {
+        tryUnlockAudio();
+      }
+    });
+    
+    notifyAudio.addEventListener('error', (e) => {
+      console.error('音频加载错误:', e);
+      console.error('音频路径:', audio);
+    });
+    
+    // 预加载音频
+    notifyAudio.load();
+    console.log('音频对象初始化成功，readyState:', notifyAudio.readyState);
+  } catch (error) {
+    console.error('音频对象初始化失败:', error);
+  }
+}
+
+/**
+ * 尝试解锁音频（静音播放以解锁音频上下文）
+ */
+function tryUnlockAudio() {
+  if (!notifyAudio || audioUnlocked) {
+    return;
+  }
+  
+  try {
+    const originalVolume = notifyAudio.volume;
+    notifyAudio.volume = 0.01; // 使用很小的音量而不是0，某些浏览器需要
     notifyAudio.currentTime = 0;
-    status?notifyAudio.play():notifyAudio.pause();
+    
+    const unlockPromise = notifyAudio.play();
+    if (unlockPromise !== undefined) {
+      unlockPromise.then(() => {
+        notifyAudio.pause();
+        notifyAudio.currentTime = 0;
+        notifyAudio.volume = 1;
+        audioUnlocked = true;
+        console.log('✅ 音频已成功解锁！');
+      }).catch((error) => {
+        notifyAudio.volume = originalVolume;
+        console.log('音频解锁失败（需要用户交互）:', error.name);
+      });
+    }
+  } catch (error) {
+    console.warn('解锁音频时出错:', error);
+  }
+}
+
+/**
+ * 播放通知声音
+ * @param {boolean} status - 是否播放
+ */
+function playNotifySound(status) {
+  console.log('playNotifySound 调用:', { status, globalSound: globalSound.value });
+  
+  if (!globalSound.value || !status) {
+    console.log('播放被跳过: globalSound=', globalSound.value, 'status=', status);
+    return;
+  }
+  
+  try {
+    // 如果音频对象不存在，重新创建
+    if (!notifyAudio) {
+      console.log('音频对象不存在，重新初始化');
+      initAudio();
+    }
+    
+    // 如果音频对象仍然不存在，说明初始化失败
+    if (!notifyAudio) {
+      console.warn('音频对象初始化失败，无法播放声音');
+      return;
+    }
+    
+    console.log('音频对象状态:', {
+      readyState: notifyAudio.readyState,
+      paused: notifyAudio.paused,
+      currentTime: notifyAudio.currentTime,
+      src: notifyAudio.src
+    });
+    
+    // 如果音频未加载完成，尝试重新加载
+    if (notifyAudio.readyState === 0) {
+      console.log('音频未加载，重新加载');
+      notifyAudio.load();
+      // 等待加载完成
+      notifyAudio.addEventListener('canplaythrough', () => {
+        playAudio();
+      }, { once: true });
+      return;
+    }
+    
+    // 直接播放
+    playAudio();
+    
+  } catch (error) {
+    console.error('播放音频失败:', error);
+    // 如果播放失败，尝试重新初始化
+    try {
+      initAudio();
+    } catch (initError) {
+      console.error('重新初始化音频失败:', initError);
+    }
+  }
+  
+  /**
+   * 实际播放音频的函数
+   */
+  function playAudio() {
+    try {
+      // 如果音频未解锁，先尝试解锁
+      if (!audioUnlocked) {
+        console.log('音频未解锁，尝试解锁...');
+        tryUnlockAudio();
+        // 即使解锁失败，也尝试播放（某些情况下可能成功）
+      }
+      
+      // 重置播放位置
+      notifyAudio.currentTime = 0;
+      
+      // 播放音频，捕获可能的自动播放策略错误
+      const playPromise = notifyAudio.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          console.log('✅ 音频播放成功');
+          // 播放成功意味着已解锁
+          audioUnlocked = true;
+        }).catch(error => {
+          // 自动播放被阻止
+          console.warn('⚠️ 音频播放被阻止:', error.name);
+          if (!audioUnlocked) {
+            console.log('💡 提示: 请点击页面任意位置以解锁音频播放');
+          }
+        });
+      }
+    } catch (error) {
+      console.error('playAudio 内部错误:', error);
+    }
   }
 }
 const expandedName = ref();
@@ -1329,6 +1480,9 @@ function disconnectSocket() {
  * 组件挂载时自动连接 WebSocket
  */
 onMounted(() => {
+  // 初始化音频对象
+  initAudio();
+  
   // 先从本地存储恢复会话状态
   const hasRestored = restoreSessionFromStorage();
   console.log('页面加载，恢复会话状态:', hasRestored);
@@ -1341,6 +1495,58 @@ onMounted(() => {
     // 监听连接成功事件，在 human_online_ack 中会自动恢复会话
     // 这里不需要额外处理，因为 human_online_ack 中已经调用了 restoreCurrentSession
   }
+  
+  // 积极的音频解锁策略：在多个事件上尝试解锁
+  const unlockAudioOnInteraction = () => {
+    if (audioUnlocked) {
+      return; // 已经解锁，不需要重复
+    }
+    
+    console.log('🔓 检测到用户交互，立即解锁音频');
+    tryUnlockAudio();
+  };
+  
+  // 监听多种用户交互事件以解锁音频
+  // 使用 capture 阶段和多个事件类型，确保尽早捕获
+  const interactionEvents = ['click', 'keydown', 'keypress', 'touchstart', 'mousedown', 'pointerdown'];
+  
+  interactionEvents.forEach(eventType => {
+    document.addEventListener(eventType, unlockAudioOnInteraction, { 
+      once: false, // 不限制只触发一次，确保每次交互都能尝试解锁
+      passive: true // 使用 passive 提高性能
+    });
+  });
+  
+  // 页面可见性变化时也尝试解锁（用户切换回标签页时）
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && notifyAudio && !audioUnlocked) {
+      console.log('页面变为可见，尝试解锁音频');
+      // 延迟一点，确保页面完全可见
+      setTimeout(() => {
+        tryUnlockAudio();
+      }, 100);
+    }
+  });
+  
+  // 页面获得焦点时尝试解锁
+  window.addEventListener('focus', () => {
+    if (notifyAudio && !audioUnlocked) {
+      console.log('窗口获得焦点，尝试解锁音频');
+      setTimeout(() => {
+        tryUnlockAudio();
+      }, 100);
+    }
+  });
+  
+  // 在页面加载完成后立即尝试解锁（某些浏览器可能允许）
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      if (notifyAudio && !audioUnlocked) {
+        console.log('页面加载完成，尝试自动解锁音频');
+        tryUnlockAudio();
+      }
+    }, 500);
+  });
 });
 
 /**
