@@ -60,20 +60,26 @@
                       <n-empty description="暂无等待中的会话" />
                     </div>
                     <n-space v-else vertical :size="12">
-                      <n-card
+                      <n-badge 
+                        :value="conversationsWithNewMessages.has(item.conversation_id) ? '新' : null"
+                        :show-zero="false"
+                        :max="99"
+                        :offset="[8, 8]"
                         v-for="item in queueState.waitingQueue"
                         :key="item.conversation_id"
-                        size="small"
-                        hoverable
                       >
-                        <template #header>
-                          <n-space align="center">
-                            <n-tag type="warning" size="small">
-                              #{{ item.queue_position }}
-                            </n-tag>
-                            <span style="font-size: 12px;">等待 {{ item.wait_time }}s</span>
-                          </n-space>
-                         </template>
+                        <n-card
+                          size="small"
+                          hoverable
+                        >
+                          <template #header>
+                            <n-space align="center">
+                              <n-tag type="warning" size="small">
+                                #{{ item.queue_position }}
+                              </n-tag>
+                              <span style="font-size: 12px;">等待 {{ item.wait_time }}s</span>
+                            </n-space>
+                           </template>
                         <n-space vertical :size="8">
                           <n-text depth="3" style="font-size: 12px;">
                             会话ID: {{ item.conversation_id.slice(0, 8) }}...
@@ -94,6 +100,7 @@
                           </n-button>
                         </n-space>
                       </n-card>
+                      </n-badge>
                     </n-space>
                   </n-spin>
                 </n-space>
@@ -120,28 +127,34 @@
                       <n-empty description="暂无活跃会话" />
                     </div>
                     <n-space v-else vertical :size="12">
-                      <n-card
+                      <n-badge 
+                        :value="conversationsWithNewMessages.has(conv.conversation_id) ? '新' : null"
+                        :show-zero="false"
+                        :max="99"
+                        :offset="[8, 8]"
                         v-for="conv in queueState.activeConversations"
                         :key="conv.conversation_id"
-                        size="small"
-                        hoverable
-                        :bordered="conv.conversation_id === baseInfo.currentConversationId"
-                        :style="conv.conversation_id === baseInfo.currentConversationId ? 'border: 2px solid #18a058;' : ''"
                       >
-                      <template #header>
-                          <n-space align="center" justify="space-between">
-                            <span style="font-size: 13px;">
-                              {{ conv.conversation_id === baseInfo.currentConversationId ? '⭐ 当前会话' : '💬 活跃' }}
-                            </span>
-                            <n-tag 
-                              v-if="conv.conversation_id === baseInfo.currentConversationId" 
-                              type="success" 
-                              size="small"
-                            >
-                              处理中
-                            </n-tag>
-                          </n-space>
-                        </template>
+                        <n-card
+                          size="small"
+                          hoverable
+                          :bordered="conv.conversation_id === baseInfo.currentConversationId"
+                          :style="conv.conversation_id === baseInfo.currentConversationId ? 'border: 2px solid #18a058;' : ''"
+                        >
+                        <template #header>
+                            <n-space align="center" justify="space-between">
+                              <span style="font-size: 13px;">
+                                {{ conv.conversation_id === baseInfo.currentConversationId ? '⭐ 当前会话' : '💬 活跃' }}
+                              </span>
+                              <n-tag 
+                                v-if="conv.conversation_id === baseInfo.currentConversationId" 
+                                type="success" 
+                                size="small"
+                              >
+                                处理中
+                              </n-tag>
+                            </n-space>
+                          </template>
                         <n-space vertical :size="8">
                           <n-text depth="3" style="font-size: 12px;">
                             会话ID: {{ conv.conversation_id.slice(0, 8) }}...
@@ -173,6 +186,7 @@
                           </n-space>
                         </n-space>
                       </n-card>
+                      </n-badge>
                     </n-space>
                   </n-spin>
                 </n-space>
@@ -450,6 +464,7 @@ let autoRefreshInterval = null; // 自动刷新定时器
 
 // ==================== 会话订阅管理 ====================
 const subscribedConversations = new Set(); // 已订阅的会话ID集合，用于避免重复发送 accept_conversation
+const conversationsWithNewMessages = new Set(); // 有新消息的会话ID集合，用于显示角标
 
 // ==================== 会话持久化 ====================
 const CHAT_SESSION_KEY = 'chat_current_session'; // localStorage key
@@ -930,6 +945,8 @@ function connectSocket() {
       baseInfo.currentConversationId = msgData.conversation_id;
       baseInfo.currentUserId = msgData.user_id || baseInfo.currentUserId;
       baseInfo.isConversationClosed = false;
+      // 清除新消息标记（因为已经自动切换到了该会话）
+      conversationsWithNewMessages.delete(msgData.conversation_id);
       // 加载会话历史
       viewConversationHistory(msgData.conversation_id, baseInfo.currentUserId);
     }
@@ -943,9 +960,12 @@ function connectSocket() {
         id: `msg_${Date.now()}`,
         isUser: true
       });
+      // 清除当前会话的新消息标记
+      conversationsWithNewMessages.delete(msgData.conversation_id);
     } else if (msgData.conversation_id) {
-      // 如果不是当前会话的消息，显示通知并刷新活跃会话列表
-      createMessage(`收到来自会话 ${msgData.conversation_id.slice(0, 8)}... 的新消息`);
+      // 如果不是当前会话的消息，标记该会话有新消息
+      conversationsWithNewMessages.add(msgData.conversation_id);
+      createMessage(`收到来自用户${msgData.user_id},会话 ${msgData.conversation_id.slice(0, 8)}... 的新消息`);
       refreshActiveConversations();
     }
   });
@@ -955,9 +975,10 @@ function connectSocket() {
     console.log('conversation_closed', data)
     const closedConversationId = data.data?.conversation_id;
     
-    // 移除已关闭会话的订阅
+    // 移除已关闭会话的订阅和新消息标记
     if (closedConversationId) {
       subscribedConversations.delete(closedConversationId);
+      conversationsWithNewMessages.delete(closedConversationId);
       console.log('移除已关闭会话的订阅:', closedConversationId);
     }
     
@@ -1051,6 +1072,9 @@ async function restoreCurrentSession() {
     subscribedConversations.add(baseInfo.currentConversationId);
   }
   
+  // 清除新消息标记
+  conversationsWithNewMessages.delete(baseInfo.currentConversationId);
+  
   // 加载会话历史
   await viewConversationHistory(baseInfo.currentConversationId, baseInfo.currentUserId);
   
@@ -1080,6 +1104,9 @@ function acceptConversationFromQueue(conversationId, userId) {
     });
     subscribedConversations.add(conversationId);
   }
+  
+  // 清除新消息标记
+  conversationsWithNewMessages.delete(conversationId);
   
   // 第一次进入聊天窗口
   baseInfo.currentConversationId = conversationId;
@@ -1116,6 +1143,9 @@ function switchToConversation(conversationId, userId) {
     });
     subscribedConversations.add(conversationId);
   }
+  
+  // 清除新消息标记
+  conversationsWithNewMessages.delete(conversationId);
   
   baseInfo.currentConversationId = conversationId;
   baseInfo.currentUserId = userId;
@@ -1287,8 +1317,9 @@ function disconnectSocket() {
     stopAutoRefresh();
     // 清除本地存储的会话
     clearSessionStorage();
-    // 清空订阅记录
+    // 清空订阅记录和新消息标记
     subscribedConversations.clear();
+    conversationsWithNewMessages.clear();
   }
 }
 
